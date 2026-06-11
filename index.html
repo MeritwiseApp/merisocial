@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>MeriSocial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── RESET ─────────────────────────────────────── */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{
+      --white:#ffffff;
+      --bg:#f7f9fa;
+      --surface:#ffffff;
+      --border:#eff3f4;
+      --border-dark:#cfd9de;
+      --text:#0f1419;
+      --text-secondary:#536471;
+      --text-tertiary:#8b98a5;
+      --accent:#1d9bf0;
+      --accent-hover:#1a8cd8;
+      --accent-light:#e8f5fd;
+      --red:#f4212e;
+      --green:#00ba7c;
+      --yellow:#ffd400;
+      --font:'Inter',system-ui,-apple-system,sans-serif;
+      --radius-sm:4px;
+      --radius:12px;
+      --radius-lg:16px;
+      --radius-pill:9999px;
+      --transition:0.15s ease;
+    }
+
+    html,body{
+      min-height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--font);
+      font-size:15px;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────── */
+    #app{min-height:100vh}
+    .screen{display:none;min-height:100vh;flex-direction:column}
+    .screen.active{display:flex}
+
+    /* ── AUTH WRAPPER ────────────────────────────────── */
+    .auth-root{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      padding:0;
+      background:var(--white);
+    }
+    .auth-inner{
+      width:100%;
+      max-width:400px;
+      padding:32px 40px 48px;
+    }
+    @media(max-width:500px){
+      .auth-inner{padding:24px 20px 40px}
+    }
+
+    .brand{
+      font-size:28px;
+      font-weight:700;
+      letter-spacing:-0.8px;
+      color:var(--text);
+      margin-bottom:4px;
+      display:inline-block;
+    }
+    .brand em{color:var(--accent);font-style:normal}
+
+    .auth-title{
+      font-size:22px;
+      font-weight:700;
+      letter-spacing:-0.4px;
+      color:var(--text);
+      margin-bottom:4px;
+    }
+    .auth-sub{
+      font-size:14px;
+      color:var(--text-secondary);
+      margin-bottom:28px;
+    }
+
+    /* ── FORM ELEMENTS ────────────────────────────────── */
+    .field{margin-bottom:16px}
+    .field label{
+      display:block;
+      font-size:13px;
+      font-weight:500;
+      color:var(--text-secondary);
+      margin-bottom:6px;
+    }
+    .field input,.field select{
+      width:100%;
+      background:var(--white);
+      border:1px solid var(--border-dark);
+      border-radius:var(--radius-sm);
+      color:var(--text);
+      font-family:var(--font);
+      font-size:15px;
+      font-weight:400;
+      padding:11px 14px;
+      outline:none;
+      transition:border-color var(--transition);
+      appearance:none;
+    }
+    .field input:focus,.field select:focus{
+      border-color:var(--accent);
+    }
+    .field input::placeholder{color:var(--text-tertiary)}
+
+    /* ── BUTTONS ─────────────────────────────────────── */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:none;border-radius:var(--radius-pill);
+      font-family:var(--font);font-size:15px;font-weight:600;
+      cursor:pointer;transition:background var(--transition),opacity var(--transition);
+      padding:11px 22px;width:100%;
+      text-decoration:none;
+    }
+    .btn:active{opacity:.85}
+    .btn:disabled{opacity:.5;pointer-events:none}
+    .btn-primary{background:var(--text);color:var(--white)}
+    .btn-primary:hover{background:#272c30}
+    .btn-accent{background:var(--accent);color:var(--white)}
+    .btn-accent:hover{background:var(--accent-hover)}
+    .btn-outline{
+      background:var(--white);color:var(--text);
+      border:1px solid var(--border-dark);
+    }
+    .btn-outline:hover{background:var(--bg)}
+    .btn-ghost{background:transparent;color:var(--accent);font-weight:600;padding:8px 16px;width:auto}
+    .btn-ghost:hover{background:var(--accent-light)}
+    .btn-danger{background:var(--red);color:var(--white)}
+    .btn-sm{padding:7px 16px;font-size:13px;width:auto}
+
+    /* spinner inside button */
+    .btn .spin{
+      width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff;border-radius:50%;
+      animation:spin .6s linear infinite;
+    }
+    .btn-outline .spin,.btn-ghost .spin{border-color:rgba(0,0,0,.15);border-top-color:var(--text)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── DIVIDER ─────────────────────────────────────── */
+    .or-row{
+      display:flex;align-items:center;gap:12px;margin:20px 0;
+    }
+    .or-row span{font-size:13px;color:var(--text-tertiary);white-space:nowrap}
+    .or-line{flex:1;height:1px;background:var(--border)}
+
+    /* ── LINK TEXT ───────────────────────────────────── */
+    .link{color:var(--accent);cursor:pointer;font-weight:500;text-decoration:none}
+    .link:hover{text-decoration:underline}
+    .switch-row{
+      text-align:center;margin-top:20px;
+      font-size:14px;color:var(--text-secondary);
+    }
+
+    /* ── CHECKBOX ────────────────────────────────────── */
+    .check-row{
+      display:flex;gap:10px;align-items:flex-start;
+      font-size:13px;color:var(--text-secondary);line-height:1.5;
+    }
+    .check-row input[type=checkbox]{
+      width:16px;height:16px;margin-top:2px;flex-shrink:0;
+      accent-color:var(--accent);cursor:pointer;
+    }
+
+    /* ── TOAST ───────────────────────────────────────── */
+    #toast{
+      position:fixed;bottom:80px;left:50%;
+      transform:translateX(-50%) translateY(12px);
+      background:var(--text);color:var(--white);
+      padding:10px 20px;border-radius:var(--radius-pill);
+      font-size:13px;font-weight:500;
+      opacity:0;pointer-events:none;
+      transition:all .2s;z-index:9999;
+      white-space:nowrap;
+    }
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #toast.error{background:var(--red)}
+    #toast.success{background:var(--green)}
+
+    /* ── ALERT BOX ───────────────────────────────────── */
+    .alert{
+      padding:12px 14px;border-radius:var(--radius-sm);
+      font-size:13px;line-height:1.5;margin-bottom:16px;
+    }
+    .alert-info{background:var(--accent-light);color:var(--accent)}
+    .alert-warn{background:#fff8e1;color:#b45309}
+    .alert-error{background:#fef2f2;color:var(--red)}
+
+    /* ── MAIN APP CHROME ─────────────────────────────── */
+    .app-root{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background:var(--bg);
+    }
+
+    /* Top header */
+    .topbar{
+      position:sticky;top:0;z-index:100;
+      background:rgba(247,249,250,.92);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      padding:0 16px;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .topbar .brand{font-size:20px;margin-bottom:0}
+
+    /* Bottom nav */
+    .bottomnav{
+      position:fixed;bottom:0;left:0;right:0;z-index:100;
+      background:rgba(247,249,250,.95);
+      backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+      display:flex;
+      padding:0 0 max(4px,env(safe-area-inset-bottom));
+    }
+    .nav-btn{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:3px;padding:10px 0;
+      background:none;border:none;cursor:pointer;
+      color:var(--text-secondary);
+      font-family:var(--font);font-size:11px;font-weight:500;
+      transition:color var(--transition);
+    }
+    .nav-btn.active{color:var(--text)}
+    .nav-btn svg{width:22px;height:22px;stroke-width:1.8}
+
+    /* Page content */
+    .page{flex:1;overflow-y:auto;padding:0 0 68px}
+
+    /* ── CONTENT CARDS ───────────────────────────────── */
+    .feed-item{
+      background:var(--white);
+      border-bottom:1px solid var(--border);
+      padding:16px;
+    }
+    .feed-item:first-child{border-top:none}
+
+    .section-label{
+      font-size:12px;font-weight:600;
+      color:var(--text-tertiary);
+      text-transform:uppercase;letter-spacing:.6px;
+      padding:16px 16px 8px;
+    }
+
+    /* ── PLAN CARDS ─────────────────────────────────── */
+    .plan-wrap{padding:0 16px}
+    .plan-card{
+      background:var(--white);
+      border:1.5px solid var(--border-dark);
+      border-radius:var(--radius);
+      padding:16px;
+      margin-bottom:10px;
+      cursor:pointer;
+      transition:border-color var(--transition);
+      position:relative;
+    }
+    .plan-card.selected{border-color:var(--accent)}
+    .plan-card .plan-name{font-size:15px;font-weight:600;color:var(--text)}
+    .plan-card .plan-price{font-size:22px;font-weight:700;color:var(--text);margin-top:2px}
+    .plan-card .plan-price span{font-size:14px;font-weight:400;color:var(--text-secondary)}
+    .plan-card .plan-note{font-size:12px;color:var(--text-secondary);margin-top:4px}
+    .plan-card .plan-save{font-size:12px;font-weight:600;color:var(--green);margin-top:2px}
+    .popular-tag{
+      position:absolute;top:-1px;right:12px;
+      background:var(--accent);color:var(--white);
+      font-size:10px;font-weight:700;letter-spacing:.4px;
+      padding:3px 10px;border-radius:0 0 var(--radius-sm) var(--radius-sm);
+      text-transform:uppercase;
+    }
+    .plan-radio{
+      position:absolute;right:16px;top:50%;transform:translateY(-50%);
+      width:20px;height:20px;border-radius:50%;
+      border:2px solid var(--border-dark);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .plan-radio.on{border-color:var(--accent)}
+    .plan-radio.on::after{
+      content:'';width:10px;height:10px;
+      border-radius:50%;background:var(--accent);
+    }
+
+    /* ── COUNTDOWN ───────────────────────────────────── */
+    .countdown-strip{
+      display:flex;gap:0;border-bottom:1px solid var(--border);
+    }
+    .cd-unit{
+      flex:1;text-align:center;padding:12px 4px;
+      border-right:1px solid var(--border);
+    }
+    .cd-unit:last-child{border-right:none}
+    .cd-num{font-size:26px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-1px}
+    .cd-label{font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+    /* ── HANDLE ROW ──────────────────────────────────── */
+    .handle-row{
+      display:flex;align-items:center;
+      padding:13px 16px;
+      border-bottom:1px solid var(--border);
+      gap:12px;
+    }
+    .platform-icon{
+      width:36px;height:36px;border-radius:50%;
+      background:var(--bg);
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .platform-icon svg{width:18px;height:18px}
+    .handle-meta{flex:1;min-width:0}
+    .handle-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .handle-platform{font-size:12px;color:var(--text-secondary);margin-top:1px}
+    .follow-btn{
+      flex-shrink:0;
+      background:var(--text);color:var(--white);
+      border:none;border-radius:var(--radius-pill);
+      font-family:var(--font);font-size:13px;font-weight:600;
+      padding:6px 16px;cursor:pointer;
+      transition:background var(--transition);
+    }
+    .follow-btn:hover{background:#272c30}
+    .follow-btn.following{
+      background:var(--white);color:var(--text);
+      border:1px solid var(--border-dark);
+    }
+
+    /* ── STATUS BADGE ────────────────────────────────── */
+    .badge{
+      display:inline-block;border-radius:var(--radius-pill);
+      font-size:11px;font-weight:600;padding:3px 10px;
+    }
+    .badge-blue{background:var(--accent-light);color:var(--accent)}
+    .badge-green{background:#e6f9f3;color:var(--green)}
+    .badge-red{background:#fef2f2;color:var(--red)}
+    .badge-grey{background:var(--border);color:var(--text-secondary)}
+    .badge-yellow{background:#fffde6;color:#92620a}
+
+    /* ── DRIP PROGRESS BAR ───────────────────────────── */
+    .drip-bar-track{height:2px;background:var(--border);margin:0}
+    .drip-bar-fill{height:100%;background:var(--accent);transition:width 1s linear}
+
+    /* ── INFO ROWS ───────────────────────────────────── */
+    .info-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:13px 16px;border-bottom:1px solid var(--border);
+      font-size:14px;
+    }
+    .info-row .key{color:var(--text-secondary)}
+    .info-row .val{font-weight:500;color:var(--text)}
+
+    /* ── PROFILE HEADER ──────────────────────────────── */
+    .profile-avatar{
+      width:64px;height:64px;border-radius:50%;
+      background:var(--bg);border:2px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;font-weight:700;color:var(--text);
+    }
+
+    /* ── EMPTY STATE ─────────────────────────────────── */
+    .empty{
+      padding:48px 24px;text-align:center;
+    }
+    .empty .empty-title{font-size:17px;font-weight:700;margin-bottom:6px}
+    .empty .empty-body{font-size:14px;color:var(--text-secondary)}
+
+    /* ── OTP INPUT ───────────────────────────────────── */
+    .otp-input{
+      font-size:24px;font-weight:700;letter-spacing:10px;
+      text-align:center;padding:14px;
+    }
+
+    /* ── TERMS MODAL ─────────────────────────────────── */
+    .modal-bg{
+      position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;
+      display:none;align-items:flex-end;
+    }
+    .modal-bg.open{display:flex}
+    .modal{
+      background:var(--white);width:100%;
+      border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      max-height:85vh;overflow-y:auto;
+      padding:24px 20px 40px;
+    }
+    .modal-handle{
+      width:36px;height:4px;background:var(--border-dark);
+      border-radius:2px;margin:0 auto 20px;
+    }
+    .modal h2{font-size:18px;font-weight:700;margin-bottom:16px}
+    .terms-section{margin-bottom:16px}
+    .terms-section h3{font-size:14px;font-weight:600;margin-bottom:4px}
+    .terms-section p{font-size:13px;color:var(--text-secondary);line-height:1.6}
+
+    /* ── HEADER SECTION (subscribe / other full pages) ── */
+    .page-header{
+      padding:20px 16px 0;
+      border-bottom:1px solid var(--border);
+      background:var(--white);
+      margin-bottom:0;
+    }
+    .page-header h1{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+    .page-header p{font-size:14px;color:var(--text-secondary);padding-bottom:16px}
+
+    /* ── MISC ────────────────────────────────────────── */
+    .mt4{margin-top:4px}
+    .mt8{margin-top:8px}
+    .mt12{margin-top:12px}
+    .mt16{margin-top:16px}
+    .mt24{margin-top:24px}
+    .mb16{margin-bottom:16px}
+    .px16{padding:0 16px}
+    .row{display:flex;align-items:center;gap:8px}
+    .row-between{display:flex;align-items:center;justify-content:space-between}
+    .text-secondary{color:var(--text-secondary)}
+    .text-sm{font-size:13px}
+    .text-xs{font-size:12px}
+    .fw6{font-weight:600}
+    .fw7{font-weight:700}
+    .w-full{width:100%}
+    .hidden{display:none!important}
+    .divider{height:1px;background:var(--border);margin:0}
+    .section-divider{height:8px;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+    /* ── LANDING ─────────────────────────────────────── */
+    .landing-hero{
+      padding:40px 24px 32px;
+      border-bottom:1px solid var(--border);
+    }
+    .landing-tagline{
+      font-size:13px;font-weight:500;color:var(--text-secondary);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;
+    }
+    .landing-headline{
+      font-size:28px;font-weight:700;letter-spacing:-.6px;
+      line-height:1.25;color:var(--text);margin-bottom:16px;
+    }
+    .landing-body{font-size:14px;color:var(--text-secondary);line-height:1.65;margin-bottom:28px}
+    .feature-list{margin-bottom:0;list-style:none}
+    .feature-list li{
+      font-size:14px;color:var(--text-secondary);padding:10px 0;
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:10px;
+    }
+    .feature-list li:last-child{border-bottom:none}
+    .feature-list li::before{
+      content:'';width:5px;height:5px;border-radius:50%;
+      background:var(--accent);flex-shrink:0;
+    }
+
+    .landing-cta{padding:24px}
+    .landing-legal{
+      font-size:11px;color:var(--text-tertiary);
+      text-align:center;margin-top:14px;line-height:1.5;
+    }
+
+    /* ── LIVE DOT ────────────────────────────────────── */
+    .live-dot{
+      display:inline-block;width:7px;height:7px;
+      border-radius:50%;background:var(--green);
+      animation:pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* ── STRIKE INDICATOR ────────────────────────────── */
+    .strikes-row{
+      display:flex;gap:4px;
+    }
+    .strike-pip{
+      width:22px;height:4px;border-radius:2px;background:var(--border);
+    }
+    .strike-pip.filled{background:var(--red)}
+
+    /* ── VERIFY SCREEN ───────────────────────────────── */
+    .verify-icon{
+      width:48px;height:48px;border-radius:50%;
+      background:var(--accent-light);
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:16px;
+    }
+
+    /* sub expiry note */
+    .expiry-note{
+      font-size:12px;color:var(--text-tertiary);
+      text-align:center;padding:10px 16px;
+    }
+
+    /* ── SCROLLBAR ────────────────────────────────────── */
+    ::-webkit-scrollbar{width:0;height:0}
+  </style>
+</head>
+<body>
+<div id="app">
+
+<!-- ════════════════════════════════
+     SPLASH
+════════════════════════════════ -->
+<div class="screen active" id="screen-splash" style="background:#fff;align-items:center;justify-content:center;">
+  <div style="text-align:center">
+    <div class="brand" style="font-size:32px">Meri<em>Social</em></div>
+    <div style="margin-top:28px;display:flex;justify-content:center">
+      <div style="width:20px;height:20px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     LANDING
+════════════════════════════════ -->
+<div class="screen" id="screen-landing" style="background:var(--white)">
+  <div style="padding:20px 24px 0">
+    <div class="brand">Meri<em>Social</em></div>
+  </div>
+  <div class="landing-hero">
+    <div class="landing-tagline">Private Growth Community</div>
+    <h1 class="landing-headline">Build a real audience on every platform.</h1>
+    <p class="landing-body">A private, members-only community of serious creators. Discover new accounts to support, get your own handle in front of engaged people, and grow organically across X, Instagram, YouTube, and TikTok.</p>
+    <ul class="feature-list">
+      <li>Discover curated creator accounts every 10 minutes</li>
+      <li>Submit your handle to be discovered by the community</li>
+      <li>Monthly, quarterly, and yearly plans</li>
+      <li>Quality guaranteed by a strict three-strike compliance system</li>
+    </ul>
+  </div>
+  <div class="landing-cta">
+    <button class="btn btn-primary" onclick="showScreen('screen-register')">Create account</button>
+    <button class="btn btn-outline mt8" onclick="showScreen('screen-login')">Log in</button>
+    <p class="landing-legal">
+      By continuing you agree to our <span class="link" onclick="openTerms()">Terms and Community Rules</span>
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     REGISTER
+════════════════════════════════ -->
+<div class="screen" id="screen-register" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="brand mt8 mb16" style="display:block;margin-bottom:24px">Meri<em>Social</em></div>
+      <div class="auth-title">Create your account</div>
+      <div class="auth-sub">Free to join. Access requires a subscription.</div>
+      <div class="field">
+        <label>First name</label>
+        <input id="reg-first" type="text" placeholder="John" autocomplete="given-name"/>
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input id="reg-last" type="text" placeholder="Doe" autocomplete="family-name"/>
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="reg-pass" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Telegram username (optional for group access)</label>
+        <input id="reg-telegram" type="text" placeholder="@yourusername"/>
+      </div>
+      <div class="check-row mb16">
+        <input id="reg-terms" type="checkbox"/>
+        <span>I agree to the <span class="link" onclick="openTerms()">Terms and Community Rules</span>, including the engagement policy and strike system.</span>
+      </div>
+      <button class="btn btn-primary" id="btn-register" onclick="doRegister()">Create account</button>
+      <div class="switch-row">Already have an account? <span class="link" onclick="showScreen('screen-login')">Log in</span></div>
+      <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-landing')">Back</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     VERIFY EMAIL
+════════════════════════════════ -->
+<div class="screen" id="screen-verify" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="verify-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d9bf0" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+      </div>
+      <div class="auth-title">Check your email</div>
+      <div class="auth-sub" id="verify-sub">We sent a 6-digit code to your address.</div>
+      <div class="field">
+        <label>Verification code</label>
+        <input id="otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/>
+      </div>
+      <button class="btn btn-primary" id="btn-verify" onclick="doVerify()">Verify email</button>
+      <div class="switch-row mt8"><span class="link" onclick="doResend()">Resend code</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     LOGIN
+════════════════════════════════ -->
+<div class="screen" id="screen-login" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="brand mt8" style="display:block;margin-bottom:24px">Meri<em>Social</em></div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your account.</div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="login-pass" type="password" placeholder="Your password" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Log in</button>
+      <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-forgot')">Forgot password?</span></div>
+      <div class="switch-row">New to MeriSocial? <span class="link" onclick="showScreen('screen-register')">Create account</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     FORGOT PASSWORD
+════════════════════════════════ -->
+<div class="screen" id="screen-forgot" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Reset password</div>
+      <div class="auth-sub">Enter your email and we will send a reset code.</div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="forgot-email" type="email" placeholder="you@example.com"/>
+      </div>
+      <button class="btn btn-primary" id="btn-forgot" onclick="doForgot()">Send reset code</button>
+      <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-login')">Back to login</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     RESET PASSWORD
+════════════════════════════════ -->
+<div class="screen" id="screen-reset" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Set new password</div>
+      <div class="auth-sub">Enter the code from your email and choose a new password.</div>
+      <div class="field">
+        <label>Reset code</label>
+        <input id="reset-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/>
+      </div>
+      <div class="field">
+        <label>New password</label>
+        <input id="reset-pass" type="password" placeholder="At least 8 characters"/>
+      </div>
+      <button class="btn btn-primary" id="btn-reset" onclick="doReset()">Set new password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     SUBSCRIBE — plan picker
+════════════════════════════════ -->
+<div class="screen" id="screen-subscribe">
+  <div class="app-root">
+    <div class="topbar">
+      <div class="brand">Meri<em>Social</em></div>
+      <button class="btn-ghost btn-sm" onclick="doLogout()">Log out</button>
+    </div>
+    <div class="page">
+      <div class="page-header">
+        <h1>Join the community</h1>
+        <p>Choose a plan to get your access code.</p>
+      </div>
+      <div class="section-divider"></div>
+      <div id="plans-container" class="mt12 plan-wrap"></div>
+      <div class="px16 mt16">
+        <button class="btn btn-accent" id="btn-checkout" onclick="doCheckout()">Continue to payment</button>
+      </div>
+
+      <div class="section-divider mt16"></div>
+      <div class="section-label">What is included</div>
+      <div class="info-row"><span class="key">Handle drops</span><span class="val">Every 10 minutes</span></div>
+      <div class="info-row"><span class="key">Platforms</span><span class="val">X, Instagram, YouTube, TikTok</span></div>
+      <div class="info-row"><span class="key">Engagement type</span><span class="val">Real members, real accounts</span></div>
+      <div class="info-row"><span class="key">Handle submissions</span><span class="val">Unlimited</span></div>
+      <div class="info-row"><span class="key">Strike tolerance</span><span class="val">3 before removal</span></div>
+      <div class="section-divider"></div>
+      <div class="px16 mt12 mb16">
+        <button class="btn btn-outline" onclick="showScreen('screen-activate')">Already have an access code?</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:0 16px 24px">
+        Payments processed by Paystack. No auto-renewal. All sales final except where required by law.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ACTIVATE CODE
+════════════════════════════════ -->
+<div class="screen" id="screen-activate" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Enter access code</div>
+      <div class="auth-sub">After payment, your code arrives by email. It looks like MERI-XXXX-XXXX-XXXX.</div>
+      <div class="field">
+        <label>Access code</label>
+        <input id="code-input" type="text" placeholder="MERI-XXXX-XXXX-XXXX"
+          style="text-transform:uppercase;letter-spacing:1.5px;font-weight:600;font-size:14px"/>
+      </div>
+      <button class="btn btn-primary" id="btn-activate" onclick="doActivate()">Activate</button>
+      <button class="btn btn-outline mt8" onclick="showScreen('screen-subscribe');loadPlans()">Buy a plan first</button>
+      <div class="switch-row mt12"><span class="link" onclick="doLogout()">Log out</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     HOME — main app
+════════════════════════════════ -->
+<div class="screen" id="screen-home">
+  <div class="app-root">
+    <div class="topbar" id="main-topbar">
+      <div class="brand">Meri<em>Social</em></div>
+      <div class="row">
+        <div class="live-dot"></div>
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:4px">Live</span>
+      </div>
+    </div>
+
+    <!-- Tab content area -->
+    <div class="page" id="tab-content"></div>
+
+    <nav class="bottomnav">
+      <button class="nav-btn active" id="tnav-home" onclick="gotoTab('home')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Drop</span>
+      </button>
+      <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Handles</span>
+      </button>
+      <button class="nav-btn" id="tnav-account" onclick="gotoTab('account')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        <span>Account</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     TERMS MODAL
+════════════════════════════════ -->
+<div class="modal-bg" id="terms-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Terms and Community Rules</h2>
+    <div class="terms-section">
+      <h3>Active participation</h3>
+      <p>Members must genuinely support the handles shared in each drop during their active subscription. Failure to engage is a violation of community standards.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Three-strike system</h3>
+      <p>Three unresolved strikes result in permanent removal. Removed members forfeit remaining subscription time. No refunds.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Real handles only</h3>
+      <p>You must submit real, active accounts you own. Submitting fake or others' handles results in an immediate strike.</p>
+    </div>
+    <div class="terms-section">
+      <h3>No automation</h3>
+      <p>Bots, scripts, and click farms are strictly prohibited and result in permanent banning.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Privacy</h3>
+      <p>Your personal details are never shared. Only your handle and platform are visible, and only during a live drop window.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Subscriptions</h3>
+      <p>No auto-renewal. When your plan expires you must purchase a new one. All sales are final.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Reinstatement</h3>
+      <p>Removed members may appeal by contacting support. If reinstated, a new subscription at full price is required.</p>
+    </div>
+    <button class="btn btn-primary mt16" onclick="closeTerms()">I understand</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════ -->
+<script>
+// ─── Config ──────────────────────────────────────
+//const API = 'http://localhost:4000/api';
+const API = 'http://10.49.130.118:4000/api';
+
+// ─── State ───────────────────────────────────────
+let token        = localStorage.getItem('ms_token') || null;
+let currentUser  = null;
+let selectedPlan = 'quarterly';
+let verifyEmail  = '';
+let resetEmail   = '';
+let countdownInt = null;
+let dripInt      = null;
+let dripBtnInts  = {};
+
+// ─── Helpers ─────────────────────────────────────
+const $  = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,'0');
+
+const showScreen = id => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id)?.classList.add('active');
+  window.scrollTo(0,0);
+};
+
+const toast = (msg, type='') => {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='', 3200);
+};
+
+const setBtn = (id, html, disabled) => {
+  const b = $(id); if(!b) return;
+  b.disabled = !!disabled;
+  b.innerHTML = disabled ? '<div class="spin"></div>' : html;
+};
+
+const request = async (path, opts={}) => {
+  const headers = {'Content-Type':'application/json'};
+  if(token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API}${path}`, {...opts, headers:{...headers,...(opts.headers||{})}, credentials:'include'});
+  const data = await res.json().catch(()=>({}));
+  return { ok: res.ok, status: res.status, data };
+};
+
+// ─── Boot ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Handle Paystack callback
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('reference') || params.get('trxref');
+  if (ref) {
+    window.history.replaceState({}, '', window.location.pathname);
+    if (token) {
+      toast('Verifying payment...', '');
+      const {ok, data} = await request(`/subscriptions/verify/${ref}`, {method:'POST'});
+      if (ok) {
+        toast('Payment successful! Check your email for your access code.', 'success');
+        const me = await request('/auth/me');
+        if (me.ok) { currentUser = me.data.user; }
+      } else {
+        toast(data.message || 'Payment verification failed.', 'error');
+      }
+    }
+  }
+
+  await sleep(1000);
+  if (token) {
+    const { ok, data } = await request('/auth/me');
+    if (ok) { currentUser = data.user; route(); }
+    else     { token = null; localStorage.removeItem('ms_token'); showScreen('screen-landing'); }
+  } else {
+    showScreen('screen-landing');
+  }
+});
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const route = () => {
+  if (!currentUser) return showScreen('screen-landing');
+  const isActive = currentUser.subscriptionStatus === 'active'
+    && currentUser.subscriptionExpiry
+    && new Date(currentUser.subscriptionExpiry) > new Date();
+  if (currentUser.isRemoved) { showScreen('screen-landing'); return toast('Account removed. Contact support.','error'); }
+  if (isActive)  { showScreen('screen-home'); initApp(); }
+  else if (currentUser.subscriptionStatus === 'expired') { showScreen('screen-subscribe'); loadPlans(); toast('Subscription expired. Please renew.','error'); }
+  else { showScreen('screen-activate'); }
+};
+
+// ─── AUTH ─────────────────────────────────────────
+const doRegister = async () => {
+  const f = $('reg-first').value.trim(), l = $('reg-last').value.trim(),
+        e = $('reg-email').value.trim(), p = $('reg-pass').value;
+  if(!f||!l||!e||!p) return toast('All fields are required.','error');
+  if(!$('reg-terms').checked) return toast('Please accept the terms.','error');
+  if(p.length<8) return toast('Password must be at least 8 characters.','error');
+  setBtn('btn-register','',true);
+  const tg = $('reg-telegram')?.value.trim()||'';
+  const {ok,data} = await request('/auth/register',{method:'POST',body:JSON.stringify({firstName:f,lastName:l,email:e,password:p,agreedToTerms:true,termsVersion:'v1.0',telegramUsername:tg})});
+  setBtn('btn-register','Create account',false);
+  if(ok){ verifyEmail=e; $('verify-sub').textContent=`We sent a 6-digit code to ${data.maskedEmail||e}.`; showScreen('screen-verify'); }
+  else   toast(data.message||'Registration failed.','error');
+};
+
+const doVerify = async () => {
+  const code = $('otp-input').value.trim();
+  if(code.length<6) return toast('Enter the 6-digit code.','error');
+  setBtn('btn-verify','',true);
+  const {ok,data} = await request('/auth/verify-email',{method:'POST',body:JSON.stringify({email:verifyEmail,otp:code})});
+  setBtn('btn-verify','Verify email',false);
+  if(ok){ toast('Email verified.','success'); showScreen('screen-login'); }
+  else   toast(data.message||'Verification failed.','error');
+};
+
+const doResend = async () => {
+  const {ok,data} = await request('/auth/resend-verification',{method:'POST',body:JSON.stringify({email:verifyEmail})});
+  toast(ok?'New code sent.':data.message||'Failed.', ok?'success':'error');
+};
+
+const doLogin = async () => {
+  const e=$('login-email').value.trim(), p=$('login-pass').value;
+  if(!e||!p) return toast('Enter your email and password.','error');
+  setBtn('btn-login','',true);
+  const {ok,data} = await request('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})});
+  setBtn('btn-login','Log in',false);
+  if(ok){
+    token=data.token; localStorage.setItem('ms_token',token); currentUser=data.user; route();
+  } else {
+    if(data.verificationRequired){ verifyEmail=e; $('verify-sub').textContent=`We sent a code to ${e}.`; showScreen('screen-verify'); toast('Verify your email first.','error'); }
+    else toast(data.message||'Login failed.','error');
+  }
+};
+
+const doLogout = async () => {
+  await request('/auth/logout',{method:'POST'});
+  token=null; currentUser=null; localStorage.removeItem('ms_token');
+  clearInterval(countdownInt); clearInterval(dripInt);
+  showScreen('screen-landing');
+};
+
+const doForgot = async () => {
+  const e=$('forgot-email').value.trim();
+  if(!e) return toast('Enter your email.','error');
+  setBtn('btn-forgot','',true);
+  const {ok,data}=await request('/auth/forgot-password',{method:'POST',body:JSON.stringify({email:e})});
+  setBtn('btn-forgot','Send reset code',false);
+  resetEmail=e; toast(data.message||'Done.', ok?'success':'error');
+  if(ok) showScreen('screen-reset');
+};
+
+const doReset = async () => {
+  const code=$('reset-otp').value.trim(), pass=$('reset-pass').value;
+  if(!code||!pass) return toast('All fields required.','error');
+  setBtn('btn-reset','',true);
+  const {ok,data}=await request('/auth/reset-password',{method:'POST',body:JSON.stringify({email:resetEmail,otp:code,newPassword:pass})});
+  setBtn('btn-reset','Set new password',false);
+  toast(data.message||'Done.', ok?'success':'error');
+  if(ok) showScreen('screen-login');
+};
+
+// ─── SUBSCRIBE ────────────────────────────────────
+const loadPlans = async () => {
+  const {ok,data}=await request('/subscriptions/plans');
+  if(!ok) return;
+  const c=$('plans-container'); c.innerHTML='';
+  data.data.forEach(plan=>{
+    const div=document.createElement('div');
+    div.className=`plan-card${plan.plan===selectedPlan?' selected':''}`;
+    div.id=`plan-${plan.plan}`;
+    div.onclick=()=>selectPlan(plan.plan);
+    div.innerHTML=`
+      ${plan.popular?'<div class="popular-tag">Most popular</div>':''}
+      <div class="plan-radio${plan.plan===selectedPlan?' on':''}" id="radio-${plan.plan}"></div>
+      <div class="plan-name">${plan.label}</div>
+      <div class="plan-price">&#8358;${plan.priceNaira.toLocaleString()} <span>/ ${plan.durationDays} days</span></div>
+      ${plan.discountPct>0?`<div class="plan-save">Save ${plan.discountPct}% vs monthly</div>`:'<div class="plan-note">Base price</div>'}
+    `;
+    c.appendChild(div);
+  });
+};
+
+const selectPlan = id => {
+  selectedPlan=id;
+  document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('[id^="radio-"]').forEach(r=>{r.classList.remove('on')});
+  $(`plan-${id}`)?.classList.add('selected');
+  $(`radio-${id}`)?.classList.add('on');
+};
+
+const doCheckout = async () => {
+  setBtn('btn-checkout','',true);
+  const {ok,data}=await request('/subscriptions/initiate',{method:'POST',body:JSON.stringify({
+    plan: selectedPlan,
+    //callbackUrl: 'http://127.0.0.1:5500/index.html'
+    callbackUrl: 'http://10.49.130.118:5500/index.html'
+  })});
+  setBtn('btn-checkout','Continue to payment',false);
+  if(ok&&data.data?.authorization_url) window.location.href=data.data.authorization_url;
+  else toast(data.message||'Payment initiation failed.','error');
+};
+
+// ─── ACTIVATE ────────────────────────────────────
+const doActivate = async () => {
+  const code=$('code-input').value.trim().toUpperCase();
+  if(!code) return toast('Enter your access code.','error');
+  setBtn('btn-activate','',true);
+  const {ok,data}=await request('/access-code/activate',{method:'POST',body:JSON.stringify({code})});
+  setBtn('btn-activate','Activate',false);
+  if(ok){
+    toast('Access activated. Welcome to MeriSocial.','success');
+    const me=await request('/auth/me');
+    if(me.ok){currentUser=me.data.user;}
+    showScreen('screen-home'); initApp();
+  } else toast(data.message||'Invalid code.','error');
+};
+
+// ─── APP TABS ─────────────────────────────────────
+const gotoTab = tab => {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  $(`tnav-${tab}`)?.classList.add('active');
+  const c=$('tab-content');
+  if(tab==='home')    renderHome(c);
+  if(tab==='drop')    renderDrop(c);
+  if(tab==='handles') renderHandles(c);
+  if(tab==='account') renderAccount(c);
+};
+
+const initApp = () => {
+  gotoTab('home');
+};
+
+// ─── HOME TAB ─────────────────────────────────────
+const renderHome = async c => {
+  c.innerHTML = `
+    <div class="section-label">Your subscription</div>
+    <div class="countdown-strip" id="cd-strip">
+      <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Months</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Days</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Hours</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Mins</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Secs</div></div>
+    </div>
+    <div id="cd-expiry" class="expiry-note"></div>
+    <div class="section-divider"></div>
+    <div class="section-label">Current drop <span id="drip-remaining" style="font-weight:400;color:var(--text-tertiary)"></span></div>
+    <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar" style="width:100%"></div></div>
+    <div id="drip-list"></div>
+  `;
+  startCountdown();
+  loadDrip();
+  clearInterval(dripInt);
+  dripInt = setInterval(loadDrip, 60000);
+};
+
+const startCountdown = () => {
+  clearInterval(countdownInt);
+  let expiryTs = null;
+  let planName = null;
+
+  const fetchStatus = async () => {
+    const {ok,data} = await request('/access-code/status');
+    if(!ok) return;
+    if(data.data.isExpired){
+      clearInterval(countdownInt);
+      toast('Your subscription has expired.','error');
+      setTimeout(()=>{ showScreen('screen-subscribe'); loadPlans(); },1800);
+      return;
+    }
+    expiryTs = data.data.expiresAt ? new Date(data.data.expiresAt).getTime() : null;
+    planName = data.data.plan;
+    if($('cd-expiry') && data.data.expiresAt)
+      $('cd-expiry').textContent = `${planName ? planName.charAt(0).toUpperCase()+planName.slice(1)+' plan — ' : ''} Expires ${new Date(data.data.expiresAt).toLocaleDateString('en-NG',{dateStyle:'medium'})}`;
+  };
+
+  const tick = () => {
+    if(!expiryTs) return;
+    const remaining = Math.max(0, expiryTs - Date.now());
+    if(remaining === 0){
+      clearInterval(countdownInt);
+      toast('Your subscription has expired.','error');
+      setTimeout(()=>{ showScreen('screen-subscribe'); loadPlans(); },1800);
+      return;
+    }
+    const s = Math.floor((remaining / 1000) % 60);
+    const m = Math.floor((remaining / (1000 * 60)) % 60);
+    const h = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const d = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    if($('cd-mo')) $('cd-mo').textContent = pad(Math.floor(d / 30));
+    if($('cd-d'))  $('cd-d').textContent  = pad(d % 30);
+    if($('cd-h'))  $('cd-h').textContent  = pad(h);
+    if($('cd-m'))  $('cd-m').textContent  = pad(m);
+    if($('cd-s'))  $('cd-s').textContent  = pad(s);
+  };
+
+  fetchStatus();
+  setInterval(fetchStatus, 60000);
+  countdownInt = setInterval(tick, 1000);
+};
+
+// ─── DROP TAB ─────────────────────────────────────
+const renderDrop = async c => {
+  c.innerHTML = `
+    <div class="section-label">Current drop <span id="drip-remaining2" style="font-weight:400;color:var(--text-tertiary)"></span></div>
+    <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar2" style="width:100%"></div></div>
+    <div id="drip-list2"></div>
+  `;
+  loadDrip('2');
+};
+
+const PLATFORM_SVG = {
+  x: `<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  instagram: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="var(--text)" stroke="none"/></svg>`,
+  youtube: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="var(--text)" stroke="none"/></svg>`,
+  tiktok: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
+};
+
+const loadDrip = async (suffix='') => {
+  const listId = `drip-list${suffix}`;
+  const barId  = `drip-bar${suffix}`;
+  const remId  = `drip-remaining${suffix}`;
+  const list = $(listId); if(!list) return;
+
+  const {ok,data} = await request('/handles/drip');
+  if(!ok){ list.innerHTML=`<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">${data.message||'Try again.'}</div></div>`; return; }
+
+  const { handles, visibleUntil, count } = data.data;
+  if(!handles||!handles.length){
+    list.innerHTML=`<div class="empty"><div class="empty-title">No drop right now</div><div class="empty-body">Handles release every 10 minutes. Check back soon.</div></div>`;
+    if($(remId)) $(remId).textContent='';
+    return;
+  }
+
+  let html='';
+  handles.forEach(h=>{
+    const icon = PLATFORM_SVG[h.platform]||'';
+    html+=`<div class="handle-row">
+      <div class="platform-icon">${icon}</div>
+      <div class="handle-meta">
+        <div class="handle-name">${h.handle}</div>
+        <div class="handle-platform">${h.platform.charAt(0).toUpperCase()+h.platform.slice(1)}</div>
+      </div>
+      <button class="follow-btn" onclick="followHandle('${h.platform}','${h.handle}',this,'${h.handleId}','${data.data.batchId||''}')">Follow</button>
+    </div>`;
+  });
+  list.innerHTML=html;
+
+  // timer
+  if(visibleUntil){
+    const exp=new Date(visibleUntil);
+    clearInterval(dripBtnInts[suffix]);
+    dripBtnInts[suffix]=setInterval(()=>{
+      const rem=Math.max(0,exp.getTime()-Date.now());
+      const mins=Math.floor(rem/60000), secs=Math.floor((rem%60000)/1000);
+      if($(remId)) $(remId).textContent=rem>0?`${pad(mins)}:${pad(secs)} remaining`:'Expired';
+      const bar=$(barId);
+      if(bar) bar.style.width=`${Math.max(0,(rem/(10*60*1000))*100)}%`;
+      if(rem===0) clearInterval(dripBtnInts[suffix]);
+    },1000);
+  }
+};
+
+const followHandle = (platform, handle, btn, handleId, batchId) => {
+  const clean=handle.replace('@','');
+  const urls={x:`https://x.com/${clean}`,instagram:`https://instagram.com/${clean}`,youtube:`https://youtube.com/@${clean}`,tiktok:`https://tiktok.com/@${clean}`};
+  if(urls[platform]) window.open(urls[platform],'_blank');
+  btn.textContent='Following';
+  btn.classList.add('following');
+  btn.disabled=true;
+  // log real engagement
+  if(handleId && batchId) {
+    request('/handles/engage',{method:'POST',body:JSON.stringify({batchId,handleId,platform})}).catch(()=>{});
+  }
+};
+
+// ─── HANDLES TAB ──────────────────────────────────
+const PLATFORMS = ['x','instagram','youtube','tiktok'];
+
+const renderHandles = async c => {
+  const {ok,data}=await request('/handles/my');
+  const handles=ok?data.data:[];
+
+  const STATUS_BADGE={
+    approved:'<span class="badge badge-green">Approved</span>',
+    pending_review:'<span class="badge badge-yellow">Under review</span>',
+    rejected:'<span class="badge badge-red">Rejected</span>',
+    suspended:'<span class="badge badge-grey">Suspended</span>',
+  };
+
+  let submitted='';
+  if(!handles.length){
+    submitted=`<div class="empty"><div class="empty-title">No handles submitted</div><div class="empty-body">Submit a handle below. Admin reviews within 24 hours.</div></div>`;
+  } else {
+    handles.forEach(h=>{
+      const icon=PLATFORM_SVG[h.platform]||'';
+      submitted+=`<div class="handle-row">
+        <div class="platform-icon">${icon}</div>
+        <div class="handle-meta">
+          <div class="handle-name">${h.handle} ${STATUS_BADGE[h.status]||''}</div>
+          <div class="handle-platform">${h.platform.charAt(0).toUpperCase()+h.platform.slice(1)}</div>
+          ${h.rejectionReason?`<div class="text-xs text-secondary mt4">${h.rejectionReason}</div>`:''}
+        </div>
+        ${h.status==='approved'?`<span style="font-size:11px;color:var(--text-tertiary)">Locked</span>`:`<button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteHandle('${h.handleId}')">Remove</button>`}
+      </div>`;
+    });
+  }
+
+  c.innerHTML=`
+    <div class="section-label">Submit a handle</div>
+    <div style="padding:0 16px 16px">
+      <div class="field">
+        <label>Platform</label>
+        <select id="sub-platform">
+          ${PLATFORMS.map(p=>`<option value="${p}">${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Handle</label>
+        <input id="sub-handle" type="text" placeholder="@yourhandle"/>
+      </div>
+      <button class="btn btn-primary" id="btn-subhandle" onclick="submitHandle()">Submit for review</button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Your submitted handles</div>
+    ${submitted}
+  `;
+};
+
+const submitHandle = async () => {
+  const p=$('sub-platform')?.value, h=$('sub-handle')?.value.trim();
+  if(!p||!h) return toast('Fill in all fields.','error');
+  setBtn('btn-subhandle','',true);
+  const {ok,data}=await request('/handles/submit',{method:'POST',body:JSON.stringify({platform:p,handle:h})});
+  setBtn('btn-subhandle','Submit for review',false);
+  toast(data.message||(ok?'Submitted.':'Failed.'), ok?'success':'error');
+  if(ok) renderHandles($('tab-content'));
+};
+
+const deleteHandle = async id => {
+  if(!confirm('Remove this handle?')) return;
+  const {ok,data}=await request(`/handles/${id}`,{method:'DELETE'});
+  toast(data.message||(ok?'Removed.':'Failed.'), ok?'success':'error');
+  if(ok) renderHandles($('tab-content'));
+};
+
+// ─── ACCOUNT TAB ──────────────────────────────────
+const renderAccount = async c => {
+  if(!currentUser) return;
+  const u=currentUser;
+  const expiry=u.subscriptionExpiry?new Date(u.subscriptionExpiry).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—';
+  const subBadge=u.subscriptionStatus==='active'?'<span class="badge badge-green">Active</span>':u.subscriptionStatus==='expired'?'<span class="badge badge-red">Expired</span>':'<span class="badge badge-grey">None</span>';
+  const strikes=u.strikeCount||0;
+  let pips='';
+  for(let i=0;i<3;i++) pips+=`<div class="strike-pip${i<strikes?' filled':''}"></div>`;
+
+  c.innerHTML=`
+    <div style="padding:24px 16px 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="profile-avatar">${(u.firstName||'?')[0].toUpperCase()}</div>
+        <div>
+          <div style="font-size:17px;font-weight:700">${u.fullName||''}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">${u.email}</div>
+          <div class="mt4">${subBadge}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Subscription</div>
+    <div class="info-row"><span class="key">Plan</span><span class="val">${u.subscriptionPlan&&u.subscriptionPlan!=='none'?u.subscriptionPlan.charAt(0).toUpperCase()+u.subscriptionPlan.slice(1):'No plan'}</span></div>
+    <div class="info-row"><span class="key">Expires</span><span class="val">${expiry}</span></div>
+    <div class="info-row">
+      <span class="key">Strikes</span>
+      <span class="val"><div class="strikes-row">${pips}</div></span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Actions</div>
+    <div style="padding:8px 16px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-outline" onclick="showScreen('screen-subscribe');loadPlans()">Manage subscription</button>
+      <button class="btn btn-outline" onclick="showScreen('screen-activate')">Enter access code</button>
+      <button class="btn btn-danger mt8" onclick="doLogout()">Log out</button>
+    </div>
+    <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:16px">
+      Need help? <span class="link" onclick="openTerms()">Community rules</span>
+    </p>
+  `;
+};
+
+// ─── TERMS MODAL ──────────────────────────────────
+const openTerms  = () => { $('terms-modal').classList.add('open'); };
+const closeTerms = () => { $('terms-modal').classList.remove('open'); };
+
+// Close terms on bg click
+$('terms-modal').addEventListener('click', e => { if(e.target===$('terms-modal')) closeTerms(); });
+
+// ─── Plans on subscribe screen ─────────────────────
+// auto-load when subscribe screen shown
+const _origShowScreen = showScreen;
+</script>
+</body>
+</html>

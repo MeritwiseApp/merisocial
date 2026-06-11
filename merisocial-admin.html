@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MeriSocial Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --white:#ffffff;
+  --bg:#f7f9fa;
+  --surface:#ffffff;
+  --border:#eff3f4;
+  --border-mid:#cfd9de;
+  --text:#0f1419;
+  --text-2:#536471;
+  --text-3:#8b98a5;
+  --accent:#1d9bf0;
+  --accent-bg:#e8f5fd;
+  --red:#f4212e;
+  --red-bg:#fef2f2;
+  --green:#00ba7c;
+  --green-bg:#e6f9f3;
+  --yellow:#f59e0b;
+  --yellow-bg:#fffbeb;
+  --purple:#7c3aed;
+  --purple-bg:#f5f3ff;
+  --font:'Inter',system-ui,sans-serif;
+  --nav-w:220px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* layout */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:var(--nav-w);flex-shrink:0;
+  background:var(--white);
+  border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;
+  display:flex;flex-direction:column;
+  z-index:200;
+  overflow-y:auto;
+}
+.main{margin-left:var(--nav-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{
+  height:52px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;position:sticky;top:0;z-index:100;
+}
+.page-body{flex:1;padding:24px}
+
+/* sidebar */
+.sidebar-brand{
+  padding:18px 20px 14px;
+  font-size:18px;font-weight:700;letter-spacing:-.5px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sidebar-brand em{color:var(--accent);font-style:normal}
+.sidebar-brand span{
+  font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--text-3);display:block;margin-top:2px;
+}
+.nav-section{padding:16px 12px 4px;font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.6px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;margin:1px 8px;
+  cursor:pointer;color:var(--text-2);font-size:14px;font-weight:500;
+  transition:background .12s,color .12s;
+  border:none;background:none;width:calc(100% - 16px);text-align:left;font-family:var(--font);
+}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--bg);color:var(--text);font-weight:600}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke-width:1.75}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+.sidebar-bottom{
+  margin-top:auto;padding:12px 8px;border-top:1px solid var(--border);
+}
+
+/* topbar */
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.admin-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:20px;
+  background:var(--bg);border:1px solid var(--border);
+  font-size:13px;font-weight:500;color:var(--text);
+}
+.admin-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.icon-btn{
+  width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--border);background:var(--white);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .12s;
+}
+.icon-btn:hover{background:var(--bg)}
+.icon-btn svg{width:16px;height:16px;stroke:var(--text-2);stroke-width:1.75}
+
+/* metric cards */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.metric{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;
+  padding:16px;
+}
+.metric-label{font-size:12px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.metric-value{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.5px;line-height:1}
+.metric-sub{font-size:12px;color:var(--text-3);margin-top:4px}
+.metric-up{color:var(--green)}
+.metric-down{color:var(--red)}
+
+/* section card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.card-title{font-size:14px;font-weight:600;color:var(--text)}
+.card-body{padding:0}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{
+  font-size:11px;font-weight:600;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.5px;
+  padding:10px 18px;border-bottom:1px solid var(--border);
+  text-align:left;white-space:nowrap;background:var(--white);
+}
+.tbl td{
+  padding:12px 18px;border-bottom:1px solid var(--border);
+  font-size:13px;color:var(--text);vertical-align:middle;
+}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{transition:background .1s}
+.tbl tbody tr:hover{background:var(--bg)}
+.tbl .muted{color:var(--text-3)}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;font-size:11px;font-weight:600;padding:3px 9px;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:#008a5c}
+.badge-red{background:var(--red-bg);color:#c41020}
+.badge-yellow{background:var(--yellow-bg);color:#b45309}
+.badge-blue{background:var(--accent-bg);color:#0f6ebd}
+.badge-grey{background:var(--bg);color:var(--text-3);border:1px solid var(--border)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.status-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  border:none;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:600;
+  padding:7px 16px;cursor:pointer;transition:background .12s,opacity .12s;
+}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--text);color:#fff}
+.btn-primary:hover{background:#272c30}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#1a8cd8}
+.btn-outline{background:var(--white);color:var(--text);border:1px solid var(--border-mid)}
+.btn-outline:hover{background:var(--bg)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fdc9cb}
+.btn-danger:hover{background:#fde8e8}
+.btn-success{background:var(--green-bg);color:#008a5c;border:1px solid #9fe5cc}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn svg{width:14px;height:14px;stroke-width:2}
+
+/* form */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--white);border:1px solid var(--border-mid);border-radius:6px;
+  color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;
+  transition:border-color .12s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:80px}
+
+/* search */
+.search-wrap{position:relative;flex:1;max-width:320px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text-3);stroke-width:1.75;pointer-events:none}
+.search-wrap input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .12s}
+.search-wrap input:focus{border-color:var(--accent);background:var(--white)}
+
+/* user avatar */
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--accent-bg);color:var(--accent);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+
+/* progress */
+.progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width .3s}
+
+/* stat bar for engagement */
+.eng-bar{display:flex;align-items:center;gap:8px}
+.eng-bar .track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;min-width:60px}
+.eng-bar .fill{height:100%;border-radius:2px;background:var(--accent)}
+.eng-bar .pct{font-size:12px;font-weight:600;color:var(--text-2);min-width:32px;text-align:right}
+
+/* drip live indicator */
+.drip-live{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:500;color:var(--green);
+}
+.drip-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--text);color:#fff;
+  padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;
+  opacity:0;pointer-events:none;transition:all .2s;z-index:9999;
+  transform:translateY(8px);
+}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{background:var(--red)}
+#toast.ok{background:var(--green)}
+
+/* modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--white);border-radius:14px;width:100%;max-width:480px;
+  border:1px solid var(--border);overflow:hidden;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* inline loader */
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* sidebar mobile toggle */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .2s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+}
+
+/* tabs */
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:0}
+.tab{
+  padding:10px 16px;font-size:13px;font-weight:500;color:var(--text-2);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .12s;
+  background:none;border-top:none;border-left:none;border-right:none;
+  font-family:var(--font);
+}
+.tab.active{color:var(--text);border-bottom-color:var(--text)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* section divider */
+.sdiv{height:1px;background:var(--border);margin:20px 0}
+
+/* empty state */
+.empty-state{padding:48px 24px;text-align:center}
+.empty-state p{font-size:13px;color:var(--text-3);margin-top:6px}
+
+/* strike pips */
+.pips{display:flex;gap:3px}
+.pip{width:18px;height:3px;border-radius:2px;background:var(--border)}
+.pip.on{background:var(--red)}
+
+/* plan tags */
+.plan-tag{font-size:11px;font-weight:600;text-transform:capitalize}
+
+/* notification dot */
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(--red);position:absolute;top:8px;right:8px}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══════════════════════════
+     SIDEBAR
+═══════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    Meri<em>Social</em>
+    <span>Admin Console</span>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <button class="nav-item active" id="nav-dashboard" onclick="go('dashboard')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </button>
+  <button class="nav-item" id="nav-analytics" onclick="go('analytics')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Analytics
+  </button>
+
+  <div class="nav-section">Members</div>
+  <button class="nav-item" id="nav-users" onclick="go('users')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Members
+  </button>
+  <button class="nav-item" id="nav-engagement" onclick="go('engagement')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    Engagement
+  </button>
+  <button class="nav-item" id="nav-strikes" onclick="go('strikes')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Strikes
+    <span class="nav-badge" id="badge-strikes">0</span>
+  </button>
+
+  <div class="nav-section">Content</div>
+  <button class="nav-item" id="nav-handles" onclick="go('handles')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Handles
+    <span class="nav-badge" id="badge-handles">0</span>
+  </button>
+  <button class="nav-item" id="nav-drip" onclick="go('drip')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+    Drip Control
+  </button>
+
+  <div class="nav-section">Revenue</div>
+  <button class="nav-item" id="nav-subscriptions" onclick="go('subscriptions')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Subscriptions
+  </button>
+  <button class="nav-item" id="nav-revenue" onclick="go('revenue')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+    Revenue
+  </button>
+
+  <div class="nav-section">System</div>
+  <button class="nav-item" id="nav-logs" onclick="go('logs')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    System Logs
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="go('settings')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </button>
+
+  <div class="sidebar-bottom">
+    <button class="nav-item" onclick="adminLogout()" style="color:var(--red)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Log out
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════
+     MAIN
+═══════════════════════════ -->
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="toggleSidebar()" style="display:none" id="menu-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="topbar-title" id="page-title">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <div class="icon-btn" id="notif-btn" onclick="go('logs')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="notif-dot hidden" id="notif-dot"></div>
+      </div>
+      <div class="admin-chip">
+        <div class="admin-dot"></div>
+        <span id="admin-name">Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-body" id="page-body">
+    <div style="display:flex;align-items:center;justify-content:center;height:200px">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════
+     MODAL: issue strike
+═══════════════════════════ -->
+<div class="modal-bg" id="modal-strike">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Issue strike</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-strike')">Close</button>
+    </div>
+    <div class="modal-body">
+      <div id="strike-user-info" style="margin-bottom:14px;padding:12px;background:var(--bg);border-radius:8px;font-size:13px"></div>
+      <div class="field">
+        <label>Reason</label>
+        <select id="strike-reason">
+          <option value="no_engagement">Did not engage with drop</option>
+          <option value="fake_engagement">Fake or bot engagement</option>
+          <option value="fake_handle">Submitted fake handle</option>
+          <option value="abusive_behaviour">Abusive behaviour</option>
+          <option value="spam">Spam</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Details (optional)</label>
+        <textarea id="strike-details" placeholder="Additional context for this strike..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-strike')">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-strike" onclick="confirmStrike()">Issue strike</button>
+    </div>
+  </div>
+</div>
+
+<!-- modal: user detail -->
+<div class="modal-bg" id="modal-user">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h3 id="modal-user-title">Member details</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-user')">Close</button>
+    </div>
+    <div class="modal-body" id="modal-user-body"></div>
+    <div class="modal-foot" id="modal-user-foot"></div>
+  </div>
+</div>
+
+<!-- modal: approve handle -->
+<div class="modal-bg" id="modal-handle">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Review handle</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-handle')">Close</button>
+    </div>
+    <div class="modal-body" id="modal-handle-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-handle')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="btn-reject-handle" onclick="rejectHandleConfirm()">Reject</button>
+      <button class="btn btn-success btn-sm" id="btn-approve-handle" onclick="approveHandleConfirm()">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- modal: send notification -->
+<div class="modal-bg" id="modal-notif">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-notif-title">Send notification</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-notif')">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Subject</label><input id="notif-subject" placeholder="e.g. Important community update"/></div>
+      <div class="field"><label>Message</label><textarea id="notif-body" placeholder="Write your message..."></textarea></div>
+      <div class="field"><label>Sender name</label><input id="notif-sender" value="MeriSocial Team"/></div>
+      <div class="field"><label>Sender title</label><input id="notif-title-field" value="Community Management"/></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-notif')">Cancel</button>
+      <button class="btn btn-accent" id="btn-send-notif" onclick="sendNotifConfirm()">Send email</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+//const API = 'http://localhost:4000/api';
+const API = 'http://10.49.130.118:4000/api';
+let adminToken = localStorage.getItem('ms_admin_token') || null;
+let currentPage = 'dashboard';
+let strikeTargetUserId = null;
+let handleTargetId = null;
+let notifTargetUserId = null;
+
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,'0');
+const fmt = n => Number(n||0).toLocaleString();
+const fmtMoney = n => '₦' + Number(n||0).toLocaleString();
+const pct = (a,b) => b ? Math.round((a/b)*100) : 0;
+
+const toast = (msg, type='') => {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = `show ${type==='error'?'err':type==='success'?'ok':''}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.className='',3000);
+};
+
+const req = async (path, opts={}) => {
+  try {
+    const headers = {'Content-Type':'application/json'};
+    if(adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+    const res = await fetch(`${API}${path}`, {...opts, headers:{...headers,...(opts.headers||{})}, credentials:'include'});
+    const data = await res.json().catch(()=>({}));
+    return {ok:res.ok, status:res.status, data};
+  } catch(e) {
+    return {ok:false, data:{message:'Network error — is the server running?'}};
+  }
+};
+
+const openModal = id => $(id).classList.add('open');
+const closeModal = id => $(id).classList.remove('open');
+
+const setLoading = (id, loading, label='') => {
+  const b=$(id); if(!b) return;
+  b.disabled=loading;
+  b.innerHTML=loading?'<div class="spinner"></div>':label;
+};
+
+// close modal on background click
+document.querySelectorAll('.modal-bg').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+
+// nav
+const go = page => {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  $(`nav-${page}`)?.classList.add('active');
+  $('page-title').textContent = {
+    dashboard:'Dashboard', analytics:'Analytics', users:'Members',
+    engagement:'Engagement', strikes:'Strikes', handles:'Handles',
+    drip:'Drip Control', subscriptions:'Subscriptions',
+    revenue:'Revenue', logs:'System Logs', settings:'Settings'
+  }[page] || page;
+  const body = $('page-body');
+  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px"><div class="spinner"></div></div>';
+  const render = {
+    dashboard: renderDashboard,
+    analytics: renderAnalytics,
+    users: renderUsers,
+    engagement: renderEngagement,
+    strikes: renderStrikes,
+    handles: renderHandles,
+    drip: renderDrip,
+    subscriptions: renderSubscriptions,
+    revenue: renderRevenue,
+    logs: renderLogs,
+    settings: renderSettings,
+  };
+  (render[page] || (()=> body.innerHTML=`<div class="empty-state"><b>${page}</b><p>Coming soon.</p></div>`))();
+};
+
+const toggleSidebar = () => $('sidebar').classList.toggle('open');
+
+// ═══════════════════
+// LOGIN CHECK
+// ═══════════════════
+const boot = async () => {
+  if(!adminToken) return showLogin();
+  const {ok,data} = await req('/auth/me');
+  if(!ok || !['super_admin','support_admin'].includes(data.user?.role)) {
+    adminToken=null; localStorage.removeItem('ms_admin_token');
+    return showLogin();
+  }
+  $('admin-name').textContent = data.user.firstName || 'Admin';
+  go('dashboard');
+  loadBadges();
+};
+
+const showLogin = () => {
+  $('page-body').innerHTML = `
+    <div style="max-width:360px;margin:80px auto">
+      <div style="font-size:22px;font-weight:700;margin-bottom:4px">Meri<span style="color:var(--accent)">Social</span></div>
+      <div style="font-size:13px;color:var(--text-3);margin-bottom:28px">Admin access only.</div>
+      <div class="field"><label>Email</label><input id="adm-email" type="email" placeholder="admin@merisocial.com"/></div>
+      <div class="field"><label>Password</label><input id="adm-pass" type="password" placeholder="Password"/></div>
+      <button class="btn btn-primary" style="width:100%" id="btn-adm-login" onclick="adminLogin()">Sign in</button>
+    </div>`;
+};
+
+const adminLogin = async () => {
+  const e=$('adm-email')?.value.trim(), p=$('adm-pass')?.value;
+  if(!e||!p) return toast('Enter credentials.','error');
+  setLoading('btn-adm-login',true);
+  const {ok,data} = await req('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})});
+  setLoading('btn-adm-login',false,'Sign in');
+  if(ok && ['super_admin','support_admin'].includes(data.user?.role)){
+    adminToken=data.token; localStorage.setItem('ms_admin_token',adminToken);
+    $('admin-name').textContent=data.user.firstName||'Admin';
+    go('dashboard'); loadBadges();
+  } else {
+    toast(data.message||'Access denied.','error');
+  }
+};
+
+const adminLogout = async () => {
+  await req('/auth/logout',{method:'POST'});
+  adminToken=null; localStorage.removeItem('ms_admin_token');
+  showLogin();
+};
+
+const loadBadges = async () => {
+  const {ok,data} = await req('/admin/dashboard');
+  if(!ok) return;
+  const d = data.data?.kpis||{};
+  const sb = d.activeStrikes||0;
+  const hb = d.pendingHandles||0;
+  $('badge-strikes').textContent = sb>0?sb:'0';
+  $('badge-handles').textContent = hb>0?hb:'0';
+  if(sb>0||hb>0) $('notif-dot').classList.remove('hidden');
+};
+
+// ═══════════════════
+// DASHBOARD
+// ═══════════════════
+const renderDashboard = async () => {
+  const {ok,data} = await req('/admin/dashboard');
+  const body = $('page-body');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>${data.message||'Failed to load.'}</p></div>`; return; }
+  const k = data.data.kpis||{};
+  const plans = data.data.planBreakdown||[];
+
+  const planHtml = plans.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:500;text-transform:capitalize">${p._id}</span>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-size:13px;color:var(--text-2)">${fmt(p.count)} members</span>
+        <span style="font-size:13px;font-weight:600">${fmtMoney(p.revenue)}</span>
+      </div>
+    </div>`).join('') || '<div style="padding:16px;font-size:13px;color:var(--text-3)">No active subscriptions yet.</div>';
+
+  body.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Total members</div>
+        <div class="metric-value">${fmt(k.totalUsers)}</div>
+        <div class="metric-sub">All registered accounts</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Active now</div>
+        <div class="metric-value metric-up">${fmt(k.activeMembers)}</div>
+        <div class="metric-sub">Valid subscriptions</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Revenue this month</div>
+        <div class="metric-value">${fmtMoney(k.revenueThisMonth)}</div>
+        <div class="metric-sub">Confirmed payments</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Pending handles</div>
+        <div class="metric-value ${k.pendingHandles>0?'metric-down':''}">${fmt(k.pendingHandles)}</div>
+        <div class="metric-sub">Awaiting review</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Active strikes</div>
+        <div class="metric-value ${k.activeStrikes>0?'metric-down':''}">${fmt(k.activeStrikes)}</div>
+        <div class="metric-sub">Unresolved</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Removed members</div>
+        <div class="metric-value">${fmt(k.removedUsers)}</div>
+        <div class="metric-sub">Policy violations</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Plan breakdown</span>
+          <button class="btn btn-outline btn-sm" onclick="go('subscriptions')">View all</button>
+        </div>
+        <div class="card-body" style="padding:0 18px">${planHtml}</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Quick actions</span>
+        </div>
+        <div class="card-body" style="padding:16px;display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-primary" onclick="go('handles')">Review pending handles (${k.pendingHandles||0})</button>
+          <button class="btn btn-outline" onclick="go('drip')">Manage drip</button>
+          <button class="btn btn-outline" onclick="openBroadcastModal()">Send broadcast email</button>
+          <button class="btn btn-outline" onclick="go('strikes')">View active strikes</button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ═══════════════════
+// ANALYTICS
+// ═══════════════════
+const renderAnalytics = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/dashboard');
+  const k = ok ? (data.data?.kpis||{}) : {};
+  const plans = ok ? (data.data?.planBreakdown||[]) : [];
+
+  body.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Conversion rate</div>
+        <div class="metric-value">${k.totalUsers>0?Math.round((k.activeMembers/k.totalUsers)*100):0}%</div>
+        <div class="metric-sub">Registered to active</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Avg revenue per user</div>
+        <div class="metric-value">${k.activeMembers>0?fmtMoney(Math.round(k.revenueThisMonth/k.activeMembers)):'₦0'}</div>
+        <div class="metric-sub">Active members only</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Churn (removed)</div>
+        <div class="metric-value">${k.totalUsers>0?Math.round((k.removedUsers/k.totalUsers)*100):0}%</div>
+        <div class="metric-sub">Policy removals</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Handle approval rate</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">Approved vs submitted</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Revenue by plan</span></div>
+      <div class="card-body" style="padding:20px">
+        <div style="position:relative;height:240px">
+          <canvas id="chart-plans" role="img" aria-label="Bar chart showing revenue by subscription plan">Revenue by plan.</canvas>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;font-size:12px;color:var(--text-2)">
+          ${plans.map((p,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${['#1d9bf0','#0f6ebd','#0a3d62'][i%3]}"></span>${p._id}: ${fmtMoney(p.revenue)}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Member distribution</span></div>
+      <div class="card-body" style="padding:20px;display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <div style="position:relative;height:200px;width:200px">
+          <canvas id="chart-dist" role="img" aria-label="Donut chart of member distribution">Member distribution.</canvas>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text-2)">Active</span><span class="metric-up" style="font-weight:600">${fmt(k.activeMembers)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text-2)">Unsubscribed</span><span style="font-weight:600">${fmt((k.totalUsers||0)-(k.activeMembers||0)-(k.removedUsers||0))}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px"><span style="color:var(--text-2)">Removed</span><span class="metric-down" style="font-weight:600">${fmt(k.removedUsers)}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const planLabels = plans.map(p=>p._id);
+  const planRevs   = plans.map(p=>p.revenue);
+  if(planLabels.length) {
+    new Chart($('chart-plans'),{
+      type:'bar',
+      data:{labels:planLabels,datasets:[{label:'Revenue (₦)',data:planRevs,backgroundColor:['#1d9bf0','#0f6ebd','#0a3d62'],borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{grid:{color:'#eff3f4'},ticks:{callback:v=>'₦'+v.toLocaleString(),font:{size:11}}}}}
+    });
+  }
+
+  const active = k.activeMembers||0;
+  const removed = k.removedUsers||0;
+  const unsub = Math.max(0,(k.totalUsers||0)-active-removed);
+  new Chart($('chart-dist'),{
+    type:'doughnut',
+    data:{labels:['Active','Unsubscribed','Removed'],datasets:[{data:[active,unsub,removed],backgroundColor:['#1d9bf0','#cfd9de','#f4212e'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}
+  });
+};
+
+// ═══════════════════
+// MEMBERS
+// ═══════════════════
+let usersData = [];
+const renderUsers = async (search='') => {
+  const body = $('page-body');
+  const url = `/admin/users?limit=100${search?'&search='+encodeURIComponent(search):''}`;
+  const {ok,data} = await req(url);
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>${data.message||'Failed.'}</p></div>`; return; }
+  usersData = data.data?.users||[];
+  const total = data.data?.pagination?.total||0;
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+      <div style="font-size:13px;color:var(--text-3)">${fmt(total)} total members</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="search-wrap">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="user-search" placeholder="Search by name or email..." onkeyup="renderUsers(this.value)"/>
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="openBroadcastModal()">Broadcast email</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Status</th>
+              <th>Plan</th>
+              <th>Strikes</th>
+              <th>Joined</th>
+              <th>Last active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${usersData.map(u=>{
+              const strikes = u.strikeCount||0;
+              const pips = [0,1,2].map(i=>`<div class="pip${i<strikes?' on':''}"></div>`).join('');
+              const subColor = u.subscriptionStatus==='active'?'badge-green':u.subscriptionStatus==='expired'?'badge-red':'badge-grey';
+              const removed = u.isRemoved?'<span class="badge badge-red" style="margin-left:4px">Removed</span>':'';
+              return `<tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="avatar">${(u.fullName||'?')[0].toUpperCase()}</div>
+                    <div>
+                      <div style="font-weight:500;font-size:13px">${u.fullName||'—'}${removed}</div>
+                      <div style="font-size:12px;color:var(--text-3)">${u.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge ${subColor}">${u.subscriptionStatus||'none'}</span></td>
+                <td><span style="font-size:12px;text-transform:capitalize;color:var(--text-2)">${u.subscriptionPlan&&u.subscriptionPlan!=='none'?u.subscriptionPlan:'—'}</span></td>
+                <td><div class="pips">${pips}</div></td>
+                <td><span class="muted">${u.createdAt?new Date(u.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</span></td>
+                <td><span class="muted">${u.lastLogin?new Date(u.lastLogin).toLocaleDateString('en-NG',{dateStyle:'medium'}):'Never'}</span></td>
+                <td>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn btn-outline btn-sm" onclick="viewUser('${u.userId}')">View</button>
+                    <button class="btn btn-danger btn-sm" onclick="openStrikeModal('${u.userId}','${(u.fullName||'').replace(/'/g,"\\'")}')">Strike</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('') || `<tr><td colspan="7"><div class="empty-state"><p>No members found.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+const viewUser = async userId => {
+  const {ok,data} = await req(`/admin/users/${encodeURIComponent(userId)}`);
+  if(!ok) return toast(data.message||'Failed.','error');
+  const u = data.data?.user||{};
+  const subs = data.data?.subscriptions||[];
+  const strikes = data.data?.strikes||[];
+  const handles = data.data?.handles||[];
+
+  $('modal-user-title').textContent = u.fullName||'Member';
+  $('modal-user-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div class="avatar" style="width:44px;height:44px;font-size:16px">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div>
+        <div style="font-weight:600;font-size:15px">${u.fullName}</div>
+        <div style="font-size:13px;color:var(--text-3)">${u.email}</div>
+        <div style="margin-top:4px">
+          <span class="badge ${u.subscriptionStatus==='active'?'badge-green':'badge-grey'}">${u.subscriptionStatus||'none'}</span>
+          ${u.role!=='user'?`<span class="badge badge-purple" style="margin-left:4px">${u.role}</span>`:''}
+          ${u.isRemoved?`<span class="badge badge-red" style="margin-left:4px">Removed</span>`:''}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:16px">
+      <div style="padding:8px;background:var(--bg);border-radius:6px">
+        <div style="color:var(--text-3);font-size:11px;margin-bottom:2px">PLAN</div>
+        <div style="font-weight:500;text-transform:capitalize">${u.subscriptionPlan&&u.subscriptionPlan!=='none'?u.subscriptionPlan:'None'}</div>
+      </div>
+      <div style="padding:8px;background:var(--bg);border-radius:6px">
+        <div style="color:var(--text-3);font-size:11px;margin-bottom:2px">STRIKES</div>
+        <div style="font-weight:500;color:${(u.strikeCount||0)>0?'var(--red)':'var(--text)'}">${u.strikeCount||0} of 3</div>
+      </div>
+      <div style="padding:8px;background:var(--bg);border-radius:6px">
+        <div style="color:var(--text-3);font-size:11px;margin-bottom:2px">EXPIRES</div>
+        <div style="font-weight:500">${u.subscriptionExpiry?new Date(u.subscriptionExpiry).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</div>
+      </div>
+      <div style="padding:8px;background:var(--bg);border-radius:6px">
+        <div style="color:var(--text-3);font-size:11px;margin-bottom:2px">JOINED</div>
+        <div style="font-weight:500">${u.registrationDate?new Date(u.registrationDate).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</div>
+      </div>
+    </div>
+
+    ${handles.length?`
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Handles</div>
+      <div style="margin-bottom:14px">
+        ${handles.map(h=>`<span class="badge ${h.status==='approved'?'badge-green':h.status==='rejected'?'badge-red':'badge-yellow'}" style="margin-right:4px;margin-bottom:4px">${h.handle} (${h.platform})</span>`).join('')}
+      </div>`:''}
+
+    ${strikes.length?`
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Strike history</div>
+      ${strikes.map(s=>`<div style="font-size:12px;padding:8px;background:var(--red-bg);border-radius:6px;margin-bottom:6px">
+        <span style="font-weight:600;color:var(--red)">Strike ${s.strikeNumber}</span>
+        <span style="color:var(--text-2);margin-left:6px">${s.reason.replace(/_/g,' ')}</span>
+        ${s.details?`<div style="color:var(--text-3);margin-top:2px">${s.details}</div>`:''}
+      </div>`).join('')}`:''}
+  `;
+  $('modal-user-foot').innerHTML = `
+    <button class="btn btn-outline" onclick="sendUserEmail('${u.userId}')">Send email</button>
+    <button class="btn btn-danger btn-sm" onclick="closeModal('modal-user');openStrikeModal('${u.userId}','${(u.fullName||'').replace(/'/g,"\\'")}')">Issue strike</button>
+    <button class="btn btn-outline btn-sm" onclick="forceLogoutUser('${u.userId}')">Force logout</button>
+    ${u.accountStatus==='suspended'||u.isRemoved
+      ?`<button class="btn btn-success btn-sm" onclick="setUserStatus('${u.userId}','active')">Reinstate</button>`
+      :`<button class="btn btn-danger btn-sm" onclick="setUserStatus('${u.userId}','suspended')">Suspend</button>`
+    }
+  `;
+  openModal('modal-user');
+};
+
+const setUserStatus = async (userId, status) => {
+  const u = usersData.find(x=>x.userId===userId);
+  if(!u) return;
+  const {ok,data} = await req(`/admin/users/${u._id||userId}/status`,{method:'PATCH',body:JSON.stringify({status})});
+  toast(ok?`User ${status}.`:data.message||'Failed.', ok?'success':'error');
+  if(ok){ closeModal('modal-user'); renderUsers(); }
+};
+
+const forceLogoutUser = async userId => {
+  const {ok,data} = await req(`/admin/users/${userId}/force-logout`,{method:'POST'});
+  toast(ok?'User logged out from all devices.':data.message||'Failed.', ok?'success':'error');
+};
+
+const sendUserEmail = userId => {
+  notifTargetUserId = userId;
+  $('modal-notif-title').textContent = 'Send email to member';
+  openModal('modal-notif');
+};
+
+const openBroadcastModal = () => {
+  notifTargetUserId = null;
+  $('modal-notif-title').textContent = 'Broadcast email to all members';
+  openModal('modal-notif');
+};
+
+const sendNotifConfirm = async () => {
+  const subject = $('notif-subject').value.trim();
+  const msg = $('notif-body').value.trim();
+  const sender = $('notif-sender').value.trim();
+  const title = $('notif-title-field').value.trim();
+  if(!subject||!msg) return toast('Subject and message required.','error');
+  setLoading('btn-send-notif',true);
+  const payload = {subject,messageHtml:msg.replace(/\n/g,'<br>'),senderName:sender,senderTitle:title};
+  if(notifTargetUserId) payload.userId = notifTargetUserId;
+  const {ok,data} = await req('/admin/send-email',{method:'POST',body:JSON.stringify(payload)});
+  setLoading('btn-send-notif',false,'Send email');
+  toast(ok?'Email sent.':data.message||'Failed.', ok?'success':'error');
+  if(ok) closeModal('modal-notif');
+};
+
+// ═══════════════════
+// ENGAGEMENT
+// ═══════════════════
+const renderEngagement = async () => {
+  const body = $('page-body');
+  const [{ok:uok,data:udata},{ok:lok,data:ldata}] = await Promise.all([
+    req('/admin/users?limit=100'),
+    req('/admin/logs?category=handle&limit=500')
+  ]);
+  if(!uok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const users = udata.data?.users||[];
+  const logs  = lok ? (ldata.data?.logs||[]) : [];
+
+  // count real follow clicks per user from system logs
+  const clickMap = {};
+  logs.forEach(l => {
+    if(l.action==='handle_follow_clicked' && l.userId) {
+      clickMap[l.userId] = (clickMap[l.userId]||0) + 1;
+    }
+  });
+  const maxClicks = Math.max(1, ...Object.values(clickMap));
+
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Member engagement tracker</span>
+        <span style="font-size:12px;color:var(--text-3)">Based on real Follow button taps logged per member</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Status</th>
+              <th>Follow clicks</th>
+              <th>Engagement</th>
+              <th>Last seen</th>
+              <th>Strikes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u=>{
+              const clicks = clickMap[u.userId]||0;
+              const rate = Math.round((clicks/maxClicks)*100);
+              const rateColor = rate>=70?'var(--green)':rate>=30?'var(--yellow)':'var(--red)';
+              const strikes=u.strikeCount||0;
+              const pips=[0,1,2].map(i=>`<div class="pip${i<strikes?' on':''}"></div>`).join('');
+              return `<tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="avatar">${(u.fullName||'?')[0].toUpperCase()}</div>
+                    <div>
+                      <div style="font-weight:500;font-size:13px">${u.fullName||'—'}</div>
+                      <div style="font-size:12px;color:var(--text-3)">${u.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge ${u.subscriptionStatus==='active'?'badge-green':'badge-grey'}">${u.subscriptionStatus||'none'}</span></td>
+                <td style="font-weight:600">${clicks}</td>
+                <td>
+                  <div class="eng-bar">
+                    <div class="track"><div class="fill" style="width:${rate}%;background:${rateColor}"></div></div>
+                    <div class="pct" style="color:${rateColor}">${rate}%</div>
+                  </div>
+                </td>
+                <td><span class="muted">${u.lastLogin?new Date(u.lastLogin).toLocaleDateString('en-NG',{dateStyle:'medium'}):'Never'}</span></td>
+                <td><div class="pips">${pips}</div></td>
+                <td>
+                  ${rate<30&&u.subscriptionStatus==='active'?`<button class="btn btn-danger btn-sm" onclick="openStrikeModal('${u.userId}','${(u.fullName||'').replace(/'/g,"\\'")}')">Strike</button>`:''}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="padding:12px 0;font-size:12px;color:var(--text-3)">
+      Engagement rate is relative — the member with the most clicks scores 100%. Members below 30% with an active subscription are flagged for a strike.
+    </div>
+  `;
+};
+
+// ═══════════════════
+// STRIKES
+// ═══════════════════
+const renderStrikes = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/users?limit=100');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const users = (data.data?.users||[]).filter(u=>(u.strikeCount||0)>0||u.isRemoved);
+
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Members with strikes or removed status</span>
+        <span style="font-size:12px;color:var(--text-3)">${users.length} member${users.length!==1?'s':''}</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead>
+            <tr><th>Member</th><th>Strikes</th><th>Status</th><th>Removed</th><th>Joined</th><th></th></tr>
+          </thead>
+          <tbody>
+            ${users.length?users.map(u=>{
+              const strikes=u.strikeCount||0;
+              const pips=[0,1,2].map(i=>`<div class="pip${i<strikes?' on':''}"></div>`).join('');
+              return `<tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="avatar" style="${u.isRemoved?'background:var(--red-bg);color:var(--red)':''}">${(u.fullName||'?')[0].toUpperCase()}</div>
+                    <div>
+                      <div style="font-weight:500;font-size:13px">${u.fullName||'—'}</div>
+                      <div style="font-size:12px;color:var(--text-3)">${u.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><div class="pips">${pips}</div></td>
+                <td><span class="badge ${u.subscriptionStatus==='active'?'badge-green':u.isRemoved?'badge-red':'badge-grey'}">${u.isRemoved?'Removed':u.subscriptionStatus||'none'}</span></td>
+                <td><span class="muted">${u.removedAt?new Date(u.removedAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</span></td>
+                <td><span class="muted">${u.createdAt?new Date(u.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</span></td>
+                <td>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn btn-outline btn-sm" onclick="viewUser('${u.userId}')">View</button>
+                    ${!u.isRemoved?`<button class="btn btn-danger btn-sm" onclick="openStrikeModal('${u.userId}','${(u.fullName||'').replace(/'/g,"\\'")}')">Strike</button>`:`<button class="btn btn-success btn-sm" onclick="reinstateUser('${u.userId}')">Reinstate</button>`}
+                  </div>
+                </td>
+              </tr>`;
+            }).join(''):`<tr><td colspan="6"><div class="empty-state"><p>No strikes issued yet.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+const openStrikeModal = (userId, name) => {
+  strikeTargetUserId = userId;
+  $('strike-user-info').innerHTML = `<b>${name}</b><br><span style="color:var(--text-3);font-size:12px">User ID: ${userId}</span>`;
+  openModal('modal-strike');
+};
+
+const confirmStrike = async () => {
+  if(!strikeTargetUserId) return;
+  const reason = $('strike-reason').value;
+  const details = $('strike-details').value.trim();
+  setLoading('btn-confirm-strike',true);
+  const {ok,data} = await req(`/admin/users/${strikeTargetUserId}/strike`,{method:'POST',body:JSON.stringify({reason,details})});
+  setLoading('btn-confirm-strike',false,'Issue strike');
+  toast(ok?(data.removed?'Member removed after 3rd strike.':'Strike issued.'):(data.message||'Failed.'), ok?'success':'error');
+  if(ok){ closeModal('modal-strike'); loadBadges(); renderStrikes(); }
+};
+
+const reinstateUser = async userId => {
+  if(!confirm('Reinstate this member? They must re-subscribe.')) return;
+  const {ok,data} = await req(`/admin/users/${userId}/reinstate`,{method:'PATCH',body:JSON.stringify({reason:'Admin reinstatement'})});
+  toast(ok?'Member reinstated.':data.message||'Failed.', ok?'success':'error');
+  if(ok) renderStrikes();
+};
+
+// ═══════════════════
+// HANDLES
+// ═══════════════════
+const renderHandles = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/handles/pending');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const handles = data.data||[];
+
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Pending handle reviews</span>
+        <span style="font-size:12px;color:var(--text-3)">${handles.length} awaiting review</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead>
+            <tr><th>Handle</th><th>Platform</th><th>Submitted by</th><th>Sub status</th><th>Submitted</th><th></th></tr>
+          </thead>
+          <tbody>
+            ${handles.length?handles.map(h=>`<tr>
+              <td><span style="font-weight:600;font-size:13px">${h.handle}</span></td>
+              <td><span style="text-transform:capitalize;font-size:13px">${h.platform}</span></td>
+              <td>
+                <div style="font-size:13px">${h.user?.fullName||'—'}</div>
+                <div style="font-size:11px;color:var(--text-3)">${h.user?.email||''}</div>
+              </td>
+              <td><span class="badge ${h.user?.subscriptionStatus==='active'?'badge-green':'badge-grey'}">${h.user?.subscriptionStatus||'none'}</span></td>
+              <td><span class="muted">${h.createdAt?new Date(h.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</span></td>
+              <td>
+                <div style="display:flex;gap:6px">
+                  <button class="btn btn-success btn-sm" onclick="quickApprove('${h.handleId}')">Approve</button>
+                  <button class="btn btn-danger btn-sm" onclick="openHandleModal('${h.handleId}','${h.handle}','${h.platform}')">Review</button>
+                </div>
+              </td>
+            </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state"><p>No pending handles.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  loadBadges();
+};
+
+const quickApprove = async handleId => {
+  const {ok,data} = await req(`/admin/handles/${handleId}/approve`,{method:'POST'});
+  toast(ok?'Handle approved.':data.message||'Failed.', ok?'success':'error');
+  if(ok) renderHandles();
+};
+
+const openHandleModal = (id, handle, platform) => {
+  handleTargetId = id;
+  $('modal-handle-body').innerHTML = `
+    <div style="padding:14px;background:var(--bg);border-radius:8px;margin-bottom:14px">
+      <div style="font-size:17px;font-weight:700">${handle}</div>
+      <div style="font-size:13px;color:var(--text-3);text-transform:capitalize">${platform}</div>
+    </div>
+    <div class="field" id="reject-reason-wrap" style="display:none">
+      <label>Rejection reason</label>
+      <input id="reject-reason" placeholder="Why is this handle rejected?"/>
+    </div>
+  `;
+  openModal('modal-handle');
+};
+
+const approveHandleConfirm = async () => {
+  const {ok,data} = await req(`/admin/handles/${handleTargetId}/approve`,{method:'POST'});
+  toast(ok?'Approved.':data.message||'Failed.', ok?'success':'error');
+  if(ok){ closeModal('modal-handle'); renderHandles(); }
+};
+
+const rejectHandleConfirm = () => {
+  const wrap = $('reject-reason-wrap');
+  if(wrap.style.display==='none'){
+    wrap.style.display='block'; return;
+  }
+  const reason = $('reject-reason').value.trim()||'Does not meet guidelines.';
+  req(`/admin/handles/${handleTargetId}/reject`,{method:'POST',body:JSON.stringify({reason})}).then(({ok,data})=>{
+    toast(ok?'Rejected.':data.message||'Failed.', ok?'success':'error');
+    if(ok){ closeModal('modal-handle'); renderHandles(); }
+  });
+};
+
+// ═══════════════════
+// DRIP CONTROL
+// ═══════════════════
+const renderDrip = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/drip/batches');
+  const batches = ok?(data.data||[]):[];
+
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Manual drip</span></div>
+        <div class="card-body" style="padding:16px">
+          <div class="field">
+            <label>Platform</label>
+            <select id="drip-platform">
+              <option value="all">All platforms</option>
+              <option value="x">X (Twitter)</option>
+              <option value="instagram">Instagram</option>
+              <option value="youtube">YouTube</option>
+              <option value="tiktok">TikTok</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Handles per batch</label>
+            <input type="number" id="drip-count" value="10" min="1" max="50"/>
+          </div>
+          <button class="btn btn-accent" style="width:100%" id="btn-drip" onclick="triggerDrip()">Release batch now</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cron schedule</span></div>
+        <div class="card-body" style="padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div class="drip-live-dot"></div>
+            <span style="font-size:13px;color:var(--green);font-weight:500">Cron running</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:8px">Every <b>10 minutes</b>, <b>10 handles</b> released automatically.</div>
+          <div style="font-size:12px;color:var(--text-3)">Configure in your server .env using DRIP_INTERVAL_MINUTES and HANDLES_PER_DRIP.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent drip batches</span>
+        <span style="font-size:12px;color:var(--text-3)">${batches.length} batches</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Batch ID</th><th>Platform</th><th>Handles</th><th>Released</th><th>Expires</th><th>Status</th></tr></thead>
+          <tbody>
+            ${batches.length?batches.slice(0,20).map(b=>`<tr>
+              <td><span style="font-size:11px;font-family:monospace;color:var(--text-2)">${b.batchId}</span></td>
+              <td><span style="text-transform:capitalize">${b.platform}</span></td>
+              <td>${b.handleCount}</td>
+              <td class="muted">${b.visibleFrom?new Date(b.visibleFrom).toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}):'—'}</td>
+              <td class="muted">${b.visibleUntil?new Date(b.visibleUntil).toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}):'—'}</td>
+              <td><span class="badge ${b.isExpired?'badge-grey':'badge-green'}">${b.isExpired?'Expired':'Live'}</span></td>
+            </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state"><p>No batches yet.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+const triggerDrip = async () => {
+  const platform = $('drip-platform').value;
+  const count = parseInt($('drip-count').value)||10;
+  setLoading('btn-drip',true);
+  const {ok,data} = await req('/admin/drip/trigger',{method:'POST',body:JSON.stringify({platform,count})});
+  setLoading('btn-drip',false,'Release batch now');
+  toast(ok?`Drip released: ${data.data?.handleCount||0} handle(s).`:data.message||'Failed.', ok?'success':'error');
+  if(ok) renderDrip();
+};
+
+// ═══════════════════
+// SUBSCRIPTIONS
+// ═══════════════════
+const renderSubscriptions = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/subscriptions?limit=100');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const subs = data.data?.subscriptions||[];
+  const total = data.data?.pagination?.total||0;
+
+  body.innerHTML = `
+    <div style="font-size:13px;color:var(--text-3);margin-bottom:16px">${fmt(total)} total subscriptions</div>
+    <div class="card">
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Member</th><th>Plan</th><th>Amount</th><th>Status</th><th>Start</th><th>End</th><th>Payment</th></tr></thead>
+          <tbody>
+            ${subs.map(s=>`<tr>
+              <td>
+                <div style="font-weight:500;font-size:13px">${s.userFullName||'—'}</div>
+                <div style="font-size:11px;color:var(--text-3)">${s.userEmail||''}</div>
+              </td>
+              <td><span style="text-transform:capitalize;font-size:13px;font-weight:500">${s.plan}</span></td>
+              <td style="font-weight:600">${fmtMoney(s.amountNaira)}</td>
+              <td><span class="badge ${s.status==='active'?'badge-green':s.status==='expired'?'badge-grey':s.status==='pending_payment'?'badge-yellow':'badge-red'}">${s.status?.replace(/_/g,' ')}</span></td>
+              <td class="muted">${s.startDate?new Date(s.startDate).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+              <td class="muted">${s.endDate?new Date(s.endDate).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+              <td><span class="badge ${s.paystackStatus==='success'?'badge-green':s.paystackStatus==='failed'?'badge-red':'badge-yellow'}">${s.paystackStatus||'pending'}</span></td>
+            </tr>`).join('')||`<tr><td colspan="7"><div class="empty-state"><p>No subscriptions.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+// ═══════════════════
+// REVENUE
+// ═══════════════════
+const renderRevenue = async () => {
+  const body = $('page-body');
+  const [{ok:ok1,data:d1},{ok:ok2,data:d2}] = await Promise.all([
+    req('/admin/dashboard'),
+    req('/admin/subscriptions?limit=200')
+  ]);
+  const k = ok1?(d1.data?.kpis||{}):{};
+  const subs = ok2?(d2.data?.subscriptions||[]):[];
+  const plans = ok1?(d1.data?.planBreakdown||[]):[];
+
+  const activeSubs = subs.filter(s=>s.status==='active');
+  const totalRevenue = subs.filter(s=>s.paystackStatus==='success').reduce((a,s)=>a+(s.amountNaira||0),0);
+  const pendingRevenue = subs.filter(s=>s.status==='pending_payment').reduce((a,s)=>a+(s.amountNaira||0),0);
+
+  body.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Total revenue</div>
+        <div class="metric-value">${fmtMoney(totalRevenue)}</div>
+        <div class="metric-sub">All confirmed payments</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">This month</div>
+        <div class="metric-value metric-up">${fmtMoney(k.revenueThisMonth)}</div>
+        <div class="metric-sub">Confirmed this month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Active MRR</div>
+        <div class="metric-value">${fmtMoney(activeSubs.reduce((a,s)=>a+(s.amountNaira||0),0))}</div>
+        <div class="metric-sub">From active subscribers</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Pending</div>
+        <div class="metric-value">${fmtMoney(pendingRevenue)}</div>
+        <div class="metric-sub">Awaiting payment</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Revenue by plan</span></div>
+      <div class="card-body" style="padding:20px">
+        ${plans.map(p=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <span style="font-weight:600;text-transform:capitalize">${p._id}</span>
+              <span style="font-size:12px;color:var(--text-3);margin-left:8px">${p.count} member${p.count!==1?'s':''}</span>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:15px">${fmtMoney(p.revenue)}</div>
+              <div style="font-size:11px;color:var(--text-3)">${totalRevenue>0?Math.round((p.revenue/totalRevenue)*100):0}% of total</div>
+            </div>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:14px 0 0;font-weight:700;font-size:15px">
+          <span>Total</span><span>${fmtMoney(totalRevenue)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ═══════════════════
+// LOGS
+// ═══════════════════
+const renderLogs = async (level='', category='') => {
+  const body = $('page-body');
+  const url = `/admin/logs?limit=100${level?'&level='+level:''}${category?'&category='+category:''}`;
+  const {ok,data} = await req(url);
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const logs = data.data?.logs||[];
+
+  const levelColor = l => l==='error'?'badge-red':l==='warn'?'badge-yellow':'badge-grey';
+
+  body.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm ${!level?'btn-primary':''}" onclick="renderLogs()">All</button>
+      <button class="btn btn-outline btn-sm ${level==='error'?'btn-danger':''}" onclick="renderLogs('error')">Errors</button>
+      <button class="btn btn-outline btn-sm ${level==='warn'?'btn-outline':''}" onclick="renderLogs('warn')">Warnings</button>
+      <button class="btn btn-outline btn-sm" onclick="renderLogs('','security')">Security</button>
+      <button class="btn btn-outline btn-sm" onclick="renderLogs('','auth')">Auth</button>
+      <button class="btn btn-outline btn-sm" onclick="renderLogs('','subscription')">Subscriptions</button>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Level</th><th>Category</th><th>Message</th><th>User</th><th>Time</th></tr></thead>
+          <tbody>
+            ${logs.map(l=>`<tr>
+              <td><span class="badge ${levelColor(l.level)}">${l.level}</span></td>
+              <td><span class="badge badge-grey" style="text-transform:capitalize">${l.category||'—'}</span></td>
+              <td style="max-width:340px;word-break:break-word;font-size:12px">${l.message||l.details||'—'}</td>
+              <td><span style="font-size:11px;color:var(--text-3)">${l.userId||'—'}</span></td>
+              <td><span class="muted" style="white-space:nowrap">${l.createdAt?new Date(l.createdAt).toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}):'—'}</span></td>
+            </tr>`).join('')||`<tr><td colspan="5"><div class="empty-state"><p>No logs.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+// ═══════════════════
+// SETTINGS
+// ═══════════════════
+const renderSettings = () => {
+  $('page-body').innerHTML = `
+    <div style="max-width:600px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Server configuration</span></div>
+        <div class="card-body" style="padding:16px">
+          <div class="info-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+            <span style="color:var(--text-2)">API endpoint</span>
+            <span style="font-family:monospace;font-size:12px">${API}</span>
+          </div>
+          <div class="info-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+            <span style="color:var(--text-2)">Drip interval</span>
+            <span style="font-weight:600">Every 10 minutes (set via DRIP_INTERVAL_MINUTES)</span>
+          </div>
+          <div class="info-row" style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px">
+            <span style="color:var(--text-2)">Handles per drip</span>
+            <span style="font-weight:600">10 (set via HANDLES_PER_DRIP)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Coming soon</span></div>
+        <div class="card-body" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:500">Telegram group auto-add</div>
+              <div style="font-size:12px;color:var(--text-3)">Auto-add members on payment. Auto-remove on expiry. Via Telegram Bot API.</div>
+            </div>
+            <span class="badge badge-yellow">Planned</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:500">X API engagement verification</div>
+              <div style="font-size:12px;color:var(--text-3)">Verify actual follows via X API v2. Requires Twitter Developer account.</div>
+            </div>
+            <span class="badge badge-yellow">Planned</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:500">Instagram follow verification</div>
+              <div style="font-size:12px;color:var(--text-3)">Requires Meta Business API approval.</div>
+            </div>
+            <span class="badge badge-yellow">Planned</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:500">Automated strike system</div>
+              <div style="font-size:12px;color:var(--text-3)">Auto-strike members who miss 3 consecutive drops. Currently manual.</div>
+            </div>
+            <span class="badge badge-yellow">Planned</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">How to connect to your server</span></div>
+        <div class="card-body" style="padding:16px;font-size:13px;color:var(--text-2);line-height:1.7">
+          <p style="margin-bottom:10px">1. Open this file and change the API constant at the top of the script tag to your production URL, for example https://api.merisocial.com/api</p>
+          <p style="margin-bottom:10px">2. To test locally, run <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">node server.js</code> in your backend folder. The server starts on port 4000 by default.</p>
+          <p style="margin-bottom:10px">3. If you changed the API URL above and still get network errors, check that CORS in your app.js allows the origin of this admin file.</p>
+          <p>4. Add your admin account by registering normally, then running <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">db.users.updateOne({email:'you@email.com'},{$set:{role:'super_admin'}})</code> directly in MongoDB Atlas.</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
