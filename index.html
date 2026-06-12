@@ -499,6 +499,153 @@
 
     /* ── SCROLLBAR ────────────────────────────────────── */
     ::-webkit-scrollbar{width:0;height:0}
+
+    /* COMMUNITY FEED */
+    .post-card{
+      background:var(--bg);
+      border-bottom:1px solid var(--border);
+      padding:14px 16px;
+    }
+    .post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .post-avatar{
+      width:38px;height:38px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .post-author{font-size:14px;font-weight:700;color:var(--text)}
+    .post-time{font-size:12px;color:var(--text-3)}
+    .post-body{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;word-break:break-word}
+    .post-type-tag{
+      display:inline-block;font-size:11px;font-weight:600;
+      color:var(--accent);margin-bottom:6px;text-transform:capitalize;
+    }
+    .post-actions{display:flex;align-items:center;gap:0;margin-top:4px}
+    .post-action-btn{
+      display:flex;align-items:center;gap:5px;
+      background:none;border:none;cursor:pointer;
+      color:var(--text-3);font-family:var(--font);font-size:13px;font-weight:500;
+      padding:6px 12px 6px 0;transition:color var(--t);
+    }
+    .post-action-btn:hover{color:var(--accent)}
+    .post-action-btn.reacted{color:var(--accent)}
+    .post-action-btn svg{width:17px;height:17px;stroke-width:1.75}
+    .reaction-bar{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+    .reaction-chip{
+      display:inline-flex;align-items:center;gap:4px;
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;
+      cursor:pointer;transition:border-color var(--t),background var(--t);color:var(--text-2);
+    }
+    .reaction-chip.mine{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+    .comment-input-row{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 16px;border-bottom:1px solid var(--border);
+      background:var(--surface);
+    }
+    .comment-input{
+      flex:1;background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;color:var(--text);font-family:var(--font);
+      font-size:13px;padding:8px 14px;outline:none;
+      transition:border-color var(--t);
+    }
+    .comment-input:focus{border-color:var(--accent)}
+    .comment-input::placeholder{color:var(--text-3)}
+    .comment-send-btn{
+      background:var(--accent);border:none;border-radius:50%;
+      width:32px;height:32px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      transition:background var(--t);
+    }
+    .comment-send-btn:hover{background:var(--accent-hover)}
+    .comment-send-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5}
+    .comment-item{
+      padding:10px 16px;border-bottom:1px solid var(--border);
+      display:flex;gap:10px;
+    }
+    .comment-avatar{
+      width:28px;height:28px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .comment-body{font-size:13px;color:var(--text);line-height:1.5}
+    .comment-author{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+    .comment-time{font-size:11px;color:var(--text-3)}
+    .compose-box{
+      background:var(--surface);border-bottom:1px solid var(--border);
+      padding:14px 16px;
+    }
+    .compose-textarea{
+      width:100%;background:var(--surface2);
+      border:1px solid var(--border);border-radius:12px;
+      color:var(--text);font-family:var(--font);font-size:14px;
+      padding:12px 14px;outline:none;resize:none;min-height:72px;
+      transition:border-color var(--t);line-height:1.5;
+    }
+    .compose-textarea:focus{border-color:var(--accent)}
+    .compose-textarea::placeholder{color:var(--text-3)}
+    .compose-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+    .char-count{font-size:12px;color:var(--text-3)}
+    .char-count.warn{color:var(--yellow)}
+    .char-count.over{color:var(--red)}
+    .post-type-select{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;color:var(--text-2);font-family:var(--font);
+      font-size:12px;padding:5px 12px;outline:none;cursor:pointer;
+      appearance:none;
+    }
+    .pinned-tag{
+      font-size:11px;font-weight:600;color:var(--text-3);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;
+      display:block;
+    }
+
+    /* LEADERBOARD */
+    .lb-row{
+      display:flex;align-items:center;gap:12px;
+      padding:13px 16px;border-bottom:1px solid var(--border);
+    }
+    .lb-rank{
+      font-size:16px;font-weight:700;color:var(--text-3);
+      min-width:24px;text-align:center;
+    }
+    .lb-rank.top{color:var(--accent)}
+    .lb-avatar{
+      width:36px;height:36px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .lb-name{font-size:14px;font-weight:600;color:var(--text)}
+    .lb-score{font-size:13px;color:var(--text-2);margin-top:1px}
+    .lb-handles{display:flex;gap:6px;margin-top:3px;flex-wrap:wrap}
+    .lb-handle-chip{
+      font-size:11px;color:var(--accent);font-weight:500;
+    }
+
+    /* STATS CARDS */
+    .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:12px;padding:14px;
+    }
+    .stat-num{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-1px}
+    .stat-label{font-size:12px;color:var(--text-3);margin-top:2px}
+
+    /* FEED TABS */
+    .feed-tabs{
+      display:flex;border-bottom:1px solid var(--border);
+      background:var(--bg);position:sticky;top:53px;z-index:10;
+    }
+    .feed-tab{
+      flex:1;text-align:center;padding:12px 4px;
+      font-size:13px;font-weight:500;color:var(--text-3);
+      cursor:pointer;border-bottom:2px solid transparent;
+      background:none;border-top:none;border-left:none;border-right:none;
+      font-family:var(--font);transition:color var(--t);
+    }
+    .feed-tab.active{color:var(--text);border-bottom-color:var(--accent)}
   </style>
 </head>
 <body>
@@ -749,6 +896,10 @@
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Drop</span>
+      </button>
+      <button class="nav-btn" id="tnav-community" onclick="gotoTab('community')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Community</span>
       </button>
       <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1026,14 +1177,17 @@ const doActivate = async () => {
 };
 
 // ─── APP TABS ─────────────────────────────────────
+// ─── Update gotoTab to include community and leaderboard ─────────
+//const _originalGotoTab = gotoTab;
 const gotoTab = tab => {
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
-  const c=$('tab-content');
-  if(tab==='home')    renderHome(c);
-  if(tab==='drop')    renderDrop(c);
-  if(tab==='handles') renderHandles(c);
-  if(tab==='account') renderAccount(c);
+  const c = $('tab-content');
+  if (tab === 'home')      renderHome(c);
+  if (tab === 'drop')      renderDrop(c);
+  if (tab === 'community') renderCommunity(c);
+  if (tab === 'handles')   renderHandles(c);
+  if (tab === 'account')   renderAccount(c);
 };
 
 const initApp = () => {
@@ -1287,6 +1441,8 @@ const renderAccount = async c => {
     <div style="padding:8px 16px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-outline" onclick="showScreen('screen-subscribe');loadPlans()">Manage subscription</button>
       <button class="btn btn-outline" onclick="showScreen('screen-activate')">Enter access code</button>
+      <button class="btn btn-outline" onclick="gotoTab('community')">Community feed</button>
+      <button class="btn btn-outline" onclick="renderLeaderboard($('tab-content'));$('tnav-account').classList.remove('active')">My stats and leaderboard</button>
       <button class="btn btn-danger mt8" onclick="doLogout()">Log out</button>
     </div>
     <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:16px">
@@ -1301,6 +1457,452 @@ const closeTerms = () => { $('terms-modal').classList.remove('open'); };
 
 // Close terms on bg click
 $('terms-modal').addEventListener('click', e => { if(e.target===$('terms-modal')) closeTerms(); });
+
+// ─── COMMUNITY FEED ──────────────────────────────────────────────
+let communityPage = 1;
+let communityTab  = 'all';
+let activeCommentPostId = null;
+
+const REACTION_ICONS = {
+  fire:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>',
+  heart:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  clap:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14.5 2.5c.83 0 1.5.67 1.5 1.5v6M9.5 2.5c.83 0 1.5.67 1.5 1.5v8M4 10.5A1.5 1.5 0 0 1 5.5 9h1A1.5 1.5 0 0 1 8 10.5v2M19 11v5a6 6 0 0 1-12 0v-3"/></svg>',
+  rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l4-4-2.5-2.5-4 4zM19 3a9 9 0 0 0-9 9c0 .5.1 1 .2 1.5L12 15.5l1.5 1.5c.5.1 1 .2 1.5.2a9 9 0 0 0 9-9V3h-5z"/></svg>',
+};
+
+const POST_TYPES = ['general','milestone','win','tip','question','update'];
+const TYPE_LABELS = { general:'General', milestone:'Milestone', win:'Win', tip:'Tip', question:'Question', update:'Update' };
+
+const timeAgo = (dateStr) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60)  return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60)  return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h}h`;
+  const d = Math.floor(h / 24);
+  return `${d}d`;
+};
+
+const renderCommunity = async (c) => {
+  communityPage = 1;
+  c.innerHTML = `
+    <div class="compose-box">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="post-avatar" style="margin-top:2px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+        <div style="flex:1">
+          <textarea class="compose-textarea" id="compose-body" placeholder="Share a win, tip, or update with the community..." maxlength="500" oninput="updateCharCount(this)"></textarea>
+          <div class="compose-footer">
+            <select class="post-type-select" id="compose-type">
+              ${POST_TYPES.map(t => `<option value="${t}">${TYPE_LABELS[t]}</option>`).join('')}
+            </select>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="char-count" id="compose-count">500</span>
+              <button class="btn btn-accent btn-sm" id="btn-post" onclick="submitPost()">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feed-tabs">
+      ${['all','milestone','win','tip','question'].map(t =>
+        `<button class="feed-tab${communityTab===t?' active':''}" onclick="switchFeedTab('${t}')">${t==='all'?'All':TYPE_LABELS[t]||t}</button>`
+      ).join('')}
+    </div>
+
+    <div id="feed-posts"></div>
+    <div id="feed-load-more" style="padding:16px;text-align:center;display:none">
+      <button class="btn btn-outline btn-sm" style="width:auto" onclick="loadMorePosts()">Load more</button>
+    </div>
+  `;
+
+  await loadFeedPosts(true);
+};
+
+const updateCharCount = (el) => {
+  const remaining = 500 - el.value.length;
+  const counter = $('compose-count');
+  if (!counter) return;
+  counter.textContent = remaining;
+  counter.className = `char-count${remaining < 50 ? ' warn' : ''}${remaining < 0 ? ' over' : ''}`;
+};
+
+const switchFeedTab = async (tab) => {
+  communityTab = tab;
+  communityPage = 1;
+  document.querySelectorAll('.feed-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.toLowerCase() === (tab === 'all' ? 'all' : TYPE_LABELS[tab]?.toLowerCase()));
+  });
+  await loadFeedPosts(true);
+};
+
+const loadFeedPosts = async (reset = false) => {
+  const container = $('feed-posts');
+  if (!container) return;
+
+  if (reset) {
+    container.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+  }
+
+  const url = `/community/feed?page=${communityPage}&limit=20${communityTab !== 'all' ? '&type='+communityTab : ''}`;
+  const { ok, data } = await request(url);
+
+  if (!ok) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">Could not load posts</div><div class="empty-body">Check your connection and try again.</div></div>`;
+    return;
+  }
+
+  const posts = data.data?.posts || [];
+  const hasMore = data.data?.pagination?.hasMore;
+
+  if (reset) container.innerHTML = '';
+
+  if (!posts.length && reset) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">Be the first to share something with the community.</div></div>`;
+    return;
+  }
+
+  posts.forEach(post => container.insertAdjacentHTML('beforeend', buildPostHTML(post)));
+
+  const loadMoreBtn = $('feed-load-more');
+  if (loadMoreBtn) loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+};
+
+const loadMorePosts = async () => {
+  communityPage++;
+  await loadFeedPosts(false);
+};
+
+const buildPostHTML = (post) => {
+  const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span><br>` : '';
+  const pinTag   = post.isPinned ? `<span class="pinned-tag">Pinned</span>` : '';
+
+  // Reaction chips
+  const reactionCounts = {};
+  // We do not have the full map — just our reaction and total count
+  const chips = post.myReaction
+    ? `<div class="reaction-bar">
+        <span class="reaction-chip mine" onclick="react('${post.postId}','${post.myReaction}')">
+          <span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[post.myReaction]||''}</span>
+          ${post.reactionCount}
+        </span>
+       </div>`
+    : (post.reactionCount > 0
+        ? `<div class="reaction-bar"><span class="reaction-chip">${post.reactionCount} reaction${post.reactionCount !== 1 ? 's' : ''}</span></div>`
+        : '');
+
+  return `
+    <div class="post-card" id="post-${post.postId}">
+      ${pinTag}
+      <div class="post-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="post-avatar">${initials}</div>
+          <div>
+            <div class="post-author">${post.fullName}</div>
+            <div class="post-time">${timeAgo(post.createdAt)}</div>
+          </div>
+        </div>
+        ${post.userId === currentUser?.userId
+          ? `<button class="post-action-btn" onclick="deleteMyPost('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+             </button>`
+          : ''}
+      </div>
+      ${typeTag}
+      <div class="post-body">${escapeHtml(post.body)}</div>
+      ${chips}
+      <div class="post-actions">
+        <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="showReactionPicker('${post.postId}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span>${post.myReaction ? 'Liked' : 'Like'}</span>
+        </button>
+        <button class="post-action-btn" onclick="toggleComments('${post.postId}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>${post.commentCount || 0}</span>
+        </button>
+      </div>
+      <!-- reaction picker (hidden) -->
+      <div id="picker-${post.postId}" style="display:none;margin-top:4px;display:none">
+        <div style="display:flex;gap:8px;padding:6px 0">
+          ${Object.entries(REACTION_ICONS).map(([key, icon]) =>
+            `<button onclick="react('${post.postId}','${key}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--text-2);font-family:var(--font);font-size:12px;font-weight:600;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+               <span style="width:16px;height:16px;display:inline-flex;stroke:currentColor">${icon}</span>${key}
+             </button>`
+          ).join('')}
+        </div>
+      </div>
+      <!-- comments section (hidden) -->
+      <div id="comments-${post.postId}" style="display:none"></div>
+    </div>
+  `;
+};
+
+const escapeHtml = (text) => {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+
+const submitPost = async () => {
+  const body     = $('compose-body')?.value.trim();
+  const postType = $('compose-type')?.value || 'general';
+  if (!body) return toast('Write something first.', 'error');
+  if (body.length > 500) return toast('Post is too long.', 'error');
+
+  setBtn('btn-post', '', true);
+  const { ok, data } = await request('/community/posts', {
+    method: 'POST',
+    body: JSON.stringify({ body, postType })
+  });
+  setBtn('btn-post', 'Post', false);
+
+  if (ok) {
+    $('compose-body').value = '';
+    updateCharCount($('compose-body'));
+    // Prepend the new post to the top of the feed
+    const container = $('feed-posts');
+    if (container) {
+      container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
+    }
+    toast('Posted.', 'success');
+  } else {
+    toast(data.message || 'Could not post. Try again.', 'error');
+  }
+};
+
+const deleteMyPost = async (postId) => {
+  if (!confirm('Delete this post?')) return;
+  const { ok, data } = await request(`/community/posts/${postId}`, { method: 'DELETE' });
+  if (ok) {
+    const el = $(`post-${postId}`);
+    if (el) el.remove();
+    toast('Post deleted.', 'success');
+  } else {
+    toast(data.message || 'Could not delete.', 'error');
+  }
+};
+
+const showReactionPicker = (postId) => {
+  const picker = $(`picker-${postId}`);
+  if (!picker) return;
+  const isVisible = picker.style.display !== 'none';
+  // Hide all pickers first
+  document.querySelectorAll('[id^="picker-"]').forEach(p => p.style.display = 'none');
+  picker.style.display = isVisible ? 'none' : 'flex';
+  picker.style.flexWrap = 'wrap';
+};
+
+const react = async (postId, reaction) => {
+  // Hide picker
+  const picker = $(`picker-${postId}`);
+  if (picker) picker.style.display = 'none';
+
+  const { ok, data } = await request(`/community/posts/${postId}/react`, {
+    method: 'POST',
+    body: JSON.stringify({ reaction })
+  });
+  if (!ok) return;
+
+  // Update the post card in place
+  const postCard = $(`post-${postId}`);
+  if (!postCard) return;
+  const updatedReaction = data.data.myReaction;
+  const updatedCount    = data.data.reactionCount;
+
+  // Rebuild reaction chips
+  const reactionBar = postCard.querySelector('.reaction-bar');
+  const newChipsHtml = updatedReaction
+    ? `<div class="reaction-bar">
+        <span class="reaction-chip mine" onclick="react('${postId}','${updatedReaction}')">
+          <span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[updatedReaction]||''}</span>
+          ${updatedCount}
+        </span>
+       </div>`
+    : (updatedCount > 0 ? `<div class="reaction-bar"><span class="reaction-chip">${updatedCount} reaction${updatedCount!==1?'s':''}</span></div>` : '');
+
+  if (reactionBar) {
+    reactionBar.outerHTML = newChipsHtml;
+  } else {
+    const actionsEl = postCard.querySelector('.post-actions');
+    if (actionsEl && newChipsHtml) actionsEl.insertAdjacentHTML('beforebegin', newChipsHtml);
+  }
+};
+
+const toggleComments = async (postId) => {
+  const section = $(`comments-${postId}`);
+  if (!section) return;
+  const isOpen = section.style.display !== 'none';
+  if (isOpen) {
+    section.style.display = 'none';
+    activeCommentPostId = null;
+    return;
+  }
+  section.style.display = 'block';
+  activeCommentPostId = postId;
+  section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
+
+  const { ok, data } = await request(`/community/posts/${postId}/comments`);
+  if (!ok) {
+    section.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--text-3)">Could not load comments.</div>`;
+    return;
+  }
+
+  const comments = data.data || [];
+  let html = '';
+
+  comments.forEach(c => {
+    const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    html += `<div class="comment-item" id="comment-${c.commentId}">
+      <div class="comment-avatar">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="comment-author">${c.fullName}</span>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+        </div>
+        <div class="comment-body">${escapeHtml(c.body)}</div>
+      </div>
+      ${c.userId === currentUser?.userId
+        ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+           </button>`
+        : ''}
+    </div>`;
+  });
+
+  // Comment input
+  html += `<div class="comment-input-row">
+    <div class="post-avatar" style="width:28px;height:28px;font-size:11px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+    <input class="comment-input" id="comment-input-${postId}" type="text" placeholder="Add a comment..." maxlength="300"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${postId}')}"/>
+    <button class="comment-send-btn" onclick="sendComment('${postId}')">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>`;
+
+  section.innerHTML = html;
+};
+
+const sendComment = async (postId) => {
+  const input = $(`comment-input-${postId}`);
+  const body  = input?.value.trim();
+  if (!body) return;
+
+  const { ok, data } = await request(`/community/posts/${postId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ body })
+  });
+  if (!ok) { toast(data.message || 'Could not post comment.', 'error'); return; }
+
+  input.value = '';
+  const comment = data.data;
+  const initials = (comment.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const newHtml = `<div class="comment-item" id="comment-${comment.commentId}">
+    <div class="comment-avatar">${initials}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="comment-author">${comment.fullName}</span>
+        <span class="comment-time">just now</span>
+      </div>
+      <div class="comment-body">${escapeHtml(comment.body)}</div>
+    </div>
+    <button onclick="deleteMyComment('${postId}','${comment.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+  </div>`;
+
+  // Insert before the input row
+  const inputRow = document.querySelector(`#comments-${postId} .comment-input-row`);
+  if (inputRow) inputRow.insertAdjacentHTML('beforebegin', newHtml);
+
+  // Update comment count display
+  const postCard = $(`post-${postId}`);
+  if (postCard) {
+    const countEl = postCard.querySelector('.post-action-btn:last-child span');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+  }
+};
+
+const deleteMyComment = async (postId, commentId) => {
+  const { ok } = await request(`/community/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
+  if (ok) {
+    const el = $(`comment-${commentId}`);
+    if (el) el.remove();
+  }
+};
+
+// ─── LEADERBOARD ─────────────────────────────────────────────────
+const renderLeaderboard = async (c) => {
+  c.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+
+  const [{ ok: lok, data: ldata }, { ok: sok, data: sdata }] = await Promise.all([
+    request('/community/leaderboard'),
+    request('/community/my-stats')
+  ]);
+
+  const leaders = lok ? (ldata.data?.leaderboard || []) : [];
+  const stats   = sok ? (sdata.data || {}) : {};
+
+  const PLATFORM_SVG_SMALL = {
+    x: `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Z"/></svg>`,
+    instagram: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>`,
+    youtube:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 0-3.77-2.1C13.4 4.4 12 4.4 12 4.4s-1.4 0-3.82.19a4.83 4.83 0 0 0-3.77 2.1A15.51 15.51 0 0 0 4 12a15.51 15.51 0 0 0 .41 5.31 4.83 4.83 0 0 0 3.77 2.1C10.6 19.6 12 19.6 12 19.6s1.4 0 3.82-.19a4.83 4.83 0 0 0 3.77-2.1A15.51 15.51 0 0 0 20 12a15.51 15.51 0 0 0-.41-5.31zM9.75 15.02V8.98L15.5 12z"/></svg>`,
+    tiktok:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
+  };
+
+  let leadersHtml = '';
+  leaders.forEach((l, i) => {
+    const handleChips = Object.entries(l.handles)
+      .filter(([, v]) => v)
+      .map(([platform, handle]) =>
+        `<a href="https://${platform === 'x' ? 'x' : platform}.com/${handle.replace('@','')}" target="_blank" class="lb-handle-chip" style="display:inline-flex;align-items:center;gap:3px">${PLATFORM_SVG_SMALL[platform]||''} ${handle}</a>`
+      ).join('');
+
+    leadersHtml += `
+      <div class="lb-row">
+        <div class="lb-rank${i < 3 ? ' top' : ''}">${l.rank}</div>
+        <div class="lb-avatar">${(l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="lb-name">${l.fullName}</div>
+          <div class="lb-score">${l.clicks} engagement${l.clicks !== 1 ? 's' : ''} this month</div>
+          ${handleChips ? `<div class="lb-handles">${handleChips}</div>` : ''}
+        </div>
+        ${l.userId === currentUser?.userId ? `<span class="badge badge-blue">You</span>` : ''}
+      </div>`;
+  });
+
+  if (!leaders.length) {
+    leadersHtml = `<div class="empty"><div class="empty-title">No data yet</div><div class="empty-body">Start engaging with drops to appear on the leaderboard.</div></div>`;
+  }
+
+  c.innerHTML = `
+    <div class="section-label">Your stats this month</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsReceivedThisMonth || 0}</div>
+        <div class="stat-label">Profile views this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsGivenThisMonth || 0}</div>
+        <div class="stat-label">Engagements given</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.totalDripAppearances || 0}</div>
+        <div class="stat-label">Times your handle appeared in drops</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsReceived || 0}</div>
+        <div class="stat-label">Total profile views</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Top members this month</div>
+    ${leadersHtml}
+    <div style="font-size:11px;color:var(--text-3);padding:12px 16px;text-align:center">
+      Leaderboard resets at the start of each month.
+    </div>
+  `;
+};
 
 // ─── Plans on subscribe screen ─────────────────────
 // auto-load when subscribe screen shown
