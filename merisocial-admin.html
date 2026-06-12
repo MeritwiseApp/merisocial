@@ -344,6 +344,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     Revenue
   </button>
 
+  <div class="nav-section">Community</div>
+  <button class="nav-item" id="nav-community" onclick="go('community')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Feed Moderation
+  </button>
+
   <div class="nav-section">System</div>
   <button class="nav-item" id="nav-logs" onclick="go('logs')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -539,7 +545,7 @@ const go = page => {
     dashboard:'Dashboard', analytics:'Analytics', users:'Members',
     engagement:'Engagement', strikes:'Strikes', handles:'Handles',
     drip:'Drip Control', subscriptions:'Subscriptions',
-    revenue:'Revenue', logs:'System Logs', settings:'Settings'
+    revenue:'Revenue', logs:'System Logs', settings:'Settings', community: 'Feed Moderation'
   }[page] || page;
   const body = $('page-body');
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px"><div class="spinner"></div></div>';
@@ -554,7 +560,8 @@ const go = page => {
     subscriptions: renderSubscriptions,
     revenue: renderRevenue,
     logs: renderLogs,
-    settings: renderSettings,
+    settings:   renderSettings,
+    community:  renderCommunityAdmin,
   };
   (render[page] || (()=> body.innerHTML=`<div class="empty-state"><b>${page}</b><p>Coming soon.</p></div>`))();
 };
@@ -1485,6 +1492,78 @@ const renderSettings = () => {
       </div>
     </div>
   `;
+};
+
+const renderCommunityAdmin = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/community/posts?limit=100');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>Failed.</p></div>`; return; }
+  const posts = data.data?.posts||[];
+
+  body.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="renderCommunityAdmin()">All posts</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHiddenPosts()">Hidden posts</button>
+      <button class="btn btn-accent btn-sm" onclick="renderCommunityAdmin()">Refresh</button>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Author</th><th>Content</th><th>Type</th><th>Reactions</th><th>Comments</th><th>Posted</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${posts.map(p=>`<tr>
+              <td style="font-size:13px;font-weight:500">${p.fullName||'—'}</td>
+              <td style="max-width:240px;font-size:12px;color:var(--text-2)">${(p.body||'').slice(0,80)}${(p.body||'').length>80?'...':''}</td>
+              <td><span class="badge badge-grey" style="text-transform:capitalize">${p.postType||'general'}</span></td>
+              <td>${p.reactionCount||0}</td>
+              <td>${p.commentCount||0}</td>
+              <td class="muted">${p.createdAt?new Date(p.createdAt).toLocaleDateString('en-NG',{dateStyle:'short'}):'—'}</td>
+              <td><span class="badge ${p.isHidden?'badge-red':'badge-green'}">${p.isHidden?'Hidden':'Visible'}</span>${p.isPinned?'<span class="badge badge-blue" style="margin-left:4px">Pinned</span>':''}</td>
+              <td>
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                  ${!p.isHidden?`<button class="btn btn-danger btn-sm" onclick="hidePostAdmin('${p.postId}')">Hide</button>`:''}
+                  <button class="btn btn-outline btn-sm" onclick="pinPostAdmin('${p.postId}')">Pin</button>
+                  <button class="btn btn-danger btn-sm" onclick="deletePostAdmin('${p.postId}')">Delete</button>
+                </div>
+              </td>
+            </tr>`).join('')||`<tr><td colspan="8"><div class="empty-state"><p>No posts.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+const hidePostAdmin = async (postId) => {
+  const reason = prompt('Reason for hiding this post (optional):') || 'Admin moderation';
+  const {ok,data} = await req(`/admin/community/posts/${postId}/hide`,{method:'PATCH',body:JSON.stringify({reason})});
+  toast(ok?'Post hidden.':data.message||'Failed.', ok?'success':'error');
+  if(ok) renderCommunityAdmin();
+};
+
+const pinPostAdmin = async (postId) => {
+  const {ok,data} = await req(`/admin/community/posts/${postId}/pin`,{method:'POST'});
+  toast(ok?'Post pinned to top of feed.':data.message||'Failed.', ok?'success':'error');
+  if(ok) renderCommunityAdmin();
+};
+
+const deletePostAdmin = async (postId) => {
+  if(!confirm('Permanently delete this post and all its comments?')) return;
+  const {ok,data} = await req(`/admin/community/posts/${postId}`,{method:'DELETE'});
+  toast(ok?'Post deleted.':data.message||'Failed.', ok?'success':'error');
+  if(ok) renderCommunityAdmin();
+};
+
+const loadHiddenPosts = async () => {
+  const {ok,data} = await req('/admin/community/posts?hidden=true&limit=100');
+  if(!ok) return;
+  const posts = data.data?.posts||[];
+  const body = $('page-body');
+  const table = body.querySelector('tbody');
+  if(!table) return;
+  // Re-render with hidden filter
+  const {ok:ok2,data:data2} = await req('/admin/community/posts?hidden=true&limit=100');
+  renderCommunityAdmin();
 };
 
 window.addEventListener('DOMContentLoaded', boot);
