@@ -497,8 +497,59 @@
       text-align:center;padding:10px 16px;
     }
 
+    /* ── TAG MENTION / DROPDOWN ───────────────────────── */
+    .tag-mention{color:var(--accent);font-weight:500;cursor:pointer}
+    .tag-dropdown{position:absolute;background:var(--white);border:1px solid var(--border-dark);border-radius:var(--radius);z-index:200;width:220px;max-height:180px;overflow-y:auto}
+    .tag-item{padding:10px 14px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+    .tag-item:hover{background:var(--bg)}
+    .tag-item:last-child{border-bottom:none}
+
     /* ── SCROLLBAR ────────────────────────────────────── */
     ::-webkit-scrollbar{width:0;height:0}
+
+    /* PROFILE */
+    .profile-banner{height:130px;background:var(--bg);width:100%;position:relative;border-bottom:1px solid var(--border)}
+    .profile-avatar-wrap{position:absolute;bottom:-40px;left:16px;width:80px;height:80px;border-radius:50%;border:4px solid var(--white);background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--text)}
+    .profile-avatar-wrap img{width:100%;height:100%;object-fit:cover}
+    .profile-info{padding:52px 16px 16px;border-bottom:1px solid var(--border);background:var(--white)}
+    .profile-name-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+    .profile-display-name{font-size:18px;font-weight:700;color:var(--text)}
+    .profile-username{font-size:14px;color:var(--text-secondary);margin-bottom:8px}
+    .profile-bio{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:10px}
+    .profile-meta-row{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:10px}
+    .profile-meta-item{display:flex;align-items:center;gap:4px}
+    .profile-stats-row{display:flex;gap:20px;font-size:14px}
+    .profile-stat{cursor:pointer}
+    .profile-stat .num{font-weight:700;color:var(--text)}
+    .profile-stat .lbl{color:var(--text-secondary)}
+    .profile-follow-btn{background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:14px;font-weight:700;padding:7px 20px;cursor:pointer;transition:background var(--transition)}
+    .profile-follow-btn:hover{background:#272c30}
+    .profile-follow-btn.following{background:var(--white);color:var(--text);border:1px solid var(--border-dark)}
+    .profile-edit-btn{background:var(--white);color:var(--text);border:1px solid var(--border-dark);border-radius:var(--radius-pill);font-family:var(--font);font-size:14px;font-weight:700;padding:7px 20px;cursor:pointer;transition:background var(--transition)}
+    .profile-edit-btn:hover{background:var(--bg)}
+    .profile-tab{flex:1;text-align:center;padding:14px 4px;font-size:14px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);transition:color var(--transition)}
+    .profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    .premium-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--accent);border-radius:50%;margin-left:3px;flex-shrink:0}
+    .premium-check svg{width:10px;height:10px;stroke:#fff;stroke-width:2.5;fill:none}
+    .suggestion-row{display:flex;align-items:center;padding:12px 16px;gap:10px;border-bottom:1px solid var(--border);background:var(--white)}
+    .suggestion-info{flex:1;min-width:0}
+    .suggestion-name{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .suggestion-bio{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+    .follow-pill{background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:13px;font-weight:700;padding:5px 16px;cursor:pointer;flex-shrink:0;transition:background var(--transition)}
+    .follow-pill:hover{background:#272c30}
+    .follow-pill.following{background:var(--white);color:var(--text);border:1px solid var(--border-dark)}
+    .search-bar{background:var(--bg);border:1px solid var(--border-dark);border-radius:var(--radius-pill);display:flex;align-items:center;gap:8px;padding:10px 14px;margin:12px 16px}
+    .search-bar svg{width:16px;height:16px;stroke:var(--text-secondary);flex-shrink:0}
+    .search-bar input{background:none;border:none;color:var(--text);font-family:var(--font);font-size:14px;outline:none;flex:1}
+    .search-bar input::placeholder{color:var(--text-tertiary)}
+
+    /* PROFILE EDIT MODAL */
+    .modal-center{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-center.open{display:flex}
+    .modal-box{background:var(--white);width:100%;max-width:480px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-dark)}
+    .modal-box-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+    .modal-box-head h3{font-size:16px;font-weight:700}
+    .modal-box-body{padding:20px}
 
     /* COMMUNITY FEED */
     .post-card{
@@ -893,23 +944,41 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>Home</span>
       </button>
+      <button class="nav-btn" id="tnav-search" onclick="gotoTab('search')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Explore</span>
+      </button>
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Drop</span>
       </button>
-      <button class="nav-btn" id="tnav-community" onclick="gotoTab('community')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span>Community</span>
-      </button>
       <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span>Handles</span>
       </button>
-      <button class="nav-btn" id="tnav-account" onclick="gotoTab('account')">
+      <button class="nav-btn" id="tnav-profile" onclick="gotoTab('profile')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-        <span>Account</span>
+        <span>Profile</span>
       </button>
     </nav>
+  </div>
+</div>
+
+<!-- PROFILE EDIT MODAL -->
+<div class="modal-center" id="modal-edit-profile">
+  <div class="modal-box">
+    <div class="modal-box-head">
+      <button onclick="closeModal('modal-edit-profile')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:20px;line-height:1;padding:0">x</button>
+      <h3>Edit profile</h3>
+      <button class="btn btn-primary btn-sm" id="btn-save-profile" onclick="saveProfile()">Save</button>
+    </div>
+    <div class="modal-box-body">
+      <div class="field"><label>Username</label><input id="edit-username" type="text" placeholder="yourhandle"/></div>
+      <div class="field"><label>Bio (160 chars)</label><textarea id="edit-bio" maxlength="160" placeholder="Tell the community about yourself..."></textarea></div>
+      <div class="field"><label>Location</label><input id="edit-location" type="text" placeholder="Lagos, Nigeria"/></div>
+      <div class="field"><label>Website</label><input id="edit-website" type="text" placeholder="https://yoursite.com"/></div>
+      <div class="field"><label>Profile picture</label><input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" onchange="uploadAvatar(this)"/></div>
+    </div>
   </div>
 </div>
 
@@ -1183,11 +1252,11 @@ const gotoTab = tab => {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const c = $('tab-content');
-  if (tab === 'home')      renderHome(c);
-  if (tab === 'drop')      renderDrop(c);
-  if (tab === 'community') renderCommunity(c);
-  if (tab === 'handles')   renderHandles(c);
-  if (tab === 'account')   renderAccount(c);
+  if (tab === 'home')    renderHome(c);
+  if (tab === 'search')  renderSearch(c);
+  if (tab === 'drop')    renderDrop(c);
+  if (tab === 'handles') renderHandles(c);
+  if (tab === 'profile') renderProfile(c, 'me');
 };
 
 const initApp = () => {
@@ -1612,7 +1681,7 @@ const buildPostHTML = (post) => {
           : ''}
       </div>
       ${typeTag}
-      <div class="post-body">${escapeHtml(post.body)}</div>
+      <div class="post-body">${renderMentions(post.body)}</div>
       ${chips}
       <div class="post-actions">
         <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="showReactionPicker('${post.postId}')">
@@ -1760,7 +1829,7 @@ const toggleComments = async (postId) => {
           <span class="comment-author">${c.fullName}</span>
           <span class="comment-time">${timeAgo(c.createdAt)}</span>
         </div>
-        <div class="comment-body">${escapeHtml(c.body)}</div>
+        <div class="comment-body">${renderMentions(c.body)}</div>
       </div>
       ${c.userId === currentUser?.userId
         ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
@@ -1781,6 +1850,13 @@ const toggleComments = async (postId) => {
   </div>`;
 
   section.innerHTML = html;
+
+  // Setup mention autocomplete on newly created comment input
+  const ci = $(`comment-input-${postId}`);
+  if(ci && !ci._mentionSetup){
+    setupMentionAutocomplete(ci, `mention-dropdown-comment-${postId}`);
+    ci._mentionSetup = true;
+  }
 };
 
 const sendComment = async (postId) => {
@@ -1907,6 +1983,341 @@ const renderLeaderboard = async (c) => {
 // ─── Plans on subscribe screen ─────────────────────
 // auto-load when subscribe screen shown
 const _origShowScreen = showScreen;
+
+const CHECK_SVG = `<div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+
+const openModal  = id => document.getElementById(id)?.classList.add('open');
+const closeModal = id => document.getElementById(id)?.classList.remove('open');
+document.querySelectorAll('.modal-center').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open')});
+});
+
+// ─── EXPLORE / SEARCH ─────────────────────────────
+const renderSearch = async (c) => {
+  c.innerHTML = `
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-input" placeholder="Search creators..." oninput="doSearch(this.value)"/>
+    </div>
+    <div class="section-label">Who to follow</div>
+    <div id="suggestions-list"><div style="padding:24px;text-align:center"><div style="width:20px;height:20px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div></div>
+  `;
+  const {ok,data} = await request('/profile/suggestions');
+  renderSuggestions(ok ? (data.data||[]) : []);
+};
+
+const renderSuggestions = (users) => {
+  const c = $('suggestions-list'); if(!c) return;
+  if(!users.length){ c.innerHTML=`<div class="empty"><div class="empty-title">No suggestions</div><div class="empty-body">Check back as more creators join.</div></div>`; return; }
+  c.innerHTML = users.map(u=>`
+    <div class="suggestion-row">
+      <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${u.fullName?u.fullName[0].toUpperCase():'?'}</div>
+      <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
+        <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+        <div class="suggestion-bio">${u.bio||'MeriSocial creator'}</div>
+      </div>
+      <button class="follow-pill" id="fol-${u.userId}" onclick="quickFollow('${u.userId}')">Follow</button>
+    </div>`).join('');
+};
+
+let searchTimeout = null;
+const doSearch = async (query) => {
+  clearTimeout(searchTimeout);
+  if(!query.trim()){ const {ok,data}=await request('/profile/suggestions'); renderSuggestions(ok?(data.data||[]):[]); return; }
+  searchTimeout = setTimeout(async()=>{
+    const {ok,data} = await request(`/admin/users?search=${encodeURIComponent(query)}&limit=20`);
+    if(!ok) return;
+    const users = (data.data?.users||[]).map(u=>({
+      userId:u.userId, fullName:u.fullName||'', isPremium:u.subscriptionStatus==='active', bio:'',
+    }));
+    renderSuggestions(users);
+  }, 400);
+};
+
+const quickFollow = async (userId) => {
+  const {ok,data} = await request(`/profile/follow/${userId}`,{method:'POST'});
+  if(ok){
+    const btn = $(`fol-${userId}`);
+    if(btn){ btn.textContent=data.data.isFollowing?'Following':'Follow'; btn.className=`follow-pill${data.data.isFollowing?' following':''}`; }
+  }
+};
+
+const viewProfile = (userId) => {
+  const c = $('tab-content');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  renderProfile(c, userId);
+};
+
+// ─── PROFILE ──────────────────────────────────────
+const renderProfile = async (c, identifier) => {
+  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  const {ok,data} = await request(`/profile/${identifier}`);
+  if(!ok){ c.innerHTML=`<div class="empty"><div class="empty-title">Profile not found</div><div class="empty-body">This profile does not exist or could not be loaded.</div></div>`; return; }
+
+  const user = data.data.user;
+  const posts = data.data.posts || [];
+  const isOwnProfile = data.data.isOwnProfile;
+  const isFollowing  = data.data.isFollowing;
+
+  const avatarContent = user.avatarUrl
+    ? `<img src="${API.replace('/api','')}${user.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+    : (user.fullName||'?')[0].toUpperCase();
+
+  c.innerHTML = `
+    <div class="profile-banner">
+      <div class="profile-avatar-wrap">${avatarContent}</div>
+    </div>
+    <div class="profile-info">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px">
+        ${isOwnProfile
+          ? `<button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>`
+          : `<button class="profile-follow-btn${isFollowing?' following':''}" id="main-follow-btn" onclick="toggleFollow('${user.userId}',this)">${isFollowing?'Following':'Follow'}</button>`
+        }
+      </div>
+      <div class="profile-name-row">
+        <span class="profile-display-name">${user.fullName}</span>
+        ${user.isPremium?CHECK_SVG:''}
+      </div>
+      ${user.username?`<div class="profile-username">@${user.username}</div>`:''}
+      ${user.bio?`<div class="profile-bio">${user.bio}</div>`:''}
+      <div class="profile-meta-row">
+        ${user.location?`<span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${user.location}</span>`:''}
+        ${user.website?`<span class="profile-meta-item"><a href="${user.website}" target="_blank" class="link" style="font-size:13px">${user.website.replace(/https?:\/\//,'')}</a></span>`:''}
+        <span class="profile-meta-item" style="font-size:12px;color:var(--text-secondary)">Joined ${new Date(user.joinedAt).toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</span>
+      </div>
+      <div class="profile-stats-row">
+        <div class="profile-stat" onclick="viewFollowing('${user.userId}')">
+          <span class="num">${(user.followingCount||0).toLocaleString()}</span><span class="lbl"> Following</span>
+        </div>
+        <div class="profile-stat" onclick="viewFollowers('${user.userId}')">
+          <span class="num">${(user.followersCount||0).toLocaleString()}</span><span class="lbl"> Followers</span>
+        </div>
+      </div>
+    </div>
+
+    ${isOwnProfile && currentUser?.isPremium ? `
+    <div class="section-divider"></div>
+    <div class="section-label">Your subscription</div>
+    <div class="countdown-strip">
+      <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Months</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Days</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Hours</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Mins</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Secs</div></div>
+    </div>
+    <div id="cd-expiry" class="expiry-note"></div>` : ''}
+
+    ${isOwnProfile ? `
+    <div class="section-divider"></div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+      ${!currentUser?.isPremium ? `<button class="btn btn-accent" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</button>` : ''}
+      <button class="btn btn-outline btn-sm" style="width:auto" onclick="renderLeaderboard($('tab-content'))">My stats and leaderboard</button>
+      <button class="btn btn-outline" onclick="showScreen('screen-activate')">Enter access code</button>
+      <button class="btn btn-danger mt8" onclick="doLogout()">Log out</button>
+    </div>` : ''}
+
+    <div style="display:flex;border-bottom:1px solid var(--border);background:var(--white)">
+      <button class="profile-tab active" onclick="switchProfileTab('posts','${user.userId}',this)">Posts</button>
+    </div>
+    <div id="profile-content">
+      ${posts.length ? posts.map(p => buildPostHTML(p)).join('') : `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">${isOwnProfile?'Share your first post.':'This creator has not posted yet.'}</div></div>`}
+    </div>
+  `;
+
+  if(isOwnProfile && currentUser?.isPremium) startCountdown();
+};
+
+const switchProfileTab = async (tab, userId, btn) => {
+  document.querySelectorAll('.profile-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+const toggleFollow = async (userId, btn) => {
+  const {ok,data} = await request(`/profile/follow/${userId}`,{method:'POST'});
+  if(ok && btn){
+    btn.textContent = data.data.isFollowing ? 'Following' : 'Follow';
+    btn.className   = `profile-follow-btn${data.data.isFollowing?' following':''}`;
+  }
+};
+
+const viewFollowers = async (userId) => {
+  const c = $('tab-content'); if(!c) return;
+  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  const {ok,data} = await request(`/profile/followers/${userId}`);
+  const users = ok ? (data.data||[]) : [];
+  c.innerHTML = `
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--white)">
+      <button onclick="gotoTab('profile')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+      <span style="font-size:16px;font-weight:700">Followers</span>
+    </div>
+    ${users.map(u=>`<div class="suggestion-row">
+      <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
+        <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+        <div class="suggestion-bio">${u.bio||''}</div>
+      </div>
+    </div>`).join('') || `<div class="empty"><div class="empty-title">No followers yet</div></div>`}`;
+};
+
+const viewFollowing = async (userId) => {
+  const c = $('tab-content'); if(!c) return;
+  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  const {ok,data} = await request(`/profile/following/${userId}`);
+  const users = ok ? (data.data||[]) : [];
+  c.innerHTML = `
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--white)">
+      <button onclick="gotoTab('profile')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+      <span style="font-size:16px;font-weight:700">Following</span>
+    </div>
+    ${users.map(u=>`<div class="suggestion-row">
+      <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
+        <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+        <div class="suggestion-bio">${u.bio||''}</div>
+      </div>
+    </div>`).join('') || `<div class="empty"><div class="empty-title">Not following anyone yet</div></div>`}`;
+};
+
+// ─── EDIT PROFILE ─────────────────────────────────
+const openEditProfile = () => {
+  if(currentUser){
+    $('edit-username').value = currentUser.username || '';
+    $('edit-bio').value      = currentUser.bio      || '';
+    $('edit-location').value = currentUser.location || '';
+    $('edit-website').value  = currentUser.website  || '';
+  }
+  openModal('modal-edit-profile');
+};
+
+const saveProfile = async () => {
+  const username = $('edit-username').value.trim();
+  const bio      = $('edit-bio').value.trim();
+  const location = $('edit-location').value.trim();
+  const website  = $('edit-website').value.trim();
+  setBtn('btn-save-profile','',true);
+  const {ok,data} = await request('/profile/me',{method:'PATCH',body:JSON.stringify({username,bio,location,website})});
+  setBtn('btn-save-profile','Save',false);
+  if(ok){
+    currentUser = {...currentUser,...data.data};
+    closeModal('modal-edit-profile');
+    toast('Profile saved.','success');
+    renderProfile($('tab-content'),'me');
+  } else toast(data.message||'Failed.','error');
+};
+
+const uploadAvatar = async (input) => {
+  const file = input.files[0]; if(!file) return;
+  const fd = new FormData(); fd.append('avatar',file);
+  const headers = {}; if(token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API}/profile/me/avatar`, {method:'POST', headers, body:fd, credentials:'include'});
+  const data = await res.json().catch(()=>({}));
+  if(res.ok){ currentUser.avatarUrl = data.avatarUrl; toast('Avatar updated.','success'); }
+  else toast(data.message||'Upload failed.','error');
+};
+
+// ─── TAGGING SYSTEM ───────────────────────────────
+// Converts @username mentions in post text to clickable links
+const renderMentions = (text) => {
+  return escapeHtml(text).replace(/@(\w+)/g, '<span class="tag-mention" onclick="searchByMention(\'$1\')">@$1</span>');
+};
+
+const searchByMention = async (username) => {
+  const {ok,data} = await request(`/profile/@${username}`);
+  if(ok) viewProfile(data.data.user.userId);
+  else toast(`@${username} not found.`,'error');
+};
+
+// Live mention autocomplete for compose textarea and comment inputs
+let mentionStart = -1;
+let mentionActive = false;
+
+const setupMentionAutocomplete = (inputEl, dropdownId) => {
+  inputEl.addEventListener('input', async (e) => {
+    const val   = inputEl.value;
+    const pos   = inputEl.selectionStart;
+    const atIdx = val.lastIndexOf('@', pos - 1);
+
+    if (atIdx === -1 || (atIdx > 0 && !/\s/.test(val[atIdx - 1]))) {
+      hideMentionDropdown(dropdownId); return;
+    }
+
+    const query = val.slice(atIdx + 1, pos);
+    if (!query || query.length < 1) { hideMentionDropdown(dropdownId); return; }
+
+    mentionStart  = atIdx;
+    mentionActive = true;
+
+    const {ok,data} = await request(`/admin/users?search=${encodeURIComponent(query)}&limit=5`);
+    if (!ok || !mentionActive) return;
+    const users = data.data?.users || [];
+    showMentionDropdown(dropdownId, users, inputEl);
+  });
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideMentionDropdown(dropdownId);
+  });
+
+  inputEl.addEventListener('blur', () => {
+    setTimeout(() => hideMentionDropdown(dropdownId), 200);
+  });
+};
+
+const showMentionDropdown = (id, users, inputEl) => {
+  let dropdown = document.getElementById(id);
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = id;
+    dropdown.className = 'tag-dropdown';
+    dropdown.style.position = 'absolute';
+    inputEl.parentElement.style.position = 'relative';
+    inputEl.parentElement.appendChild(dropdown);
+  }
+  if (!users.length) { hideMentionDropdown(id); return; }
+  dropdown.innerHTML = users.map(u =>
+    `<div class="tag-item" onmousedown="insertMention('${u.userId}','${(u.fullName||'').replace(/'/g,"\\'")}','${id}')">
+      <div class="profile-avatar" style="width:28px;height:28px;font-size:11px">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600">${u.fullName||''}</div>
+        ${u.username?`<div style="font-size:11px;color:var(--text-secondary)">@${u.username}</div>`:''}
+      </div>
+    </div>`
+  ).join('');
+  dropdown.style.display = 'block';
+};
+
+const hideMentionDropdown = (id) => {
+  mentionActive = false;
+  const d = document.getElementById(id);
+  if (d) d.style.display = 'none';
+};
+
+const insertMention = (userId, fullName, dropdownId) => {
+  const composEl = document.getElementById('compose-body');
+  const activeInput = composEl && document.activeElement === composEl
+    ? composEl : document.activeElement;
+
+  if (!activeInput || mentionStart === -1) return;
+
+  const val    = activeInput.value;
+  const pos    = activeInput.selectionStart;
+  const before = val.slice(0, mentionStart);
+  const after  = val.slice(pos);
+  const tag    = `@${fullName.replace(/\s+/g,'_')} `;
+
+  activeInput.value = before + tag + after;
+  activeInput.selectionStart = activeInput.selectionEnd = before.length + tag.length;
+  hideMentionDropdown(dropdownId);
+  mentionStart = -1;
+};
+
+// Hook up autocomplete when compose modal opens
+const _originalOpenCompose = () => {
+  const textarea = $('compose-body');
+  if(textarea && !textarea._mentionSetup){
+    setupMentionAutocomplete(textarea, 'mention-dropdown-compose');
+    textarea._mentionSetup = true;
+  }
+};
 </script>
 </body>
 </html>
