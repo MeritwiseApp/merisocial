@@ -1742,16 +1742,18 @@ const getPlanCheck = (user) => {
   if(!user) return '';
   const isPrem = user.isPremium || user.subscriptionStatus === 'active';
   if(!isPrem) return '';
-  const plan = user.subscriptionPlan || user.plan || userPlanMap[user.userId] || 'monthly';
+  const plan = (user.subscriptionPlan || user.plan || userPlanMap[user.userId] || 'monthly').toLowerCase();
   if(plan === 'yearly')    return `<div class="premium-check" style="background:#f59e0b" title="Yearly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
   if(plan === 'quarterly') return `<div class="premium-check" style="background:#8b5cf6" title="Quarterly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
   return `<div class="premium-check" style="background:var(--accent)" title="Monthly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
 };
 
 const getCheckForPost = (post) => {
-  if(!post.isPremium) return '';
+  const isPrem = post.isPremium || post.subscriptionStatus === 'active';
+  if(!isPrem) return '';
   if(post.userId === currentUser?.userId) return getPlanCheck(currentUser);
-  const plan = userPlanMap[post.userId] || 'monthly';
+  const plan = post.subscriptionPlan || userPlanMap[post.userId] || 'monthly';
+  if(post.subscriptionPlan) userPlanMap[post.userId] = post.subscriptionPlan;
   return getPlanCheck({isPremium:true, subscriptionPlan: plan});
 };
 
@@ -1941,7 +1943,7 @@ const buildPostHTML = (post) => {
           : ''}
       </div>
       ${typeTag}
-      <div class="post-body">${escapeHtml(post.body)}</div>
+      <div class="post-body">${linkifyMentions(escapeHtml(post.body))}</div>
       ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:300px;object-fit:cover" loading="lazy"/>` : ''}
       ${chips}
       <div class="post-actions">
@@ -1972,6 +1974,17 @@ const buildPostHTML = (post) => {
 
 const escapeHtml = (text) => {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+
+const linkifyMentions = (text) => {
+  return text.replace(/(^|[\s])@([a-zA-Z0-9_]{2,30})/g, (match, pre, username) => {
+    return `${pre}<span class="mention-link" onclick="event.stopPropagation();viewProfileByUsername('${username}')" style="color:var(--accent);font-weight:600;cursor:pointer">@${username}</span>`;
+  });
+};
+
+const viewProfileByUsername = (username) => {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  renderProfile($('tab-content'), username);
 };
 
 const previewImageWhite = (input) => {
@@ -2113,7 +2126,7 @@ const toggleComments = async (postId) => {
           <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
           <span class="comment-time">${timeAgo(c.createdAt)}</span>
         </div>
-        <div class="comment-body">${escapeHtml(c.body)}</div>
+        <div class="comment-body">${linkifyMentions(escapeHtml(c.body))}</div>
       </div>
       ${c.userId === currentUser?.userId
         ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
@@ -2167,7 +2180,7 @@ const sendComment = async (postId) => {
         <span class="comment-author">${comment.fullName}${comment.isPremium?getCheckForPost(comment):''}</span>
         <span class="comment-time">just now</span>
       </div>
-      <div class="comment-body">${escapeHtml(comment.body)}</div>
+      <div class="comment-body">${linkifyMentions(escapeHtml(comment.body))}</div>
     </div>
     <button onclick="deleteMyComment('${postId}','${comment.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
