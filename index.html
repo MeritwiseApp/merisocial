@@ -1,659 +1,980 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>MeriSocial</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#000000;
-  --surface:#16181c;
-  --surface2:#202327;
-  --border:#2f3336;
-  --border-mid:#38444d;
-  --text:#e7e9ea;
-  --text2:#71767b;
-  --text3:#536471;
-  --accent:#1d9bf0;
-  --accent-h:#1a8cd8;
-  --accent-bg:rgba(29,155,240,.1);
-  --red:#f4212e;
-  --red-bg:rgba(244,33,46,.1);
-  --green:#00ba7c;
-  --green-bg:rgba(0,186,124,.1);
-  --yellow:#ffd400;
-  --gold:#f59e0b;
-  --font:'Inter',system-ui,sans-serif;
-  --r:9999px;
-  --t:.15s ease;
-}
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-#app{min-height:100vh}
-.screen{display:none;min-height:100vh;flex-direction:column}
-.screen.active{display:flex}
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>MeriSocial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── RESET ─────────────────────────────────────── */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{
+      --white:#ffffff;
+      --bg:#f7f9fa;
+      --surface:#ffffff;
+      --border:#eff3f4;
+      --border-dark:#cfd9de;
+      --text:#0f1419;
+      --text-secondary:#536471;
+      --text-tertiary:#8b98a5;
+      --accent:#1d9bf0;
+      --accent-hover:#1a8cd8;
+      --accent-light:#e8f5fd;
+      --red:#f4212e;
+      --green:#00ba7c;
+      --yellow:#ffd400;
+      --font:'Inter',system-ui,-apple-system,sans-serif;
+      --radius-sm:4px;
+      --radius:12px;
+      --radius-lg:16px;
+      --radius-pill:9999px;
+      --transition:0.15s ease;
+    }
 
-/* AUTH */
-.auth-root{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:var(--bg)}
-.auth-inner{width:100%;max-width:400px;padding:32px 40px 48px}
-@media(max-width:500px){.auth-inner{padding:24px 20px 40px}}
-.brand{font-size:28px;font-weight:700;letter-spacing:-.8px;color:var(--text);display:inline-block}
-.brand em{color:var(--accent);font-style:normal}
-.auth-title{font-size:22px;font-weight:700;letter-spacing:-.4px;color:var(--text);margin-bottom:4px}
-.auth-sub{font-size:14px;color:var(--text2);margin-bottom:28px}
+    html,body{
+      min-height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--font);
+      font-size:15px;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
 
-/* FORM */
-.field{margin-bottom:16px}
-.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border-mid);border-radius:4px;color:var(--text);font-family:var(--font);font-size:15px;padding:12px 14px;outline:none;transition:border-color var(--t);appearance:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
-.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
-.field select option{background:var(--surface)}
-.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+    /* ── LAYOUT ─────────────────────────────────────── */
+    #app{min-height:100vh}
+    .screen{display:none;min-height:100vh;flex-direction:column}
+    .screen.active{display:flex}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--r);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:background var(--t),opacity var(--t);padding:11px 22px;width:100%}
-.btn:active{opacity:.8}
-.btn:disabled{opacity:.4;pointer-events:none}
-.btn-primary{background:var(--text);color:#000}
-.btn-primary:hover{background:#d7d9da}
-.btn-accent{background:var(--accent);color:#fff}
-.btn-accent:hover{background:var(--accent-h)}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border-mid)}
-.btn-outline:hover{background:rgba(255,255,255,.03)}
-.btn-ghost{background:transparent;color:var(--accent);font-weight:700;padding:8px 16px;width:auto}
-.btn-ghost:hover{background:var(--accent-bg)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-sm{padding:5px 16px;font-size:13px;width:auto}
-.btn .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-.btn-outline .spin,.btn-ghost .spin{border-color:rgba(255,255,255,.2);border-top-color:var(--text)}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+    /* ── AUTH WRAPPER ────────────────────────────────── */
+    .auth-root{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      padding:0;
+      background:var(--white);
+    }
+    .auth-inner{
+      width:100%;
+      max-width:400px;
+      padding:32px 40px 48px;
+    }
+    @media(max-width:500px){
+      .auth-inner{padding:24px 20px 40px}
+    }
 
-/* LINK */
-.link{color:var(--accent);cursor:pointer;font-weight:500}
-.link:hover{text-decoration:underline}
-.switch-row{text-align:center;margin-top:20px;font-size:14px;color:var(--text2)}
-.check-row{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text2);line-height:1.5}
-.check-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:var(--accent);cursor:pointer}
+    .brand{
+      font-size:28px;
+      font-weight:700;
+      letter-spacing:-0.8px;
+      color:var(--text);
+      margin-bottom:4px;
+      display:inline-block;
+    }
+    .brand em{color:var(--accent);font-style:normal}
 
-/* TOAST */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--accent);color:#fff;padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .2s;z-index:9999;white-space:nowrap}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#toast.error{background:var(--red)}
-#toast.success{background:var(--green)}
+    .auth-title{
+      font-size:22px;
+      font-weight:700;
+      letter-spacing:-0.4px;
+      color:var(--text);
+      margin-bottom:4px;
+    }
+    .auth-sub{
+      font-size:14px;
+      color:var(--text-secondary);
+      margin-bottom:28px;
+    }
 
-/* APP CHROME */
-.app-root{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 16px;height:53px;display:flex;align-items:center;justify-content:space-between}
-.topbar .brand{font-size:20px;margin-bottom:0}
-.topbar-center{position:absolute;left:50%;transform:translateX(-50%)}
+    /* ── FORM ELEMENTS ────────────────────────────────── */
+    .field{margin-bottom:16px}
+    .field label{
+      display:block;
+      font-size:13px;
+      font-weight:500;
+      color:var(--text-secondary);
+      margin-bottom:6px;
+    }
+    .field input,.field select{
+      width:100%;
+      background:var(--white);
+      border:1px solid var(--border-dark);
+      border-radius:var(--radius-sm);
+      color:var(--text);
+      font-family:var(--font);
+      font-size:15px;
+      font-weight:400;
+      padding:11px 14px;
+      outline:none;
+      transition:border-color var(--transition);
+      appearance:none;
+    }
+    .field input:focus,.field select:focus{
+      border-color:var(--accent);
+    }
+    .field input::placeholder{color:var(--text-tertiary)}
 
-/* BOTTOM NAV */
-.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding:0 0 max(4px,env(safe-area-inset-bottom))}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 0;background:none;border:none;cursor:pointer;color:var(--text2);font-family:var(--font);font-size:11px;font-weight:500;transition:color var(--t);position:relative}
-.nav-btn.active{color:var(--text)}
-.nav-btn svg{width:24px;height:24px;stroke-width:1.75}
-.nav-btn .active-dot{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);display:none}
-.nav-btn.active .active-dot{display:block}
-.page{flex:1;overflow-y:auto;padding:0 0 72px}
+    /* ── BUTTONS ─────────────────────────────────────── */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:none;border-radius:var(--radius-pill);
+      font-family:var(--font);font-size:15px;font-weight:600;
+      cursor:pointer;transition:background var(--transition),opacity var(--transition);
+      padding:11px 22px;width:100%;
+      text-decoration:none;
+    }
+    .btn:active{opacity:.85}
+    .btn:disabled{opacity:.5;pointer-events:none}
+    .btn-primary{background:var(--text);color:var(--white)}
+    .btn-primary:hover{background:#272c30}
+    .btn-accent{background:var(--accent);color:var(--white)}
+    .btn-accent:hover{background:var(--accent-hover)}
+    .btn-outline{
+      background:var(--white);color:var(--text);
+      border:1px solid var(--border-dark);
+    }
+    .btn-outline:hover{background:var(--bg)}
+    .btn-ghost{background:transparent;color:var(--accent);font-weight:600;padding:8px 16px;width:auto}
+    .btn-ghost:hover{background:var(--accent-light)}
+    .btn-danger{background:var(--red);color:var(--white)}
+    .btn-sm{padding:7px 16px;font-size:13px;width:auto}
 
-/* SECTION */
-.section-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:16px 16px 8px}
-.section-divider{height:8px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:14px}
-.info-row .key{color:var(--text2)}
-.info-row .val{font-weight:600;color:var(--text)}
+    /* spinner inside button */
+    .btn .spin{
+      width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff;border-radius:50%;
+      animation:spin .6s linear infinite;
+    }
+    .btn-outline .spin,.btn-ghost .spin{border-color:rgba(0,0,0,.15);border-top-color:var(--text)}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;border-radius:var(--r);font-size:11px;font-weight:700;padding:3px 10px}
-.badge-green{background:var(--green-bg);color:var(--green)}
-.badge-red{background:var(--red-bg);color:var(--red)}
-.badge-yellow{background:rgba(255,212,0,.1);color:var(--yellow)}
-.badge-blue{background:var(--accent-bg);color:var(--accent)}
-.badge-grey{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+    /* ── DIVIDER ─────────────────────────────────────── */
+    .or-row{
+      display:flex;align-items:center;gap:12px;margin:20px 0;
+    }
+    .or-row span{font-size:13px;color:var(--text-tertiary);white-space:nowrap}
+    .or-line{flex:1;height:1px;background:var(--border)}
 
-/* PREMIUM CHECKMARK */
-.premium-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--accent);border-radius:50%;margin-left:3px;flex-shrink:0}
-.premium-check svg{width:10px;height:10px;stroke:#fff;stroke-width:2.5;fill:none}
-.verified-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--gold);border-radius:50%;margin-left:3px;flex-shrink:0}
-.verified-check svg{width:10px;height:10px;stroke:#000;stroke-width:2.5;fill:none}
+    /* ── LINK TEXT ───────────────────────────────────── */
+    .link{color:var(--accent);cursor:pointer;font-weight:500;text-decoration:none}
+    .link:hover{text-decoration:underline}
+    .switch-row{
+      text-align:center;margin-top:20px;
+      font-size:14px;color:var(--text-secondary);
+    }
 
-/* AVATAR */
-.avatar{border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text);overflow:hidden;flex-shrink:0}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    /* ── CHECKBOX ────────────────────────────────────── */
+    .check-row{
+      display:flex;gap:10px;align-items:flex-start;
+      font-size:13px;color:var(--text-secondary);line-height:1.5;
+    }
+    .check-row input[type=checkbox]{
+      width:16px;height:16px;margin-top:2px;flex-shrink:0;
+      accent-color:var(--accent);cursor:pointer;
+    }
 
-/* HANDLE ROW */
-.handle-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);gap:12px}
-.platform-icon{width:38px;height:38px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.handle-meta{flex:1;min-width:0}
-.handle-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.handle-platform{font-size:12px;color:var(--text2);margin-top:1px}
-.follow-btn{flex-shrink:0;background:var(--text);color:#000;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;padding:6px 18px;cursor:pointer;transition:background var(--t)}
-.follow-btn:hover{background:#d7d9da}
-.follow-btn.following{background:transparent;color:var(--text);border:1px solid var(--border-mid)}
-.follow-btn.following:hover{border-color:var(--red);color:var(--red)}
+    /* ── TOAST ───────────────────────────────────────── */
+    #toast{
+      position:fixed;bottom:80px;left:50%;
+      transform:translateX(-50%) translateY(12px);
+      background:var(--text);color:var(--white);
+      padding:10px 20px;border-radius:var(--radius-pill);
+      font-size:13px;font-weight:500;
+      opacity:0;pointer-events:none;
+      transition:all .2s;z-index:9999;
+      white-space:nowrap;
+    }
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #toast.error{background:var(--red)}
+    #toast.success{background:var(--green)}
 
-/* DRIP BAR */
-.drip-bar-track{height:2px;background:var(--border);margin:0}
-.drip-bar-fill{height:100%;background:var(--accent);transition:width 1s linear}
+    /* ── ALERT BOX ───────────────────────────────────── */
+    .alert{
+      padding:12px 14px;border-radius:var(--radius-sm);
+      font-size:13px;line-height:1.5;margin-bottom:16px;
+    }
+    .alert-info{background:var(--accent-light);color:var(--accent)}
+    .alert-warn{background:#fff8e1;color:#b45309}
+    .alert-error{background:#fef2f2;color:var(--red)}
 
-/* PLAN CARDS */
-.plan-wrap{padding:0 16px}
-.plan-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:10px;cursor:pointer;transition:border-color var(--t);position:relative}
-.plan-card.selected{border-color:var(--accent);background:rgba(29,155,240,.04)}
-.plan-card .plan-name{font-size:15px;font-weight:700;color:var(--text)}
-.plan-card .plan-price{font-size:24px;font-weight:700;color:var(--text);margin-top:4px}
-.plan-card .plan-price span{font-size:14px;font-weight:400;color:var(--text2)}
-.plan-card .plan-note{font-size:12px;color:var(--text3);margin-top:4px}
-.plan-card .plan-save{font-size:12px;font-weight:600;color:var(--green);margin-top:4px}
-.popular-tag{position:absolute;top:-1px;right:14px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 10px;border-radius:0 0 6px 6px;text-transform:uppercase}
-.plan-radio{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:2px solid var(--border-mid);display:flex;align-items:center;justify-content:center}
-.plan-radio.on{border-color:var(--accent)}
-.plan-radio.on::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--accent)}
+    /* ── MAIN APP CHROME ─────────────────────────────── */
+    .app-root{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background:var(--bg);
+    }
 
-/* COUNTDOWN */
-.countdown-strip{display:flex;border-bottom:1px solid var(--border)}
-.cd-unit{flex:1;text-align:center;padding:14px 4px;border-right:1px solid var(--border)}
-.cd-unit:last-child{border-right:none}
-.cd-num{font-size:26px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-1px}
-.cd-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+    /* Top header */
+    .topbar{
+      position:sticky;top:0;z-index:100;
+      background:rgba(247,249,250,.92);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      padding:0 16px;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .topbar .brand{font-size:20px;margin-bottom:0}
 
-/* EMPTY */
-.empty{padding:48px 24px;text-align:center}
-.empty-title{font-size:17px;font-weight:700;margin-bottom:6px}
-.empty-body{font-size:14px;color:var(--text2)}
+    /* Bottom nav */
+    .bottomnav{
+      position:fixed;bottom:0;left:0;right:0;z-index:100;
+      background:rgba(247,249,250,.95);
+      backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+      display:flex;
+      padding:0 0 max(4px,env(safe-area-inset-bottom));
+    }
+    .nav-btn{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:3px;padding:10px 0;
+      background:none;border:none;cursor:pointer;
+      color:var(--text-secondary);
+      font-family:var(--font);font-size:11px;font-weight:500;
+      transition:color var(--transition);
+    }
+    .nav-btn.active{color:var(--text)}
+    .nav-btn svg{width:22px;height:22px;stroke-width:1.8}
 
-/* OTP */
-.otp-input{font-size:24px;font-weight:700;letter-spacing:10px;text-align:center;padding:14px}
+    /* Page content */
+    .page{flex:1;overflow-y:auto;padding:0 0 68px}
 
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:flex-end}
-.modal-bg.open{display:flex}
-.modal{background:var(--surface);width:100%;border-radius:18px 18px 0 0;max-height:90vh;overflow-y:auto;padding:24px 20px 40px;border-top:1px solid var(--border)}
-.modal-handle{width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px}
-.modal h2{font-size:18px;font-weight:700;margin-bottom:16px}
-.modal-center{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-center.open{display:flex}
-.modal-box{background:var(--surface);width:100%;max-width:480px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
-.modal-box-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
-.modal-box-head h3{font-size:16px;font-weight:700}
-.modal-box-body{padding:20px}
+    /* ── CONTENT CARDS ───────────────────────────────── */
+    .feed-item{
+      background:var(--white);
+      border-bottom:1px solid var(--border);
+      padding:16px;
+    }
+    .feed-item:first-child{border-top:none}
 
-/* TERMS */
-.terms-section{margin-bottom:16px}
-.terms-section h3{font-size:14px;font-weight:600;margin-bottom:4px}
-.terms-section p{font-size:13px;color:var(--text2);line-height:1.6}
+    .section-label{
+      font-size:12px;font-weight:600;
+      color:var(--text-tertiary);
+      text-transform:uppercase;letter-spacing:.6px;
+      padding:16px 16px 8px;
+    }
 
-/* PAGE HEADER */
-.page-header{padding:20px 16px 0;border-bottom:1px solid var(--border);background:var(--bg)}
-.page-header h1{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
-.page-header p{font-size:14px;color:var(--text2);padding-bottom:16px}
+    /* ── PLAN CARDS ─────────────────────────────────── */
+    .plan-wrap{padding:0 16px}
+    .plan-card{
+      background:var(--white);
+      border:1.5px solid var(--border-dark);
+      border-radius:var(--radius);
+      padding:16px;
+      margin-bottom:10px;
+      cursor:pointer;
+      transition:border-color var(--transition);
+      position:relative;
+    }
+    .plan-card.selected{border-color:var(--accent)}
+    .plan-card .plan-name{font-size:15px;font-weight:600;color:var(--text)}
+    .plan-card .plan-price{font-size:22px;font-weight:700;color:var(--text);margin-top:2px}
+    .plan-card .plan-price span{font-size:14px;font-weight:400;color:var(--text-secondary)}
+    .plan-card .plan-note{font-size:12px;color:var(--text-secondary);margin-top:4px}
+    .plan-card .plan-save{font-size:12px;font-weight:600;color:var(--green);margin-top:2px}
+    .popular-tag{
+      position:absolute;top:-1px;right:12px;
+      background:var(--accent);color:var(--white);
+      font-size:10px;font-weight:700;letter-spacing:.4px;
+      padding:3px 10px;border-radius:0 0 var(--radius-sm) var(--radius-sm);
+      text-transform:uppercase;
+    }
+    .plan-radio{
+      position:absolute;right:16px;top:50%;transform:translateY(-50%);
+      width:20px;height:20px;border-radius:50%;
+      border:2px solid var(--border-dark);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .plan-radio.on{border-color:var(--accent)}
+    .plan-radio.on::after{
+      content:'';width:10px;height:10px;
+      border-radius:50%;background:var(--accent);
+    }
 
-/* LANDING */
-.landing-hero{padding:40px 24px 32px;border-bottom:1px solid var(--border)}
-.landing-tagline{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
-.landing-headline{font-size:30px;font-weight:700;letter-spacing:-.6px;line-height:1.2;color:var(--text);margin-bottom:16px}
-.landing-body{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:28px}
-.feature-list{list-style:none}
-.feature-list li{font-size:14px;color:var(--text2);padding:11px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-.feature-list li:last-child{border-bottom:none}
-.feature-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0}
-.landing-cta{padding:24px}
-.landing-legal{font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5}
+    /* ── COUNTDOWN ───────────────────────────────────── */
+    .countdown-strip{
+      display:flex;gap:0;border-bottom:1px solid var(--border);
+    }
+    .cd-unit{
+      flex:1;text-align:center;padding:12px 4px;
+      border-right:1px solid var(--border);
+    }
+    .cd-unit:last-child{border-right:none}
+    .cd-num{font-size:26px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-1px}
+    .cd-label{font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 
-/* LIVE DOT */
-.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    /* ── HANDLE ROW ──────────────────────────────────── */
+    .handle-row{
+      display:flex;align-items:center;
+      padding:13px 16px;
+      border-bottom:1px solid var(--border);
+      gap:12px;
+    }
+    .platform-icon{
+      width:36px;height:36px;border-radius:50%;
+      background:var(--bg);
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .platform-icon svg{width:18px;height:18px}
+    .handle-meta{flex:1;min-width:0}
+    .handle-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .handle-platform{font-size:12px;color:var(--text-secondary);margin-top:1px}
+    .follow-btn{
+      flex-shrink:0;
+      background:var(--text);color:var(--white);
+      border:none;border-radius:var(--radius-pill);
+      font-family:var(--font);font-size:13px;font-weight:600;
+      padding:6px 16px;cursor:pointer;
+      transition:background var(--transition);
+    }
+    .follow-btn:hover{background:#272c30}
+    .follow-btn.following{
+      background:var(--white);color:var(--text);
+      border:1px solid var(--border-dark);
+    }
 
-/* STRIKES */
-.strikes-row{display:flex;gap:4px}
-.strike-pip{width:24px;height:4px;border-radius:2px;background:var(--surface2)}
-.strike-pip.filled{background:var(--red)}
+    /* ── STATUS BADGE ────────────────────────────────── */
+    .badge{
+      display:inline-block;border-radius:var(--radius-pill);
+      font-size:11px;font-weight:600;padding:3px 10px;
+    }
+    .badge-blue{background:var(--accent-light);color:var(--accent)}
+    .badge-green{background:#e6f9f3;color:var(--green)}
+    .badge-red{background:#fef2f2;color:var(--red)}
+    .badge-grey{background:var(--border);color:var(--text-secondary)}
+    .badge-yellow{background:#fffde6;color:#92620a}
 
-/* COMMUNITY FEED */
-.post-card{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px;cursor:pointer}
-.post-card:hover{background:rgba(255,255,255,.01)}
-.post-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
-.post-author-name{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:3px}
-.post-handle{font-size:13px;color:var(--text2)}
-.post-time{font-size:13px;color:var(--text2)}
-.post-body{font-size:15px;color:var(--text);line-height:1.6;margin-bottom:10px;word-break:break-word}
-.post-image{width:100%;border-radius:12px;margin-bottom:10px;border:1px solid var(--border);max-height:400px;object-fit:cover}
-.post-type-tag{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px;text-transform:capitalize}
-.post-actions{display:flex;align-items:center;gap:0;margin-top:4px}
-.post-action-btn{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:13px;font-weight:500;padding:6px 12px 6px 0;transition:color var(--t)}
-.post-action-btn:hover{color:var(--accent)}
-.post-action-btn.reacted{color:var(--red)}
-.post-action-btn svg{width:18px;height:18px;stroke-width:1.6}
-.reaction-count{font-size:13px}
-.reaction-bar{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
-.reaction-chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
-.reaction-chip.mine{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
-.comment-section{border-top:1px solid var(--border);margin-top:8px}
-.comment-input-row{display:flex;align-items:center;gap:8px;padding:10px 0}
-.comment-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 14px;outline:none;transition:border-color var(--t)}
-.comment-input:focus{border-color:var(--accent)}
-.comment-input::placeholder{color:var(--text3)}
-.comment-send-btn{background:var(--accent);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comment-send-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5}
-.comment-item{padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:8px}
-.comment-item:last-child{border-bottom:none}
-.compose-box{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px}
-.compose-textarea{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:16px;padding:8px 0;outline:none;resize:none;min-height:60px;line-height:1.5}
-.compose-textarea::placeholder{color:var(--text3)}
-.compose-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-.char-count{font-size:12px;color:var(--text3)}
-.char-count.warn{color:var(--yellow)}
-.char-count.over{color:var(--red)}
-.post-type-select{background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:var(--font);font-size:12px;padding:5px 12px;outline:none;cursor:pointer;appearance:none}
-.pinned-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block}
-.locked-overlay{background:linear-gradient(transparent,var(--bg) 70%);position:absolute;bottom:0;left:0;right:0;height:80px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px}
-.locked-post{position:relative;overflow:hidden}
+    /* ── DRIP PROGRESS BAR ───────────────────────────── */
+    .drip-bar-track{height:2px;background:var(--border);margin:0}
+    .drip-bar-fill{height:100%;background:var(--accent);transition:width 1s linear}
 
-/* PROFILE */
-.profile-banner{height:130px;background:var(--surface2);width:100%;position:relative}
-.profile-banner img{width:100%;height:100%;object-fit:cover}
-.profile-avatar-wrap{position:absolute;bottom:-40px;left:16px;width:80px;height:80px;border-radius:50%;border:4px solid var(--bg);background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--text)}
-.profile-avatar-wrap img{width:100%;height:100%;object-fit:cover}
-.profile-info{padding:52px 16px 16px;border-bottom:1px solid var(--border)}
-.profile-name-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
-.profile-display-name{font-size:18px;font-weight:700;color:var(--text)}
-.profile-username{font-size:14px;color:var(--text2);margin-bottom:8px}
-.profile-bio{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:10px}
-.profile-meta-row{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-bottom:10px}
-.profile-meta-item{display:flex;align-items:center;gap:4px}
-.profile-stats-row{display:flex;gap:20px;font-size:14px}
-.profile-stat{cursor:pointer}
-.profile-stat .num{font-weight:700;color:var(--text)}
-.profile-stat .lbl{color:var(--text2)}
-.profile-follow-btn{background:var(--text);color:#000;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;padding:7px 20px;cursor:pointer;transition:background var(--t)}
-.profile-follow-btn:hover{background:#d7d9da}
-.profile-follow-btn.following{background:transparent;color:var(--text);border:1px solid var(--border-mid)}
-.profile-edit-btn{background:transparent;color:var(--text);border:1px solid var(--border-mid);border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;padding:7px 20px;cursor:pointer;transition:background var(--t)}
-.profile-edit-btn:hover{background:rgba(255,255,255,.03)}
-.profile-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:53px;z-index:10}
-.profile-tab{flex:1;text-align:center;padding:14px 4px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);transition:color var(--t)}
-.profile-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    /* ── INFO ROWS ───────────────────────────────────── */
+    .info-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:13px 16px;border-bottom:1px solid var(--border);
+      font-size:14px;
+    }
+    .info-row .key{color:var(--text-secondary)}
+    .info-row .val{font-weight:500;color:var(--text)}
 
-/* FEED TABS */
-.feed-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:53px;z-index:10}
-.feed-tab{flex:1;text-align:center;padding:14px 4px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);transition:color var(--t)}
-.feed-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    /* ── PROFILE HEADER ──────────────────────────────── */
+    .profile-avatar{
+      width:64px;height:64px;border-radius:50%;
+      background:var(--bg);border:2px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;font-weight:700;color:var(--text);
+    }
 
-/* LEADERBOARD */
-.lb-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
-.lb-rank{font-size:16px;font-weight:700;color:var(--text3);min-width:24px;text-align:center}
-.lb-rank.top{color:var(--accent)}
-.lb-name{font-size:14px;font-weight:600;color:var(--text)}
-.lb-score{font-size:13px;color:var(--text2);margin-top:1px}
-.lb-handles{display:flex;gap:6px;margin-top:3px;flex-wrap:wrap}
-.lb-handle-chip{font-size:11px;color:var(--accent);font-weight:500;display:inline-flex;align-items:center;gap:3px}
+    /* ── EMPTY STATE ─────────────────────────────────── */
+    .empty{
+      padding:48px 24px;text-align:center;
+    }
+    .empty .empty-title{font-size:17px;font-weight:700;margin-bottom:6px}
+    .empty .empty-body{font-size:14px;color:var(--text-secondary)}
 
-/* STAT GRID */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
-.stat-num{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-1px}
-.stat-label{font-size:12px;color:var(--text3);margin-top:2px}
+    /* ── OTP INPUT ───────────────────────────────────── */
+    .otp-input{
+      font-size:24px;font-weight:700;letter-spacing:10px;
+      text-align:center;padding:14px;
+    }
 
-/* SUGGESTION PILL */
-.suggestion-row{display:flex;align-items:center;padding:12px 16px;gap:10px;border-bottom:1px solid var(--border)}
-.suggestion-info{flex:1;min-width:0}
-.suggestion-name{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.suggestion-bio{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.follow-pill{background:var(--text);color:#000;border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;padding:5px 16px;cursor:pointer;flex-shrink:0;transition:background var(--t)}
-.follow-pill:hover{background:#d7d9da}
-.follow-pill.following{background:transparent;color:var(--text);border:1px solid var(--border-mid)}
+    /* ── TERMS MODAL ─────────────────────────────────── */
+    .modal-bg{
+      position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;
+      display:none;align-items:flex-end;
+    }
+    .modal-bg.open{display:flex}
+    .modal{
+      background:var(--white);width:100%;
+      border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      max-height:85vh;overflow-y:auto;
+      padding:24px 20px 40px;
+    }
+    .modal-handle{
+      width:36px;height:4px;background:var(--border-dark);
+      border-radius:2px;margin:0 auto 20px;
+    }
+    .modal h2{font-size:18px;font-weight:700;margin-bottom:16px}
+    .terms-section{margin-bottom:16px}
+    .terms-section h3{font-size:14px;font-weight:600;margin-bottom:4px}
+    .terms-section p{font-size:13px;color:var(--text-secondary);line-height:1.6}
 
-/* IMAGE UPLOAD */
-.image-preview{width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--border);max-height:300px;object-fit:cover;display:none}
-.attach-btn{background:none;border:none;cursor:pointer;color:var(--accent);padding:4px;display:flex;align-items:center}
-.attach-btn svg{width:20px;height:20px;stroke:var(--accent);stroke-width:1.75;fill:none}
+    /* ── HEADER SECTION (subscribe / other full pages) ── */
+    .page-header{
+      padding:20px 16px 0;
+      border-bottom:1px solid var(--border);
+      background:var(--white);
+      margin-bottom:0;
+    }
+    .page-header h1{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+    .page-header p{font-size:14px;color:var(--text-secondary);padding-bottom:16px}
 
-/* VERIFY */
-.verify-icon{width:52px;height:52px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-.expiry-note{font-size:12px;color:var(--text3);text-align:center;padding:10px 16px}
+    /* ── MISC ────────────────────────────────────────── */
+    .mt4{margin-top:4px}
+    .mt8{margin-top:8px}
+    .mt12{margin-top:12px}
+    .mt16{margin-top:16px}
+    .mt24{margin-top:24px}
+    .mb16{margin-bottom:16px}
+    .px16{padding:0 16px}
+    .row{display:flex;align-items:center;gap:8px}
+    .row-between{display:flex;align-items:center;justify-content:space-between}
+    .text-secondary{color:var(--text-secondary)}
+    .text-sm{font-size:13px}
+    .text-xs{font-size:12px}
+    .fw6{font-weight:600}
+    .fw7{font-weight:700}
+    .w-full{width:100%}
+    .hidden{display:none!important}
+    .divider{height:1px;background:var(--border);margin:0}
+    .section-divider{height:8px;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 
-/* FREE TIER BANNER */
-.free-banner{background:rgba(29,155,240,.08);border:1px solid rgba(29,155,240,.2);border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:flex-start;gap:10px}
-.free-banner-text{flex:1;font-size:13px;color:var(--text2);line-height:1.5}
-.free-banner-text strong{color:var(--text)}
+    /* ── LANDING ─────────────────────────────────────── */
+    .landing-hero{
+      padding:40px 24px 32px;
+      border-bottom:1px solid var(--border);
+    }
+    .landing-tagline{
+      font-size:13px;font-weight:500;color:var(--text-secondary);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;
+    }
+    .landing-headline{
+      font-size:28px;font-weight:700;letter-spacing:-.6px;
+      line-height:1.25;color:var(--text);margin-bottom:16px;
+    }
+    .landing-body{font-size:14px;color:var(--text-secondary);line-height:1.65;margin-bottom:28px}
+    .feature-list{margin-bottom:0;list-style:none}
+    .feature-list li{
+      font-size:14px;color:var(--text-secondary);padding:10px 0;
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:10px;
+    }
+    .feature-list li:last-child{border-bottom:none}
+    .feature-list li::before{
+      content:'';width:5px;height:5px;border-radius:50%;
+      background:var(--accent);flex-shrink:0;
+    }
 
-/* SEARCH BAR */
-.search-bar{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;gap:8px;padding:10px 14px;margin:12px 16px}
-.search-bar svg{width:16px;height:16px;stroke:var(--text3);flex-shrink:0}
-.search-bar input{background:none;border:none;color:var(--text);font-family:var(--font);font-size:14px;outline:none;flex:1}
-.search-bar input::placeholder{color:var(--text3)}
+    .landing-cta{padding:24px}
+    .landing-legal{
+      font-size:11px;color:var(--text-tertiary);
+      text-align:center;margin-top:14px;line-height:1.5;
+    }
 
-/* REACTION PICKER POPUP */
-.reaction-picker{display:none;gap:6px;padding:8px 0;flex-wrap:wrap}
-.reaction-btn{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:600}
-.reaction-btn:hover{border-color:var(--accent);color:var(--accent)}
+    /* ── LIVE DOT ────────────────────────────────────── */
+    .live-dot{
+      display:inline-block;width:7px;height:7px;
+      border-radius:50%;background:var(--green);
+      animation:pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
 
-/* MISC */
-.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}
-.mb8{margin-bottom:8px}.mb16{margin-bottom:16px}.px16{padding:0 16px}
-.row{display:flex;align-items:center;gap:8px}
-.hidden{display:none!important}
-::-webkit-scrollbar{width:0;height:0}
-</style>
+    /* ── STRIKE INDICATOR ────────────────────────────── */
+    .strikes-row{
+      display:flex;gap:4px;
+    }
+    .strike-pip{
+      width:22px;height:4px;border-radius:2px;background:var(--border);
+    }
+    .strike-pip.filled{background:var(--red)}
+
+    /* ── VERIFY SCREEN ───────────────────────────────── */
+    .verify-icon{
+      width:48px;height:48px;border-radius:50%;
+      background:var(--accent-light);
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:16px;
+    }
+
+    /* sub expiry note */
+    .expiry-note{
+      font-size:12px;color:var(--text-tertiary);
+      text-align:center;padding:10px 16px;
+    }
+
+    /* ── SCROLLBAR ────────────────────────────────────── */
+    ::-webkit-scrollbar{width:0;height:0}
+
+    /* COMMUNITY FEED */
+    .post-card{
+      background:var(--bg);
+      border-bottom:1px solid var(--border);
+      padding:14px 16px;
+    }
+    .post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .post-avatar{
+      width:38px;height:38px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .post-author{font-size:14px;font-weight:700;color:var(--text)}
+    .post-time{font-size:12px;color:var(--text-3)}
+    .post-body{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;word-break:break-word}
+    .post-type-tag{
+      display:inline-block;font-size:11px;font-weight:600;
+      color:var(--accent);margin-bottom:6px;text-transform:capitalize;
+    }
+    .post-actions{display:flex;align-items:center;gap:0;margin-top:4px}
+    .post-action-btn{
+      display:flex;align-items:center;gap:5px;
+      background:none;border:none;cursor:pointer;
+      color:var(--text-3);font-family:var(--font);font-size:13px;font-weight:500;
+      padding:6px 12px 6px 0;transition:color var(--t);
+    }
+    .post-action-btn:hover{color:var(--accent)}
+    .post-action-btn.reacted{color:var(--accent)}
+    .post-action-btn svg{width:17px;height:17px;stroke-width:1.75}
+    .reaction-bar{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+    .reaction-chip{
+      display:inline-flex;align-items:center;gap:4px;
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;
+      cursor:pointer;transition:border-color var(--t),background var(--t);color:var(--text-2);
+    }
+    .reaction-chip.mine{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+    .comment-input-row{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 16px;border-bottom:1px solid var(--border);
+      background:var(--surface);
+    }
+    .comment-input{
+      flex:1;background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;color:var(--text);font-family:var(--font);
+      font-size:13px;padding:8px 14px;outline:none;
+      transition:border-color var(--t);
+    }
+    .comment-input:focus{border-color:var(--accent)}
+    .comment-input::placeholder{color:var(--text-3)}
+    .comment-send-btn{
+      background:var(--accent);border:none;border-radius:50%;
+      width:32px;height:32px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      transition:background var(--t);
+    }
+    .comment-send-btn:hover{background:var(--accent-hover)}
+    .comment-send-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5}
+    .comment-item{
+      padding:10px 16px;border-bottom:1px solid var(--border);
+      display:flex;gap:10px;
+    }
+    .comment-avatar{
+      width:28px;height:28px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .comment-body{font-size:13px;color:var(--text);line-height:1.5}
+    .comment-author{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+    .comment-time{font-size:11px;color:var(--text-3)}
+    .compose-box{
+      background:var(--surface);border-bottom:1px solid var(--border);
+      padding:14px 16px;
+    }
+    .compose-textarea{
+      width:100%;background:var(--surface2);
+      border:1px solid var(--border);border-radius:12px;
+      color:var(--text);font-family:var(--font);font-size:14px;
+      padding:12px 14px;outline:none;resize:none;min-height:72px;
+      transition:border-color var(--t);line-height:1.5;
+    }
+    .compose-textarea:focus{border-color:var(--accent)}
+    .compose-textarea::placeholder{color:var(--text-3)}
+    .compose-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+    .char-count{font-size:12px;color:var(--text-3)}
+    .char-count.warn{color:var(--yellow)}
+    .char-count.over{color:var(--red)}
+    .post-type-select{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:20px;color:var(--text-2);font-family:var(--font);
+      font-size:12px;padding:5px 12px;outline:none;cursor:pointer;
+      appearance:none;
+    }
+    .pinned-tag{
+      font-size:11px;font-weight:600;color:var(--text-3);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;
+      display:block;
+    }
+
+    /* LEADERBOARD */
+    .lb-row{
+      display:flex;align-items:center;gap:12px;
+      padding:13px 16px;border-bottom:1px solid var(--border);
+    }
+    .lb-rank{
+      font-size:16px;font-weight:700;color:var(--text-3);
+      min-width:24px;text-align:center;
+    }
+    .lb-rank.top{color:var(--accent)}
+    .lb-avatar{
+      width:36px;height:36px;border-radius:50%;
+      background:var(--surface2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:700;color:var(--text);flex-shrink:0;
+    }
+    .lb-name{font-size:14px;font-weight:600;color:var(--text)}
+    .lb-score{font-size:13px;color:var(--text-2);margin-top:1px}
+    .lb-handles{display:flex;gap:6px;margin-top:3px;flex-wrap:wrap}
+    .lb-handle-chip{
+      font-size:11px;color:var(--accent);font-weight:500;
+    }
+
+    /* STATS CARDS */
+    .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:12px;padding:14px;
+    }
+    .stat-num{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-1px}
+    .stat-label{font-size:12px;color:var(--text-3);margin-top:2px}
+
+    /* FEED TABS */
+    .feed-tabs{
+      display:flex;border-bottom:1px solid var(--border);
+      background:var(--bg);position:sticky;top:53px;z-index:10;
+    }
+    .feed-tab{
+      flex:1;text-align:center;padding:12px 4px;
+      font-size:13px;font-weight:500;color:var(--text-3);
+      cursor:pointer;border-bottom:2px solid transparent;
+      background:none;border-top:none;border-left:none;border-right:none;
+      font-family:var(--font);transition:color var(--t);
+    }
+    .feed-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+  </style>
 </head>
 <body>
 <div id="app">
 
-<!-- SPLASH -->
-<div class="screen active" id="screen-splash" style="background:#000;align-items:center;justify-content:center">
+<!-- ════════════════════════════════
+     SPLASH
+════════════════════════════════ -->
+<div class="screen active" id="screen-splash" style="background:#fff;align-items:center;justify-content:center;">
   <div style="text-align:center">
-    <div class="brand" style="font-size:36px">Meri<em>Social</em></div>
-    <div style="margin-top:32px;display:flex;justify-content:center"><div class="spinner"></div></div>
+    <div class="brand" style="font-size:32px">Meri<em>Social</em></div>
+    <div style="margin-top:28px;display:flex;justify-content:center">
+      <div style="width:20px;height:20px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite"></div>
+    </div>
   </div>
 </div>
 
-<!-- LANDING -->
-<div class="screen" id="screen-landing" style="background:var(--bg)">
-  <div style="padding:20px 24px 0"><div class="brand">Meri<em>Social</em></div></div>
+<!-- ════════════════════════════════
+     LANDING
+════════════════════════════════ -->
+<div class="screen" id="screen-landing" style="background:var(--white)">
+  <div style="padding:20px 24px 0">
+    <div class="brand">Meri<em>Social</em></div>
+  </div>
   <div class="landing-hero">
-    <div class="landing-tagline">Creator Growth Platform</div>
-    <h1 class="landing-headline">Grow your audience. Share your world.</h1>
-    <p class="landing-body">A platform where serious creators discover each other, grow together, and build real audiences across every platform. Free to join. Upgrade to unlock the full community experience.</p>
+    <div class="landing-tagline">Private Growth Community</div>
+    <h1 class="landing-headline">Build a real audience on every platform.</h1>
+    <p class="landing-body">A private, members-only community of serious creators. Discover new accounts to support, get your own handle in front of engaged people, and grow organically across X, Instagram, YouTube, and TikTok.</p>
     <ul class="feature-list">
-      <li>Community feed — post, react, connect with creators</li>
-      <li>Creator discovery drops every 10 minutes</li>
-      <li>Leaderboard and personal growth analytics</li>
-      <li>Premium badge for verified paying members</li>
+      <li>Discover curated creator accounts every 10 minutes</li>
+      <li>Submit your handle to be discovered by the community</li>
+      <li>Monthly, quarterly, and yearly plans</li>
+      <li>Quality guaranteed by a strict three-strike compliance system</li>
     </ul>
   </div>
   <div class="landing-cta">
-    <button class="btn btn-primary" onclick="showScreen('screen-register')">Create free account</button>
-    <button class="btn btn-outline mt8" onclick="showScreen('screen-login')">Sign in</button>
-    <p class="landing-legal">By continuing you agree to our <span class="link" onclick="openTerms()">Terms and Community Rules</span></p>
+    <button class="btn btn-primary" onclick="showScreen('screen-register')">Create account</button>
+    <button class="btn btn-outline mt8" onclick="showScreen('screen-login')">Log in</button>
+    <p class="landing-legal">
+      By continuing you agree to our <span class="link" onclick="openTerms()">Terms and Community Rules</span>
+    </p>
   </div>
 </div>
 
-<!-- REGISTER -->
-<div class="screen" id="screen-register" style="background:var(--bg)">
+<!-- ════════════════════════════════
+     REGISTER
+════════════════════════════════ -->
+<div class="screen" id="screen-register" style="background:var(--white)">
   <div class="auth-root">
     <div class="auth-inner">
-      <div class="brand" style="display:block;margin-bottom:28px;font-size:26px">Meri<em>Social</em></div>
+      <div class="brand mt8 mb16" style="display:block;margin-bottom:24px">Meri<em>Social</em></div>
       <div class="auth-title">Create your account</div>
-      <div class="auth-sub">Free to join. Upgrade anytime for full access.</div>
-      <div class="field"><label>First name</label><input id="reg-first" type="text" placeholder="John" autocomplete="given-name"/></div>
-      <div class="field"><label>Last name</label><input id="reg-last" type="text" placeholder="Doe" autocomplete="family-name"/></div>
-      <div class="field"><label>Email address</label><input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email"/></div>
-      <div class="field"><label>Password</label><input id="reg-pass" type="password" placeholder="At least 8 characters" autocomplete="new-password"/></div>
-      <div class="field"><label>Telegram <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(optional)</span></label><input id="reg-telegram" type="text" placeholder="@yourusername"/></div>
+      <div class="auth-sub">Free to join. Access requires a subscription.</div>
+      <div class="field">
+        <label>First name</label>
+        <input id="reg-first" type="text" placeholder="John" autocomplete="given-name"/>
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input id="reg-last" type="text" placeholder="Doe" autocomplete="family-name"/>
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="reg-pass" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Telegram username (optional for group access)</label>
+        <input id="reg-telegram" type="text" placeholder="@yourusername"/>
+      </div>
       <div class="check-row mb16">
         <input id="reg-terms" type="checkbox"/>
-        <span>I agree to the <span class="link" onclick="openTerms()">Terms and Community Rules</span></span>
+        <span>I agree to the <span class="link" onclick="openTerms()">Terms and Community Rules</span>, including the engagement policy and strike system.</span>
       </div>
       <button class="btn btn-primary" id="btn-register" onclick="doRegister()">Create account</button>
-      <div class="switch-row">Already have an account? <span class="link" onclick="showScreen('screen-login')">Sign in</span></div>
+      <div class="switch-row">Already have an account? <span class="link" onclick="showScreen('screen-login')">Log in</span></div>
       <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-landing')">Back</span></div>
     </div>
   </div>
 </div>
 
-<!-- VERIFY -->
-<div class="screen" id="screen-verify" style="background:var(--bg)">
-  <div class="auth-root"><div class="auth-inner">
-    <div class="verify-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1d9bf0" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg></div>
-    <div class="auth-title">Check your email</div>
-    <div class="auth-sub" id="verify-sub">We sent a 6-digit code to your address.</div>
-    <div class="field"><label>Verification code</label><input id="otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/></div>
-    <button class="btn btn-primary" id="btn-verify" onclick="doVerify()">Verify email</button>
-    <div class="switch-row mt8"><span class="link" onclick="doResend()">Resend code</span></div>
-  </div></div>
-</div>
-
-<!-- LOGIN -->
-<div class="screen" id="screen-login" style="background:var(--bg)">
-  <div class="auth-root"><div class="auth-inner">
-    <div class="brand" style="display:block;margin-bottom:28px;font-size:26px">Meri<em>Social</em></div>
-    <div class="auth-title">Sign in to MeriSocial</div>
-    <div class="auth-sub">Welcome back.</div>
-    <div class="field"><label>Email address</label><input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"/></div>
-    <div class="field"><label>Password</label><input id="login-pass" type="password" placeholder="Your password" autocomplete="current-password"/></div>
-    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Sign in</button>
-    <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-forgot')">Forgot password?</span></div>
-    <div class="switch-row">New here? <span class="link" onclick="showScreen('screen-register')">Create account</span></div>
-  </div></div>
-</div>
-
-<!-- FORGOT -->
-<div class="screen" id="screen-forgot" style="background:var(--bg)">
-  <div class="auth-root"><div class="auth-inner">
-    <div class="auth-title mt24">Reset password</div>
-    <div class="auth-sub">Enter your email and we will send a reset code.</div>
-    <div class="field"><label>Email address</label><input id="forgot-email" type="email" placeholder="you@example.com"/></div>
-    <button class="btn btn-primary" id="btn-forgot" onclick="doForgot()">Send reset code</button>
-    <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-login')">Back to sign in</span></div>
-  </div></div>
-</div>
-
-<!-- RESET -->
-<div class="screen" id="screen-reset" style="background:var(--bg)">
-  <div class="auth-root"><div class="auth-inner">
-    <div class="auth-title mt24">Set new password</div>
-    <div class="auth-sub">Enter the code from your email and choose a new password.</div>
-    <div class="field"><label>Reset code</label><input id="reset-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/></div>
-    <div class="field"><label>New password</label><input id="reset-pass" type="password" placeholder="At least 8 characters"/></div>
-    <button class="btn btn-primary" id="btn-reset" onclick="doReset()">Set new password</button>
-  </div></div>
-</div>
-
-<!-- SUBSCRIBE -->
-<div class="screen" id="screen-subscribe">
-  <div class="app-root">
-    <div class="topbar">
-      <button class="btn-ghost btn-sm" onclick="goBack()" style="padding:6px 10px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      </button>
-      <span style="font-size:16px;font-weight:700">Upgrade to Premium</span>
-      <div style="width:40px"></div>
-    </div>
-    <div class="page">
-      <div style="padding:20px 16px;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-          <div style="width:48px;height:48px;background:var(--accent-bg);border-radius:50%;display:flex;align-items:center;justify-content:center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div>
-            <div style="font-size:18px;font-weight:700">MeriSocial Premium</div>
-            <div style="font-size:13px;color:var(--text2)">Unlock the full creator experience</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            Premium checkmark
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            Creator drops access
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            3 images per day
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            Submit your handle
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            Growth analytics
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;color:var(--text2)">
-            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-            Leaderboard ranking
-          </div>
-        </div>
+<!-- ════════════════════════════════
+     VERIFY EMAIL
+════════════════════════════════ -->
+<div class="screen" id="screen-verify" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="verify-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d9bf0" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
       </div>
-      <div id="plans-container" class="mt12 plan-wrap"></div>
-      <div class="px16 mt16">
-        <button class="btn btn-accent" id="btn-checkout" onclick="doCheckout()">Continue to payment</button>
+      <div class="auth-title">Check your email</div>
+      <div class="auth-sub" id="verify-sub">We sent a 6-digit code to your address.</div>
+      <div class="field">
+        <label>Verification code</label>
+        <input id="otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/>
       </div>
-      <div class="px16 mt12 mb16">
-        <button class="btn btn-outline" onclick="showScreen('screen-activate')">Already have an access code?</button>
-      </div>
-      <p style="font-size:11px;color:var(--text3);text-align:center;padding:0 16px 24px">Payments processed by Paystack. No auto-renewal.</p>
+      <button class="btn btn-primary" id="btn-verify" onclick="doVerify()">Verify email</button>
+      <div class="switch-row mt8"><span class="link" onclick="doResend()">Resend code</span></div>
     </div>
   </div>
 </div>
 
-<!-- ACTIVATE -->
-<div class="screen" id="screen-activate" style="background:var(--bg)">
-  <div class="auth-root"><div class="auth-inner">
-    <div class="auth-title mt24">Enter access code</div>
-    <div class="auth-sub">After payment, your code arrives by email. Format: MERI-XXXX-XXXX-XXXX</div>
-    <div class="field"><label>Access code</label><input id="code-input" type="text" placeholder="MERI-XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:2px;font-weight:700;font-size:14px"/></div>
-    <button class="btn btn-primary" id="btn-activate" onclick="doActivate()">Activate</button>
-    <button class="btn btn-outline mt8" onclick="showScreen('screen-subscribe');loadPlans()">Buy a plan</button>
-    <div class="switch-row mt8"><span class="link" onclick="goBack()">Back</span></div>
-  </div></div>
+<!-- ════════════════════════════════
+     LOGIN
+════════════════════════════════ -->
+<div class="screen" id="screen-login" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="brand mt8" style="display:block;margin-bottom:24px">Meri<em>Social</em></div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your account.</div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="login-pass" type="password" placeholder="Your password" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Log in</button>
+      <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-forgot')">Forgot password?</span></div>
+      <div class="switch-row">New to MeriSocial? <span class="link" onclick="showScreen('screen-register')">Create account</span></div>
+    </div>
+  </div>
 </div>
 
-<!-- HOME (MAIN APP) -->
+<!-- ════════════════════════════════
+     FORGOT PASSWORD
+════════════════════════════════ -->
+<div class="screen" id="screen-forgot" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Reset password</div>
+      <div class="auth-sub">Enter your email and we will send a reset code.</div>
+      <div class="field">
+        <label>Email address</label>
+        <input id="forgot-email" type="email" placeholder="you@example.com"/>
+      </div>
+      <button class="btn btn-primary" id="btn-forgot" onclick="doForgot()">Send reset code</button>
+      <div class="switch-row mt8"><span class="link" onclick="showScreen('screen-login')">Back to login</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     RESET PASSWORD
+════════════════════════════════ -->
+<div class="screen" id="screen-reset" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Set new password</div>
+      <div class="auth-sub">Enter the code from your email and choose a new password.</div>
+      <div class="field">
+        <label>Reset code</label>
+        <input id="reset-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input"/>
+      </div>
+      <div class="field">
+        <label>New password</label>
+        <input id="reset-pass" type="password" placeholder="At least 8 characters"/>
+      </div>
+      <button class="btn btn-primary" id="btn-reset" onclick="doReset()">Set new password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     SUBSCRIBE — plan picker
+════════════════════════════════ -->
+<div class="screen" id="screen-subscribe">
+  <div class="app-root">
+    <div class="topbar">
+      <div class="brand">Meri<em>Social</em></div>
+      <button class="btn-ghost btn-sm" onclick="doLogout()">Log out</button>
+    </div>
+    <div class="page">
+      <div class="page-header">
+        <h1>Join the community</h1>
+        <p>Choose a plan to get your access code.</p>
+      </div>
+      <div class="section-divider"></div>
+      <div id="plans-container" class="mt12 plan-wrap"></div>
+      <div class="px16 mt16">
+        <button class="btn btn-accent" id="btn-checkout" onclick="doCheckout()">Continue to payment</button>
+      </div>
+
+      <div class="section-divider mt16"></div>
+      <div class="section-label">What is included</div>
+      <div class="info-row"><span class="key">Handle drops</span><span class="val">Every 10 minutes</span></div>
+      <div class="info-row"><span class="key">Platforms</span><span class="val">X, Instagram, YouTube, TikTok</span></div>
+      <div class="info-row"><span class="key">Engagement type</span><span class="val">Real members, real accounts</span></div>
+      <div class="info-row"><span class="key">Handle submissions</span><span class="val">Unlimited</span></div>
+      <div class="info-row"><span class="key">Strike tolerance</span><span class="val">3 before removal</span></div>
+      <div class="section-divider"></div>
+      <div class="px16 mt12 mb16">
+        <button class="btn btn-outline" onclick="showScreen('screen-activate')">Already have an access code?</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:0 16px 24px">
+        Payments processed by Paystack. No auto-renewal. All sales final except where required by law.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ACTIVATE CODE
+════════════════════════════════ -->
+<div class="screen" id="screen-activate" style="background:var(--white)">
+  <div class="auth-root">
+    <div class="auth-inner">
+      <div class="auth-title mt24">Enter access code</div>
+      <div class="auth-sub">After payment, your code arrives by email. It looks like MERI-XXXX-XXXX-XXXX.</div>
+      <div class="field">
+        <label>Access code</label>
+        <input id="code-input" type="text" placeholder="MERI-XXXX-XXXX-XXXX"
+          style="text-transform:uppercase;letter-spacing:1.5px;font-weight:600;font-size:14px"/>
+      </div>
+      <button class="btn btn-primary" id="btn-activate" onclick="doActivate()">Activate</button>
+      <button class="btn btn-outline mt8" onclick="showScreen('screen-subscribe');loadPlans()">Buy a plan first</button>
+      <div class="switch-row mt12"><span class="link" onclick="doLogout()">Log out</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     HOME — main app
+════════════════════════════════ -->
 <div class="screen" id="screen-home">
   <div class="app-root">
     <div class="topbar" id="main-topbar">
       <div class="brand">Meri<em>Social</em></div>
-      <div class="topbar-center">
-        <div class="feed-tabs" style="position:static;border:none;background:transparent" id="home-feed-tabs">
-          <button class="feed-tab active" id="htab-foryou" onclick="switchHomeTab('foryou')">For you</button>
-          <button class="feed-tab" id="htab-following" onclick="switchHomeTab('following')">Following</button>
-        </div>
-      </div>
       <div class="row">
         <div class="live-dot"></div>
-        <span style="font-size:12px;color:var(--text2);margin-left:4px">Live</span>
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:4px">Live</span>
       </div>
     </div>
+
+    <!-- Tab content area -->
     <div class="page" id="tab-content"></div>
+
     <nav class="bottomnav">
       <button class="nav-btn active" id="tnav-home" onclick="gotoTab('home')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Home</span><div class="active-dot"></div>
-      </button>
-      <button class="nav-btn" id="tnav-search" onclick="gotoTab('search')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span>Explore</span><div class="active-dot"></div>
+        <span>Home</span>
       </button>
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Drop</span><div class="active-dot"></div>
+        <span>Drop</span>
+      </button>
+      <button class="nav-btn" id="tnav-community" onclick="gotoTab('community')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Community</span>
       </button>
       <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span>Handles</span><div class="active-dot"></div>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Handles</span>
       </button>
-      <button class="nav-btn" id="tnav-profile" onclick="gotoTab('profile')">
+      <button class="nav-btn" id="tnav-account" onclick="gotoTab('account')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-        <span>Profile</span><div class="active-dot"></div>
+        <span>Account</span>
       </button>
     </nav>
   </div>
 </div>
 
-<!-- COMPOSE MODAL -->
-<div class="modal-center" id="modal-compose">
-  <div class="modal-box" style="max-width:560px">
-    <div class="modal-box-head">
-      <button onclick="closeModal('modal-compose')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;line-height:1;padding:0">x</button>
-      <h3>New post</h3>
-      <button class="btn btn-accent btn-sm" id="btn-compose-post" onclick="submitPost()">Post</button>
-    </div>
-    <div class="modal-box-body">
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div id="compose-avatar" class="avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0"></div>
-        <div style="flex:1">
-          <textarea class="compose-textarea" id="compose-body" placeholder="What's on your mind?" maxlength="500" oninput="updateCharCount(this)" style="font-size:16px;min-height:80px"></textarea>
-          <img id="compose-preview" class="image-preview"/>
-          <input type="file" id="compose-image-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewImage(this)"/>
-          <div class="compose-footer">
-            <div style="display:flex;align-items:center;gap:10px">
-              <button class="attach-btn" onclick="$('compose-image-file').click()" title="Add image">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              </button>
-              <select class="post-type-select" id="compose-type">
-                <option value="general">General</option>
-                <option value="milestone">Milestone</option>
-                <option value="win">Win</option>
-                <option value="tip">Tip</option>
-                <option value="question">Question</option>
-                <option value="update">Update</option>
-              </select>
-            </div>
-            <span class="char-count" id="compose-count">500</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PROFILE EDIT MODAL -->
-<div class="modal-center" id="modal-edit-profile">
-  <div class="modal-box" style="max-width:480px">
-    <div class="modal-box-head">
-      <button onclick="closeModal('modal-edit-profile')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;line-height:1;padding:0">x</button>
-      <h3>Edit profile</h3>
-      <button class="btn btn-primary btn-sm" id="btn-save-profile" onclick="saveProfile()">Save</button>
-    </div>
-    <div class="modal-box-body">
-      <div class="field"><label>Display name</label><input id="edit-fullname" type="text" placeholder="Your name" disabled style="opacity:.5"/></div>
-      <div class="field"><label>Username</label><input id="edit-username" type="text" placeholder="yourhandle"/></div>
-      <div class="field"><label>Bio <span style="font-weight:400;text-transform:none;color:var(--text3)">(160 chars)</span></label><textarea id="edit-bio" maxlength="160" placeholder="Tell the community about yourself..."></textarea></div>
-      <div class="field"><label>Location</label><input id="edit-location" type="text" placeholder="Lagos, Nigeria"/></div>
-      <div class="field"><label>Website</label><input id="edit-website" type="text" placeholder="https://yoursite.com"/></div>
-      <div class="field">
-        <label>Profile picture</label>
-        <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" onchange="uploadAvatar(this)"/>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TERMS MODAL -->
+<!-- ════════════════════════════════
+     TERMS MODAL
+════════════════════════════════ -->
 <div class="modal-bg" id="terms-modal">
   <div class="modal">
     <div class="modal-handle"></div>
     <h2>Terms and Community Rules</h2>
-    <div class="terms-section"><h3>Active participation</h3><p>Premium members must genuinely support the handles shared in each drop. Failure to engage is a violation.</p></div>
-    <div class="terms-section"><h3>Three-strike system</h3><p>Three unresolved strikes result in permanent removal. No refunds.</p></div>
-    <div class="terms-section"><h3>Community standards</h3><p>No spam, hate speech, harassment, or fake accounts. Violations result in immediate removal.</p></div>
-    <div class="terms-section"><h3>Content</h3><p>You own what you post. By posting you grant MeriSocial a license to display your content to other members.</p></div>
-    <div class="terms-section"><h3>Privacy</h3><p>Your personal details are never sold. Your handle and platform are visible to other members during drop windows.</p></div>
-    <div class="terms-section"><h3>Subscriptions</h3><p>No auto-renewal. When your plan expires you must purchase a new one. All sales are final.</p></div>
+    <div class="terms-section">
+      <h3>Active participation</h3>
+      <p>Members must genuinely support the handles shared in each drop during their active subscription. Failure to engage is a violation of community standards.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Three-strike system</h3>
+      <p>Three unresolved strikes result in permanent removal. Removed members forfeit remaining subscription time. No refunds.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Real handles only</h3>
+      <p>You must submit real, active accounts you own. Submitting fake or others' handles results in an immediate strike.</p>
+    </div>
+    <div class="terms-section">
+      <h3>No automation</h3>
+      <p>Bots, scripts, and click farms are strictly prohibited and result in permanent banning.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Privacy</h3>
+      <p>Your personal details are never shared. Only your handle and platform are visible, and only during a live drop window.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Subscriptions</h3>
+      <p>No auto-renewal. When your plan expires you must purchase a new one. All sales are final.</p>
+    </div>
+    <div class="terms-section">
+      <h3>Reinstatement</h3>
+      <p>Removed members may appeal by contacting support. If reinstated, a new subscription at full price is required.</p>
+    </div>
     <button class="btn btn-primary mt16" onclick="closeTerms()">I understand</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<!-- Floating compose button (for premium users) -->
-<button id="fab-compose" onclick="openCompose()" style="position:fixed;bottom:80px;right:16px;z-index:200;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;transition:background var(--t)">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-</button>
-
+<!-- ════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════ -->
 <script>
+// ─── Config ──────────────────────────────────────
+//const API = 'http://localhost:4000/api';
+//const API = 'http://10.49.130.118:4000/api';
 const API = 'https://app.meritwise.app/api';
 
-let token       = localStorage.getItem('ms_token') || null;
-let currentUser = null;
+// ─── State ───────────────────────────────────────
+let token        = localStorage.getItem('ms_token') || null;
+let currentUser  = null;
 let selectedPlan = 'quarterly';
 let verifyEmail  = '';
 let resetEmail   = '';
 let countdownInt = null;
 let dripInt      = null;
 let dripBtnInts  = {};
-let homeTab      = 'foryou';
-let communityPage = 1;
-let communityFilter = 'all';
 
-const $ = id => document.getElementById(id);
+// ─── Helpers ─────────────────────────────────────
+const $  = id => document.getElementById(id);
 const pad = n => String(n).padStart(2,'0');
 
 const showScreen = id => {
@@ -667,7 +988,7 @@ const toast = (msg, type='') => {
   el.textContent = msg;
   el.className = `show ${type}`;
   clearTimeout(el._t);
-  el._t = setTimeout(()=>el.className='', 3200);
+  el._t = setTimeout(() => el.className='', 3200);
 };
 
 const setBtn = (id, html, disabled) => {
@@ -681,106 +1002,69 @@ const request = async (path, opts={}) => {
   if(token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API}${path}`, {...opts, headers:{...headers,...(opts.headers||{})}, credentials:'include'});
   const data = await res.json().catch(()=>({}));
-  return {ok:res.ok, status:res.status, data};
+  return { ok: res.ok, status: res.status, data };
 };
 
-const requestForm = async (path, formData) => {
-  const headers = {};
-  if(token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${API}${path}`, {method:'POST', headers, body:formData, credentials:'include'});
-  const data = await res.json().catch(()=>({}));
-  return {ok:res.ok, data};
-};
-
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
-
-const openModal  = id => $(id)?.classList.add('open');
-const closeModal = id => $(id)?.classList.remove('open');
-document.querySelectorAll('.modal-bg,.modal-center').forEach(el=>{
-  el.addEventListener('click',e=>{if(e.target===el) el.classList.remove('open')});
-});
-
-const openTerms  = () => openModal('terms-modal');
-const closeTerms = () => closeModal('terms-modal');
-
-const goBack = () => {
-  if(currentUser) route();
-  else showScreen('screen-landing');
-};
-
-// PREMIUM CHECK ICON
-const CHECK_SVG = `<div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
-const VERIFIED_SVG = `<div class="verified-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
-
-const renderBadges = (user) => {
-  let badges = '';
-  if(user.isPremium)         badges += CHECK_SVG;
-  if(user.isVerifiedCreator) badges += VERIFIED_SVG;
-  return badges;
-};
-
-// ─── BOOT ─────────────────────────────────────────
+// ─── Boot ─────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
+  // Handle Paystack callback
   const params = new URLSearchParams(window.location.search);
-  const ref    = params.get('reference') || params.get('trxref');
+  const ref = params.get('reference') || params.get('trxref');
+  if (ref) {
+    window.history.replaceState({}, '', window.location.pathname);
+    if (token) {
+      toast('Verifying payment...', '');
+      const {ok, data} = await request(`/subscriptions/verify/${ref}`, {method:'POST'});
+      if (ok) {
+        toast('Payment successful! Check your email for your access code.', 'success');
+        const me = await request('/auth/me');
+        if (me.ok) { currentUser = me.data.user; }
+      } else {
+        toast(data.message || 'Payment verification failed.', 'error');
+      }
+    }
+  }
 
   await sleep(1000);
-
-  if(token) {
-    const {ok,data} = await request('/auth/me');
-    if(ok) {
-      currentUser = data.user;
-    } else {
-      token=null; localStorage.removeItem('ms_token');
-      showScreen('screen-landing'); return;
-    }
+  if (token) {
+    const { ok, data } = await request('/auth/me');
+    if (ok) { currentUser = data.user; route(); }
+    else     { token = null; localStorage.removeItem('ms_token'); showScreen('screen-landing'); }
   } else {
-    showScreen('screen-landing'); return;
+    showScreen('screen-landing');
   }
-
-  if(ref) {
-    window.history.replaceState({},'',(window.location.pathname));
-    showScreen('screen-activate');
-    toast('Verifying your payment...','');
-    const {ok,data} = await request(`/subscriptions/verify/${ref}`,{method:'POST'});
-    if(ok) {
-      const me = await request('/auth/me');
-      if(me.ok) currentUser = me.data.user;
-      toast('Payment confirmed. Check your email for your access code.','success');
-    } else {
-      toast(data.message||'Verification failed. Contact support.','error');
-    }
-    return;
-  }
-
-  route();
 });
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 const route = () => {
-  if(!currentUser) return showScreen('screen-landing');
-  if(currentUser.isRemoved){ showScreen('screen-landing'); return toast('Account removed. Contact support.','error'); }
-  // All logged-in users go to the app — free tier is welcome
-  showScreen('screen-home');
-  initApp();
+  if (!currentUser) return showScreen('screen-landing');
+  const isActive = currentUser.subscriptionStatus === 'active'
+    && currentUser.subscriptionExpiry
+    && new Date(currentUser.subscriptionExpiry) > new Date();
+  if (currentUser.isRemoved) { showScreen('screen-landing'); return toast('Account removed. Contact support.','error'); }
+  if (isActive)  { showScreen('screen-home'); initApp(); }
+  else if (currentUser.subscriptionStatus === 'expired') { showScreen('screen-subscribe'); loadPlans(); toast('Subscription expired. Please renew.','error'); }
+  else { showScreen('screen-activate'); }
 };
 
 // ─── AUTH ─────────────────────────────────────────
 const doRegister = async () => {
-  const f=$('reg-first').value.trim(), l=$('reg-last').value.trim(),
-        e=$('reg-email').value.trim(), p=$('reg-pass').value,
-        tg=$('reg-telegram')?.value.trim()||'';
+  const f = $('reg-first').value.trim(), l = $('reg-last').value.trim(),
+        e = $('reg-email').value.trim(), p = $('reg-pass').value;
   if(!f||!l||!e||!p) return toast('All fields are required.','error');
   if(!$('reg-terms').checked) return toast('Please accept the terms.','error');
   if(p.length<8) return toast('Password must be at least 8 characters.','error');
   setBtn('btn-register','',true);
+  const tg = $('reg-telegram')?.value.trim()||'';
   const {ok,data} = await request('/auth/register',{method:'POST',body:JSON.stringify({firstName:f,lastName:l,email:e,password:p,agreedToTerms:true,termsVersion:'v1.0',telegramUsername:tg})});
   setBtn('btn-register','Create account',false);
-  if(ok){ verifyEmail=e; $('verify-sub').textContent=`We sent a code to ${data.maskedEmail||e}.`; showScreen('screen-verify'); }
+  if(ok){ verifyEmail=e; $('verify-sub').textContent=`We sent a 6-digit code to ${data.maskedEmail||e}.`; showScreen('screen-verify'); }
   else   toast(data.message||'Registration failed.','error');
 };
 
 const doVerify = async () => {
-  const code=$('otp-input').value.trim();
+  const code = $('otp-input').value.trim();
   if(code.length<6) return toast('Enter the 6-digit code.','error');
   setBtn('btn-verify','',true);
   const {ok,data} = await request('/auth/verify-email',{method:'POST',body:JSON.stringify({email:verifyEmail,otp:code})});
@@ -799,12 +1083,12 @@ const doLogin = async () => {
   if(!e||!p) return toast('Enter your email and password.','error');
   setBtn('btn-login','',true);
   const {ok,data} = await request('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})});
-  setBtn('btn-login','Sign in',false);
+  setBtn('btn-login','Log in',false);
   if(ok){
     token=data.token; localStorage.setItem('ms_token',token); currentUser=data.user; route();
   } else {
     if(data.verificationRequired){ verifyEmail=e; $('verify-sub').textContent=`We sent a code to ${e}.`; showScreen('screen-verify'); toast('Verify your email first.','error'); }
-    else toast(data.message||'Sign in failed.','error');
+    else toast(data.message||'Login failed.','error');
   }
 };
 
@@ -839,8 +1123,7 @@ const doReset = async () => {
 const loadPlans = async () => {
   const {ok,data}=await request('/subscriptions/plans');
   if(!ok) return;
-  const c=$('plans-container'); if(!c) return;
-  c.innerHTML='';
+  const c=$('plans-container'); c.innerHTML='';
   data.data.forEach(plan=>{
     const div=document.createElement('div');
     div.className=`plan-card${plan.plan===selectedPlan?' selected':''}`;
@@ -860,20 +1143,25 @@ const loadPlans = async () => {
 const selectPlan = id => {
   selectedPlan=id;
   document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
-  document.querySelectorAll('[id^="radio-"]').forEach(r=>r.classList.remove('on'));
+  document.querySelectorAll('[id^="radio-"]').forEach(r=>{r.classList.remove('on')});
   $(`plan-${id}`)?.classList.add('selected');
   $(`radio-${id}`)?.classList.add('on');
 };
 
 const doCheckout = async () => {
   setBtn('btn-checkout','',true);
-  const callbackUrl = window.location.href.split('?')[0];
-  const {ok,data}=await request('/subscriptions/initiate',{method:'POST',body:JSON.stringify({plan:selectedPlan,callbackUrl})});
+  const {ok,data}=await request('/subscriptions/initiate',{method:'POST',body:JSON.stringify({
+    plan: selectedPlan,
+    //callbackUrl: 'http://127.0.0.1:5500/index.html'
+    //callbackUrl: 'http://10.49.130.118:5500/index.html'
+    callbackUrl: 'https://social.meritwise.app'
+  })});
   setBtn('btn-checkout','Continue to payment',false);
   if(ok&&data.data?.authorization_url) window.location.href=data.data.authorization_url;
-  else toast(data.message||'Payment failed.','error');
+  else toast(data.message||'Payment initiation failed.','error');
 };
 
+// ─── ACTIVATE ────────────────────────────────────
 const doActivate = async () => {
   const code=$('code-input').value.trim().toUpperCase();
   if(!code) return toast('Enter your access code.','error');
@@ -881,650 +1169,156 @@ const doActivate = async () => {
   const {ok,data}=await request('/access-code/activate',{method:'POST',body:JSON.stringify({code})});
   setBtn('btn-activate','Activate',false);
   if(ok){
-    toast('Premium activated. Welcome!','success');
+    toast('Access activated. Welcome to MeriSocial.','success');
     const me=await request('/auth/me');
-    if(me.ok) currentUser=me.data.user;
+    if(me.ok){currentUser=me.data.user;}
     showScreen('screen-home'); initApp();
   } else toast(data.message||'Invalid code.','error');
 };
 
-// ─── APP INIT ─────────────────────────────────────
+// ─── APP TABS ─────────────────────────────────────
+// ─── Update gotoTab to include community and leaderboard ─────────
+//const _originalGotoTab = gotoTab;
+const gotoTab = tab => {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(`tnav-${tab}`)?.classList.add('active');
+  const c = $('tab-content');
+  if (tab === 'home')      renderHome(c);
+  if (tab === 'drop')      renderDrop(c);
+  if (tab === 'community') renderCommunity(c);
+  if (tab === 'handles')   renderHandles(c);
+  if (tab === 'account')   renderAccount(c);
+};
+
 const initApp = () => {
-  // Show FAB for premium users
-  const fab = $('fab-compose');
-  if(fab) fab.style.display = currentUser?.isPremium ? 'flex' : 'none';
-  // Set compose avatar
-  const ca = $('compose-avatar');
-  if(ca) {
-    if(currentUser?.avatarUrl) ca.innerHTML=`<img src="${API.replace('/api','')}${currentUser.avatarUrl}" alt=""/>`;
-    else { ca.textContent=(currentUser?.firstName||'?')[0].toUpperCase(); }
-  }
   gotoTab('home');
 };
 
-// ─── NAV ──────────────────────────────────────────
-const gotoTab = tab => {
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  $(`tnav-${tab}`)?.classList.add('active');
-  // Show/hide home feed tabs
-  const homeFeedTabs = $('home-feed-tabs');
-  if(homeFeedTabs) homeFeedTabs.style.display = tab==='home' ? 'flex' : 'none';
-  const c = $('tab-content');
-  if(tab==='home')    renderHome(c);
-  if(tab==='search')  renderSearch(c);
-  if(tab==='drop')    renderDrop(c);
-  if(tab==='handles') renderHandles(c);
-  if(tab==='profile') renderProfile(c, 'me');
-};
-
-const switchHomeTab = tab => {
-  homeTab = tab;
-  document.querySelectorAll('#home-feed-tabs .feed-tab').forEach(t=>t.classList.remove('active'));
-  $(`htab-${tab}`)?.classList.add('active');
-  renderHome($('tab-content'));
-};
-
-// ─── HOME TAB (COMMUNITY FEED) ────────────────────
-const renderHome = async (c) => {
-  communityPage = 1;
-  const isPremium = currentUser?.isPremium;
-
+// ─── HOME TAB ─────────────────────────────────────
+const renderHome = async c => {
   c.innerHTML = `
-    ${!isPremium ? `
-    <div class="free-banner">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>
-      <div class="free-banner-text">
-        <strong>You are on the free plan.</strong> You can read posts and react. Upgrade to Premium to post, join handle drops, submit your handle, and unlock your growth analytics.
-        <span class="link" onclick="showScreen('screen-subscribe');loadPlans()" style="display:block;margin-top:4px">Upgrade now</span>
-      </div>
-    </div>` : ''}
-
-    <div class="feed-tabs" style="top:53px" id="post-type-tabs">
-      ${['all','milestone','win','tip','question'].map(t=>
-        `<button class="feed-tab${communityFilter===t?' active':''}" onclick="switchCommunityFilter('${t}')">${t==='all'?'All':t.charAt(0).toUpperCase()+t.slice(1)}</button>`
-      ).join('')}
-    </div>
-
-    <div id="feed-posts"></div>
-    <div id="feed-load-more" style="padding:16px;text-align:center;display:none">
-      <button class="btn btn-outline btn-sm" style="width:auto" onclick="loadMorePosts()">Load more</button>
-    </div>
-  `;
-
-  await loadFeedPosts(true);
-};
-
-const switchCommunityFilter = async (filter) => {
-  communityFilter = filter;
-  communityPage   = 1;
-  document.querySelectorAll('#post-type-tabs .feed-tab').forEach(t=>{
-    t.classList.toggle('active', t.textContent.toLowerCase()===(filter==='all'?'all':filter));
-  });
-  await loadFeedPosts(true);
-};
-
-const loadFeedPosts = async (reset=false) => {
-  const container = $('feed-posts'); if(!container) return;
-  if(reset) container.innerHTML=`<div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
-
-  const {ok,data} = await request(`/community/feed?page=${communityPage}&limit=20${communityFilter!=='all'?'&type='+communityFilter:''}`);
-  if(!ok){
-    container.innerHTML=`<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Check your connection and try again.</div></div>`;
-    return;
-  }
-
-  const posts   = data.data?.posts||[];
-  const hasMore = data.data?.pagination?.hasMore;
-
-  if(reset) container.innerHTML='';
-  if(!posts.length&&reset){
-    container.innerHTML=`<div class="empty"><div class="empty-title">Nothing here yet</div><div class="empty-body">Be the first to share something.</div></div>`;
-    return;
-  }
-
-  posts.forEach(p=>container.insertAdjacentHTML('beforeend',buildPostHTML(p)));
-  const btn=$('feed-load-more');
-  if(btn) btn.style.display=hasMore?'block':'none';
-};
-
-const loadMorePosts = () => { communityPage++; loadFeedPosts(false); };
-
-// ─── POST CARD ────────────────────────────────────
-const REACTION_ICONS = {
-  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
-  fire:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>`,
-  clap:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14.5 2.5c.83 0 1.5.67 1.5 1.5v6M9.5 2.5c.83 0 1.5.67 1.5 1.5v8M4 10.5A1.5 1.5 0 0 1 5.5 9h1A1.5 1.5 0 0 1 8 10.5v2M19 11v5a6 6 0 0 1-12 0v-3"/></svg>`,
-  rocket:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l4-4-2.5-2.5-4 4zM19 3a9 9 0 0 0-9 9c0 .5.1 1 .2 1.5L12 15.5l1.5 1.5c.5.1 1 .2 1.5.2a9 9 0 0 0 9-9V3h-5z"/></svg>`,
-};
-const TYPE_LABELS = {general:'General',milestone:'Milestone',win:'Win',tip:'Tip',question:'Question',update:'Update'};
-
-const timeAgo = d => {
-  const diff=Date.now()-new Date(d).getTime();
-  const s=Math.floor(diff/1000);
-  if(s<60) return `${s}s`;
-  const m=Math.floor(s/60); if(m<60) return `${m}m`;
-  const h=Math.floor(m/60); if(h<24) return `${h}h`;
-  return `${Math.floor(h/24)}d`;
-};
-
-const escapeHtml = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-const buildPostHTML = (post) => {
-  const initials = (post.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const avatarHtml = `<div class="avatar" style="width:40px;height:40px;font-size:14px;flex-shrink:0">${initials}</div>`;
-  const typeTag    = post.postType!=='general'?`<span class="post-type-tag">${TYPE_LABELS[post.postType]||post.postType}</span><br>`:'';
-  const pinLabel   = post.isPinned?`<span class="pinned-label">Pinned post</span>`:'';
-
-  const chips = post.myReaction
-    ? `<div class="reaction-bar"><span class="reaction-chip mine" onclick="react('${post.postId}','${post.myReaction}')"><span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[post.myReaction]||''}</span>${post.reactionCount}</span></div>`
-    : (post.reactionCount>0?`<div class="reaction-bar"><span class="reaction-chip">${post.reactionCount} reaction${post.reactionCount!==1?'s':''}</span></div>`:'');
-
-  const imageHtml = post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" class="post-image" loading="lazy" onclick="event.stopPropagation()"/>` : '';
-
-  return `
-    <div class="post-card" id="post-${post.postId}">
-      ${pinLabel}
-      <div style="display:flex;gap:10px">
-        ${avatarHtml}
-        <div style="flex:1;min-width:0">
-          <div class="post-header">
-            <div>
-              <div class="post-author-name">${post.fullName}${post.isPremium?CHECK_SVG:''}</div>
-              <div class="post-time">${timeAgo(post.createdAt)}</div>
-            </div>
-            ${post.userId===currentUser?.userId
-              ?`<button onclick="deleteMyPost('${post.postId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-                </button>`:''}
-          </div>
-          ${typeTag}
-          <div class="post-body">${escapeHtml(post.body)}</div>
-          ${imageHtml}
-          ${chips}
-          <div class="post-actions">
-            <button class="post-action-btn${post.myReaction?' reacted':''}" onclick="showReactionPicker('${post.postId}')">
-              <svg viewBox="0 0 24 24" fill="${post.myReaction?'var(--red)':'none'}" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              <span class="reaction-count">${post.reactionCount||''}</span>
-            </button>
-            <button class="post-action-btn" onclick="toggleComments('${post.postId}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              <span>${post.commentCount||''}</span>
-            </button>
-          </div>
-          <div class="reaction-picker" id="picker-${post.postId}">
-            ${Object.entries(REACTION_ICONS).map(([k,v])=>`<button class="reaction-btn" onclick="react('${post.postId}','${k}')"><span style="width:15px;height:15px;display:inline-flex">${v}</span>${k}</button>`).join('')}
-          </div>
-          <div id="comments-${post.postId}" style="display:none"></div>
-        </div>
-      </div>
-    </div>`;
-};
-
-const openCompose = () => {
-  if(!currentUser?.isPremium){
-    toast('Upgrade to Premium to post.','error');
-    setTimeout(()=>{showScreen('screen-subscribe');loadPlans();},800);
-    return;
-  }
-  $('compose-body').value='';
-  $('compose-count').textContent='500';
-  $('compose-preview').style.display='none';
-  openModal('modal-compose');
-};
-
-const updateCharCount = (el) => {
-  const rem=500-el.value.length;
-  const ctr=$('compose-count'); if(!ctr) return;
-  ctr.textContent=rem;
-  ctr.className=`char-count${rem<50?' warn':''}${rem<0?' over':''}`;
-};
-
-const previewImage = (input) => {
-  const file=input.files[0]; if(!file) return;
-  const prev=$('compose-preview');
-  const reader=new FileReader();
-  reader.onload=e=>{ prev.src=e.target.result; prev.style.display='block'; };
-  reader.readAsDataURL(file);
-};
-
-const submitPost = async () => {
-  const body     = $('compose-body')?.value.trim();
-  const postType = $('compose-type')?.value||'general';
-  const imageFile = $('compose-image-file')?.files[0];
-  if(!body) return toast('Write something first.','error');
-
-  setBtn('btn-compose-post','',true);
-
-  let ok, data;
-  if(imageFile) {
-    const fd = new FormData();
-    fd.append('body',     body);
-    fd.append('postType', postType);
-    fd.append('image',    imageFile);
-    const r = await requestForm('/community/posts', fd);
-    ok=r.ok; data=r.data;
-  } else {
-    const r = await request('/community/posts',{method:'POST',body:JSON.stringify({body,postType})});
-    ok=r.ok; data=r.data;
-  }
-
-  setBtn('btn-compose-post','Post',false);
-
-  if(ok) {
-    closeModal('modal-compose');
-    $('compose-body').value='';
-    $('compose-preview').style.display='none';
-    $('compose-image-file').value='';
-    const container=$('feed-posts');
-    if(container) container.insertAdjacentHTML('afterbegin',buildPostHTML(data.data));
-    toast('Posted.','success');
-  } else {
-    toast(data.message||'Could not post.','error');
-  }
-};
-
-const deleteMyPost = async (postId) => {
-  if(!confirm('Delete this post?')) return;
-  const {ok} = await request(`/community/posts/${postId}`,{method:'DELETE'});
-  if(ok){ const el=$(`post-${postId}`); if(el) el.remove(); toast('Deleted.','success'); }
-};
-
-const showReactionPicker = (postId) => {
-  const picker=$(`picker-${postId}`); if(!picker) return;
-  const visible=picker.style.display==='flex';
-  document.querySelectorAll('.reaction-picker').forEach(p=>p.style.display='none');
-  picker.style.display=visible?'none':'flex';
-};
-
-const react = async (postId, reaction) => {
-  const picker=$(`picker-${postId}`); if(picker) picker.style.display='none';
-  const {ok,data} = await request(`/community/posts/${postId}/react`,{method:'POST',body:JSON.stringify({reaction})});
-  if(!ok) return;
-  const postCard=$(`post-${postId}`); if(!postCard) return;
-  const up=data.data.myReaction, cnt=data.data.reactionCount;
-  const bar=postCard.querySelector('.reaction-bar');
-  const newHtml=up
-    ?`<div class="reaction-bar"><span class="reaction-chip mine" onclick="react('${postId}','${up}')"><span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[up]||''}</span>${cnt}</span></div>`
-    :(cnt>0?`<div class="reaction-bar"><span class="reaction-chip">${cnt} reaction${cnt!==1?'s':''}</span></div>`:'');
-  if(bar) bar.outerHTML=newHtml;
-  else {
-    const actions=postCard.querySelector('.post-actions');
-    if(actions&&newHtml) actions.insertAdjacentHTML('beforebegin',newHtml);
-  }
-  // Update heart button fill
-  const heartBtn=postCard.querySelector('.post-action-btn svg');
-  if(heartBtn) heartBtn.setAttribute('fill',up?'var(--red)':'none');
-};
-
-const toggleComments = async (postId) => {
-  const section=$(`comments-${postId}`); if(!section) return;
-  if(section.style.display!=='none'){ section.style.display='none'; return; }
-  section.style.display='block';
-  section.innerHTML=`<div style="padding:10px 0;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
-
-  const {ok,data} = await request(`/community/posts/${postId}/comments`);
-  const comments  = ok?(data.data||[]):[];
-  let html='';
-
-  comments.forEach(c=>{
-    const ini=(c.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    html+=`<div class="comment-item" id="comment-${c.commentId}">
-      <div class="avatar" style="width:28px;height:28px;font-size:10px">${ini}</div>
-      <div style="flex:1;min-width:0">
-        <span style="font-size:13px;font-weight:600">${c.fullName}</span>
-        <span style="font-size:11px;color:var(--text3);margin-left:6px">${timeAgo(c.createdAt)}</span>
-        <div style="font-size:13px;color:var(--text);margin-top:2px;line-height:1.4">${escapeHtml(c.body)}</div>
-      </div>
-      ${c.userId===currentUser?.userId?`<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>`:''}
-    </div>`;
-  });
-
-  if(currentUser?.isPremium) {
-    const ini=(currentUser?.firstName||'?')[0].toUpperCase();
-    html+=`<div class="comment-input-row">
-      <div class="avatar" style="width:28px;height:28px;font-size:10px">${ini}</div>
-      <input class="comment-input" id="ci-${postId}" type="text" placeholder="Comment..." maxlength="300"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();sendComment('${postId}')}"/>
-      <button class="comment-send-btn" onclick="sendComment('${postId}')">
-        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>`;
-  } else {
-    html+=`<div style="padding:10px 0;font-size:13px;color:var(--text3)"><span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</span> to comment.</div>`;
-  }
-
-  section.innerHTML=html||`<div style="padding:10px 0;font-size:13px;color:var(--text3)">No comments yet.</div>`+html;
-};
-
-const sendComment = async (postId) => {
-  const input=$(`ci-${postId}`);
-  const body=input?.value.trim(); if(!body) return;
-  const {ok,data} = await request(`/community/posts/${postId}/comments`,{method:'POST',body:JSON.stringify({body})});
-  if(!ok){ toast(data.message||'Failed.','error'); return; }
-  input.value='';
-  const comment=data.data;
-  const ini=(comment.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const newHtml=`<div class="comment-item" id="comment-${comment.commentId}">
-    <div class="avatar" style="width:28px;height:28px;font-size:10px">${ini}</div>
-    <div style="flex:1;min-width:0">
-      <span style="font-size:13px;font-weight:600">${comment.fullName}</span>
-      <span style="font-size:11px;color:var(--text3);margin-left:6px">just now</span>
-      <div style="font-size:13px;color:var(--text);margin-top:2px;line-height:1.4">${escapeHtml(comment.body)}</div>
-    </div>
-    <button onclick="deleteMyComment('${postId}','${comment.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
-  </div>`;
-  const inputRow=document.querySelector(`#comments-${postId} .comment-input-row`);
-  if(inputRow) inputRow.insertAdjacentHTML('beforebegin',newHtml);
-  const countEl=document.querySelector(`#post-${postId} .post-action-btn:last-child span`);
-  if(countEl) countEl.textContent=parseInt(countEl.textContent||'0')+1;
-};
-
-const deleteMyComment = async (postId,commentId) => {
-  const {ok}=await request(`/community/posts/${postId}/comments/${commentId}`,{method:'DELETE'});
-  if(ok){ const el=$(`comment-${commentId}`); if(el) el.remove(); }
-};
-
-// ─── SEARCH / EXPLORE ────────────────────────────
-const renderSearch = async (c) => {
-  c.innerHTML=`
-    <div class="search-bar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="search-input" placeholder="Search creators..." oninput="doSearch(this.value)"/>
-    </div>
-    <div class="section-label">Who to follow</div>
-    <div id="suggestions-list"><div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div></div>
-  `;
-  const {ok,data} = await request('/profile/suggestions');
-  const suggestions = ok?(data.data||[]):[];
-  renderSuggestions(suggestions);
-};
-
-const renderSuggestions = (users) => {
-  const c=$('suggestions-list'); if(!c) return;
-  if(!users.length){ c.innerHTML=`<div class="empty"><div class="empty-title">No suggestions</div><div class="empty-body">Check back as more creators join.</div></div>`; return; }
-  c.innerHTML=users.map(u=>`
-    <div class="suggestion-row">
-      <div class="avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${u.avatarUrl?`<img src="${API.replace('/api','')}${u.avatarUrl}"/>`:(u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
-      <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-        <div class="suggestion-name">${u.fullName}${u.isPremium?CHECK_SVG:''}</div>
-        <div class="suggestion-bio">${u.bio||'MeriSocial creator'}</div>
-      </div>
-      <button class="follow-pill" id="fol-${u.userId}" onclick="quickFollow('${u.userId}')">Follow</button>
-    </div>`).join('');
-};
-
-let searchTimeout = null;
-const doSearch = async (query) => {
-  clearTimeout(searchTimeout);
-  if(!query.trim()){ const {ok,data}=await request('/profile/suggestions'); renderSuggestions(ok?(data.data||[]):[]); return; }
-  searchTimeout=setTimeout(async()=>{
-    const {ok,data}=await request(`/admin/users?search=${encodeURIComponent(query)}&limit=20`);
-    if(!ok) return;
-    const users=(data.data?.users||[]).map(u=>({
-      userId:u.userId,fullName:u.fullName||'',avatarUrl:null,
-      isPremium:u.subscriptionStatus==='active',bio:'',isVerifiedCreator:false
-    }));
-    renderSuggestions(users);
-  },400);
-};
-
-const quickFollow = async (userId) => {
-  const {ok,data}=await request(`/profile/${userId}/follow`,{method:'POST'});
-  if(ok){
-    const btn=$(`fol-${userId}`);
-    if(btn){ btn.textContent=data.data.isFollowing?'Following':'Follow'; btn.className=`follow-pill${data.data.isFollowing?' following':''}`; }
-  }
-};
-
-const viewProfile = (userId) => {
-  const c=$('tab-content');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  renderProfile(c, userId);
-};
-
-// ─── PROFILE ─────────────────────────────────────
-const renderProfile = async (c, identifier) => {
-  c.innerHTML=`<div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const {ok,data}=await request(`/profile/${identifier}`);
-  if(!ok){ c.innerHTML=`<div class="empty"><div class="empty-title">Profile not found</div></div>`; return; }
-
-  const user=data.data.user;
-  const posts=data.data.posts||[];
-  const isOwnProfile=data.data.isOwnProfile;
-  const isFollowing=data.data.isFollowing;
-
-  const avatarContent=user.avatarUrl
-    ?`<img src="${API.replace('/api','')}${user.avatarUrl}" alt=""/>`
-    :`${(user.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}`;
-
-  const bannerContent=user.bannerUrl
-    ?`<img src="${API.replace('/api','')}${user.bannerUrl}" alt=""/>`:'';
-
-  c.innerHTML=`
-    <div class="profile-banner">${bannerContent}
-      <div class="profile-avatar-wrap" id="profile-avatar-wrap">${avatarContent}</div>
-    </div>
-    <div class="profile-info">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px">
-        ${isOwnProfile
-          ?`<button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>`
-          :`<button class="profile-follow-btn${isFollowing?' following':''}" id="main-follow-btn" onclick="toggleFollow('${user.userId}',this)">${isFollowing?'Following':'Follow'}</button>`
-        }
-      </div>
-      <div class="profile-name-row">
-        <span class="profile-display-name">${user.fullName}</span>
-        ${user.isPremium?CHECK_SVG:''}
-        ${user.isVerifiedCreator?VERIFIED_SVG:''}
-      </div>
-      ${user.username?`<div class="profile-username">@${user.username}</div>`:''}
-      ${user.bio?`<div class="profile-bio">${escapeHtml(user.bio)}</div>`:''}
-      <div class="profile-meta-row">
-        ${user.location?`<span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${user.location}</span>`:''}
-        ${user.website?`<span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="${user.website}" target="_blank" class="link" style="font-size:13px">${user.website.replace(/https?:\/\//,'')}</a></span>`:''}
-        <span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Joined ${new Date(user.joinedAt).toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</span>
-      </div>
-      <div class="profile-stats-row">
-        <div class="profile-stat" onclick="viewFollowing('${user.userId}')">
-          <span class="num">${(user.followingCount||0).toLocaleString()}</span>
-          <span class="lbl"> Following</span>
-        </div>
-        <div class="profile-stat" onclick="viewFollowers('${user.userId}')">
-          <span class="num">${(user.followersCount||0).toLocaleString()}</span>
-          <span class="lbl"> Followers</span>
-        </div>
-      </div>
-    </div>
-
-    ${isOwnProfile&&currentUser?.isPremium?`
-    <div class="section-divider"></div>
     <div class="section-label">Your subscription</div>
-    <div class="countdown-strip">
+    <div class="countdown-strip" id="cd-strip">
       <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Months</div></div>
       <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Days</div></div>
       <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Hours</div></div>
       <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Mins</div></div>
       <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Secs</div></div>
     </div>
-    <div id="cd-expiry" class="expiry-note"></div>`:''}
-
-    ${isOwnProfile?`
+    <div id="cd-expiry" class="expiry-note"></div>
     <div class="section-divider"></div>
-    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">
-      ${!currentUser?.isPremium?`<button class="btn btn-accent" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</button>`:''}
-      <button class="btn btn-outline btn-sm" style="width:auto" onclick="renderLeaderboard($('tab-content'))">My stats and leaderboard</button>
-      <button class="btn btn-outline btn-sm" style="width:auto;color:var(--red);border-color:var(--red);margin-top:4px" onclick="doLogout()">Sign out</button>
-    </div>`:''}
-
-    <div class="profile-tabs" style="position:sticky;top:53px">
-      <button class="profile-tab active" onclick="switchProfileTab('posts','${user.userId}',this)">Posts</button>
-      ${isOwnProfile&&user.isPremium?`<button class="profile-tab" onclick="switchProfileTab('stats','${user.userId}',this)">Stats</button>`:''}
-    </div>
-    <div id="profile-content">
-      ${posts.length?posts.map(p=>buildPostHTML(p)).join(''):`<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">${isOwnProfile?'Share your first post with the community.':'This creator has not posted yet.'}</div></div>`}
-    </div>
-  `;
-
-  if(isOwnProfile&&currentUser?.isPremium) startCountdown();
-};
-
-const switchProfileTab = async (tab, userId, btn) => {
-  document.querySelectorAll('.profile-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  const c=$('profile-content'); if(!c) return;
-  if(tab==='posts'){
-    const {ok,data}=await request(`/profile/${userId}`);
-    const posts=ok?(data.data?.posts||[]):[];
-    c.innerHTML=posts.length?posts.map(p=>buildPostHTML(p)).join(''):`<div class="empty"><div class="empty-title">No posts yet</div></div>`;
-  }
-  if(tab==='stats') renderLeaderboard(c);
-};
-
-const toggleFollow = async (userId, btn) => {
-  const {ok,data}=await request(`/profile/${userId}/follow`,{method:'POST'});
-  if(ok&&btn){
-    btn.textContent=data.data.isFollowing?'Following':'Follow';
-    btn.className=`profile-follow-btn${data.data.isFollowing?' following':''}`;
-  }
-};
-
-const viewFollowers = async (userId) => {
-  const c=$('tab-content'); if(!c) return;
-  c.innerHTML=`<div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const {ok,data}=await request(`/profile/${userId}/followers`);
-  const users=ok?(data.data||[]):[];
-  c.innerHTML=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-    <button onclick="gotoTab('profile')" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-    <span style="font-size:16px;font-weight:700">Followers</span>
-  </div>
-  ${users.map(u=>`<div class="suggestion-row">
-    <div class="avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
-    <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-      <div class="suggestion-name">${u.fullName}${u.isPremium?CHECK_SVG:''}</div>
-      <div class="suggestion-bio">${u.bio||''}</div>
-    </div>
-  </div>`).join('')||`<div class="empty"><div class="empty-title">No followers yet</div></div>`}`;
-};
-
-const viewFollowing = async (userId) => {
-  const c=$('tab-content'); if(!c) return;
-  c.innerHTML=`<div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const {ok,data}=await request(`/profile/${userId}/following`);
-  const users=ok?(data.data||[]):[];
-  c.innerHTML=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-    <button onclick="gotoTab('profile')" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-    <span style="font-size:16px;font-weight:700">Following</span>
-  </div>
-  ${users.map(u=>`<div class="suggestion-row">
-    <div class="avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
-    <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-      <div class="suggestion-name">${u.fullName}${u.isPremium?CHECK_SVG:''}</div>
-      <div class="suggestion-bio">${u.bio||''}</div>
-    </div>
-  </div>`).join('')||`<div class="empty"><div class="empty-title">Not following anyone yet</div></div>`}`;
-};
-
-// ─── EDIT PROFILE ────────────────────────────────
-const openEditProfile = () => {
-  if(currentUser){
-    $('edit-fullname').value = currentUser.fullName||'';
-    $('edit-username').value = currentUser.username||'';
-    $('edit-bio').value      = currentUser.bio||'';
-    $('edit-location').value = currentUser.location||'';
-    $('edit-website').value  = currentUser.website||'';
-  }
-  openModal('modal-edit-profile');
-};
-
-const saveProfile = async () => {
-  const username = $('edit-username').value.trim();
-  const bio      = $('edit-bio').value.trim();
-  const location = $('edit-location').value.trim();
-  const website  = $('edit-website').value.trim();
-  setBtn('btn-save-profile','',true);
-  const {ok,data}=await request('/profile/me',{method:'PATCH',body:JSON.stringify({username,bio,location,website})});
-  setBtn('btn-save-profile','Save',false);
-  if(ok){
-    currentUser={...currentUser,...data.data};
-    closeModal('modal-edit-profile');
-    toast('Profile saved.','success');
-    renderProfile($('tab-content'),'me');
-  } else toast(data.message||'Failed.','error');
-};
-
-const uploadAvatar = async (input) => {
-  const file=input.files[0]; if(!file) return;
-  const fd=new FormData(); fd.append('avatar',file);
-  const {ok,data}=await requestForm('/profile/me/avatar',fd);
-  if(ok){ currentUser.avatarUrl=data.avatarUrl; toast('Avatar updated.','success'); }
-  else toast(data.message||'Upload failed.','error');
-};
-
-// ─── DROP TAB ─────────────────────────────────────
-const PLATFORM_SVG={
-  x:`<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
-  instagram:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="var(--text)" stroke="none"/></svg>`,
-  youtube:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="var(--text)" stroke="none"/></svg>`,
-  tiktok:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
-};
-
-const renderDrop = async (c) => {
-  const isPremium=currentUser?.isPremium;
-  if(!isPremium){
-    c.innerHTML=`
-      <div style="padding:32px 24px;text-align:center;border-bottom:1px solid var(--border)">
-        <div style="font-size:32px;margin-bottom:16px">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" style="margin:0 auto;display:block"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <div style="font-size:20px;font-weight:700;margin-bottom:8px">Creator Drops</div>
-        <p style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6">Every 10 minutes, 10 creator handles are released to active members. Tap Follow to support them and get discovered yourself.</p>
-        <button class="btn btn-accent" style="max-width:280px;margin:0 auto" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to access drops</button>
-      </div>
-      <div class="section-label">What you get with Premium</div>
-      <div class="info-row"><span class="key">Creator drops</span><span class="val">Every 10 minutes</span></div>
-      <div class="info-row"><span class="key">Platforms</span><span class="val">X, Instagram, YouTube, TikTok</span></div>
-      <div class="info-row"><span class="key">Submit your handle</span><span class="val">Get discovered by members</span></div>
-      <div class="info-row"><span class="key">Growth analytics</span><span class="val">See who engaged with you</span></div>
-      <div class="info-row"><span class="key">Premium checkmark</span><span class="val">Visible on all your posts</span></div>
-    `;
-    return;
-  }
-  c.innerHTML=`
-    <div class="section-label">Current drop <span id="drip-remaining" style="font-weight:400;color:var(--text3)"></span></div>
+    <div class="section-label">Current drop <span id="drip-remaining" style="font-weight:400;color:var(--text-tertiary)"></span></div>
     <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar" style="width:100%"></div></div>
     <div id="drip-list"></div>
   `;
-  loadDrip('');
+  startCountdown();
+  loadDrip();
   clearInterval(dripInt);
-  dripInt=setInterval(()=>loadDrip(''),60000);
+  dripInt = setInterval(loadDrip, 60000);
+};
+
+const startCountdown = () => {
+  clearInterval(countdownInt);
+  let expiryTs = null;
+  let planName = null;
+
+  const fetchStatus = async () => {
+    const {ok,data} = await request('/access-code/status');
+    if(!ok) return;
+    if(data.data.isExpired){
+      clearInterval(countdownInt);
+      toast('Your subscription has expired.','error');
+      setTimeout(()=>{ showScreen('screen-subscribe'); loadPlans(); },1800);
+      return;
+    }
+    expiryTs = data.data.expiresAt ? new Date(data.data.expiresAt).getTime() : null;
+    planName = data.data.plan;
+    if($('cd-expiry') && data.data.expiresAt)
+      $('cd-expiry').textContent = `${planName ? planName.charAt(0).toUpperCase()+planName.slice(1)+' plan — ' : ''} Expires ${new Date(data.data.expiresAt).toLocaleDateString('en-NG',{dateStyle:'medium'})}`;
+  };
+
+  const tick = () => {
+    if(!expiryTs) return;
+    const remaining = Math.max(0, expiryTs - Date.now());
+    if(remaining === 0){
+      clearInterval(countdownInt);
+      toast('Your subscription has expired.','error');
+      setTimeout(()=>{ showScreen('screen-subscribe'); loadPlans(); },1800);
+      return;
+    }
+    const s = Math.floor((remaining / 1000) % 60);
+    const m = Math.floor((remaining / (1000 * 60)) % 60);
+    const h = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const d = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    if($('cd-mo')) $('cd-mo').textContent = pad(Math.floor(d / 30));
+    if($('cd-d'))  $('cd-d').textContent  = pad(d % 30);
+    if($('cd-h'))  $('cd-h').textContent  = pad(h);
+    if($('cd-m'))  $('cd-m').textContent  = pad(m);
+    if($('cd-s'))  $('cd-s').textContent  = pad(s);
+  };
+
+  fetchStatus();
+  setInterval(fetchStatus, 60000);
+  countdownInt = setInterval(tick, 1000);
+};
+
+// ─── DROP TAB ─────────────────────────────────────
+const renderDrop = async c => {
+  c.innerHTML = `
+    <div class="section-label">Current drop <span id="drip-remaining2" style="font-weight:400;color:var(--text-tertiary)"></span></div>
+    <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar2" style="width:100%"></div></div>
+    <div id="drip-list2"></div>
+  `;
+  loadDrip('2');
+};
+
+const PLATFORM_SVG = {
+  x: `<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  instagram: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="var(--text)" stroke="none"/></svg>`,
+  youtube: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="var(--text)" stroke="none"/></svg>`,
+  tiktok: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
 };
 
 const loadDrip = async (suffix='') => {
-  const listId=`drip-list${suffix}`,barId=`drip-bar${suffix}`,remId=`drip-remaining${suffix}`;
-  const list=$(listId); if(!list) return;
-  const {ok,data}=await request('/handles/drip');
-  if(!ok){ list.innerHTML=`<div class="empty"><div class="empty-title">Could not load</div></div>`; return; }
-  const {handles,visibleUntil,batchId}=data.data;
+  const listId = `drip-list${suffix}`;
+  const barId  = `drip-bar${suffix}`;
+  const remId  = `drip-remaining${suffix}`;
+  const list = $(listId); if(!list) return;
+
+  const {ok,data} = await request('/handles/drip');
+  if(!ok){ list.innerHTML=`<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">${data.message||'Try again.'}</div></div>`; return; }
+
+  const { handles, visibleUntil, count } = data.data;
   if(!handles||!handles.length){
-    list.innerHTML=`<div class="empty"><div class="empty-title">No drop right now</div><div class="empty-body">Creator handles release every 10 minutes.</div></div>`;
-    if($(remId)) $(remId).textContent=''; return;
+    list.innerHTML=`<div class="empty"><div class="empty-title">No drop right now</div><div class="empty-body">Handles release every 10 minutes. Check back soon.</div></div>`;
+    if($(remId)) $(remId).textContent='';
+    return;
   }
-  list.innerHTML=handles.map(h=>`
-    <div class="handle-row">
-      <div class="platform-icon">${PLATFORM_SVG[h.platform]||''}</div>
+
+  let html='';
+  handles.forEach(h=>{
+    const icon = PLATFORM_SVG[h.platform]||'';
+    html+=`<div class="handle-row">
+      <div class="platform-icon">${icon}</div>
       <div class="handle-meta">
         <div class="handle-name">${h.handle}</div>
         <div class="handle-platform">${h.platform.charAt(0).toUpperCase()+h.platform.slice(1)}</div>
       </div>
-      <button class="follow-btn" onclick="followHandle('${h.platform}','${h.handle}',this,'${h.handleId}','${batchId||''}')">Follow</button>
-    </div>`).join('');
+      <button class="follow-btn" onclick="followHandle('${h.platform}','${h.handle}',this,'${h.handleId}','${data.data.batchId||''}')">Follow</button>
+    </div>`;
+  });
+  list.innerHTML=html;
+
+  // timer
   if(visibleUntil){
     const exp=new Date(visibleUntil);
     clearInterval(dripBtnInts[suffix]);
     dripBtnInts[suffix]=setInterval(()=>{
       const rem=Math.max(0,exp.getTime()-Date.now());
-      const mins=Math.floor(rem/60000),secs=Math.floor((rem%60000)/1000);
+      const mins=Math.floor(rem/60000), secs=Math.floor((rem%60000)/1000);
       if($(remId)) $(remId).textContent=rem>0?`${pad(mins)}:${pad(secs)} remaining`:'Expired';
-      const bar=$(barId); if(bar) bar.style.width=`${Math.max(0,(rem/(10*60*1000))*100)}%`;
+      const bar=$(barId);
+      if(bar) bar.style.width=`${Math.max(0,(rem/(10*60*1000))*100)}%`;
       if(rem===0) clearInterval(dripBtnInts[suffix]);
     },1000);
   }
@@ -1537,52 +1331,57 @@ const followHandle = (platform, handle, btn, handleId, batchId) => {
   btn.textContent='Following';
   btn.classList.add('following');
   btn.disabled=true;
-  if(handleId&&batchId) request('/handles/engage',{method:'POST',body:JSON.stringify({batchId,handleId,platform})}).catch(()=>{});
+  // log real engagement
+  if(handleId && batchId) {
+    request('/handles/engage',{method:'POST',body:JSON.stringify({batchId,handleId,platform})}).catch(()=>{});
+  }
 };
 
 // ─── HANDLES TAB ──────────────────────────────────
-const PLATFORMS=['x','instagram','youtube','tiktok'];
+const PLATFORMS = ['x','instagram','youtube','tiktok'];
 
-const renderHandles = async (c) => {
-  if(!currentUser?.isPremium){
-    c.innerHTML=`<div style="padding:32px 24px;text-align:center">
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">Submit your handle</div>
-      <p style="font-size:14px;color:var(--text2);margin-bottom:24px">Upgrade to Premium to submit your social handles and get discovered by the community in every drop.</p>
-      <button class="btn btn-accent" style="max-width:280px;margin:0 auto" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</button>
-    </div>`;
-    return;
-  }
+const renderHandles = async c => {
   const {ok,data}=await request('/handles/my');
   const handles=ok?data.data:[];
+
   const STATUS_BADGE={
-    approved:`<span class="badge badge-green">Approved</span>`,
-    pending_review:`<span class="badge badge-yellow">Under review</span>`,
-    rejected:`<span class="badge badge-red">Rejected</span>`,
+    approved:'<span class="badge badge-green">Approved</span>',
+    pending_review:'<span class="badge badge-yellow">Under review</span>',
+    rejected:'<span class="badge badge-red">Rejected</span>',
+    suspended:'<span class="badge badge-grey">Suspended</span>',
   };
+
   let submitted='';
   if(!handles.length){
     submitted=`<div class="empty"><div class="empty-title">No handles submitted</div><div class="empty-body">Submit a handle below. Admin reviews within 24 hours.</div></div>`;
   } else {
-    submitted=handles.map(h=>`
-      <div class="handle-row">
-        <div class="platform-icon">${PLATFORM_SVG[h.platform]||''}</div>
+    handles.forEach(h=>{
+      const icon=PLATFORM_SVG[h.platform]||'';
+      submitted+=`<div class="handle-row">
+        <div class="platform-icon">${icon}</div>
         <div class="handle-meta">
           <div class="handle-name">${h.handle} ${STATUS_BADGE[h.status]||''}</div>
           <div class="handle-platform">${h.platform.charAt(0).toUpperCase()+h.platform.slice(1)}</div>
-          ${h.rejectionReason?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${h.rejectionReason}</div>`:''}
+          ${h.rejectionReason?`<div class="text-xs text-secondary mt4">${h.rejectionReason}</div>`:''}
         </div>
-        ${h.status==='approved'?`<span style="font-size:11px;color:var(--text3)">Active</span>`:`<button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteHandle('${h.handleId}')">Remove</button>`}
-      </div>`).join('');
+        ${h.status==='approved'?`<span style="font-size:11px;color:var(--text-tertiary)">Locked</span>`:`<button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteHandle('${h.handleId}')">Remove</button>`}
+      </div>`;
+    });
   }
+
   c.innerHTML=`
     <div class="section-label">Submit a handle</div>
     <div style="padding:0 16px 16px">
-      <div class="field"><label>Platform</label>
+      <div class="field">
+        <label>Platform</label>
         <select id="sub-platform">
           ${PLATFORMS.map(p=>`<option value="${p}">${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
         </select>
       </div>
-      <div class="field"><label>Handle</label><input id="sub-handle" type="text" placeholder="@yourhandle"/></div>
+      <div class="field">
+        <label>Handle</label>
+        <input id="sub-handle" type="text" placeholder="@yourhandle"/>
+      </div>
       <button class="btn btn-primary" id="btn-subhandle" onclick="submitHandle()">Submit for review</button>
     </div>
     <div class="section-divider"></div>
@@ -1592,7 +1391,7 @@ const renderHandles = async (c) => {
 };
 
 const submitHandle = async () => {
-  const p=$('sub-platform')?.value,h=$('sub-handle')?.value.trim();
+  const p=$('sub-platform')?.value, h=$('sub-handle')?.value.trim();
   if(!p||!h) return toast('Fill in all fields.','error');
   setBtn('btn-subhandle','',true);
   const {ok,data}=await request('/handles/submit',{method:'POST',body:JSON.stringify({platform:p,handle:h})});
@@ -1608,87 +1407,506 @@ const deleteHandle = async id => {
   if(ok) renderHandles($('tab-content'));
 };
 
-// ─── COUNTDOWN (in profile) ───────────────────────
-const startCountdown = () => {
-  clearInterval(countdownInt);
-  let expiryTs=null;
-  const fetchStatus=async()=>{
-    const {ok,data}=await request('/access-code/status');
-    if(!ok) return;
-    if(data.data.isExpired){ clearInterval(countdownInt); return; }
-    expiryTs=data.data.expiresAt?new Date(data.data.expiresAt).getTime():null;
-    const plan=data.data.plan;
-    if($('cd-expiry')&&data.data.expiresAt)
-      $('cd-expiry').textContent=`${plan?plan.charAt(0).toUpperCase()+plan.slice(1)+' plan — ':''}Expires ${new Date(data.data.expiresAt).toLocaleDateString('en-NG',{dateStyle:'medium'})}`;
-  };
-  const tick=()=>{
-    if(!expiryTs) return;
-    const rem=Math.max(0,expiryTs-Date.now());
-    if(!rem){ clearInterval(countdownInt); return; }
-    const s=Math.floor((rem/1000)%60),m=Math.floor((rem/(1000*60))%60),
-          h=Math.floor((rem/(1000*60*60))%24),d=Math.floor(rem/(1000*60*60*24));
-    if($('cd-mo')) $('cd-mo').textContent=pad(Math.floor(d/30));
-    if($('cd-d'))  $('cd-d').textContent=pad(d%30);
-    if($('cd-h'))  $('cd-h').textContent=pad(h);
-    if($('cd-m'))  $('cd-m').textContent=pad(m);
-    if($('cd-s'))  $('cd-s').textContent=pad(s);
-  };
-  fetchStatus(); setInterval(fetchStatus,60000);
-  countdownInt=setInterval(tick,1000);
-};
-
-// ─── LEADERBOARD ─────────────────────────────────
-const PLATFORM_SVG_SMALL={
-  x:`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Z"/></svg>`,
-  instagram:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>`,
-  youtube:`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 0-3.77-2.1C13.4 4.4 12 4.4 12 4.4s-1.4 0-3.82.19a4.83 4.83 0 0 0-3.77 2.1A15.51 15.51 0 0 0 4 12a15.51 15.51 0 0 0 .41 5.31 4.83 4.83 0 0 0 3.77 2.1C10.6 19.6 12 19.6 12 19.6s1.4 0 3.82-.19a4.83 4.83 0 0 0 3.77-2.1A15.51 15.51 0 0 0 20 12a15.51 15.51 0 0 0-.41-5.31zM9.75 15.02V8.98L15.5 12z"/></svg>`,
-  tiktok:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
-};
-
-const renderLeaderboard = async (c) => {
-  c.innerHTML=`<div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const [{ok:lok,data:ldata},{ok:sok,data:sdata}]=await Promise.all([
-    request('/community/leaderboard'),
-    request('/community/my-stats')
-  ]);
-  const leaders=lok?(ldata.data?.leaderboard||[]):[];
-  const stats=sok?(sdata.data||{}):{};
-  const leadersHtml=leaders.length?leaders.map((l,i)=>{
-    const chips=Object.entries(l.handles||{}).filter(([,v])=>v).map(([platform,handle])=>
-      `<a href="https://${platform==='x'?'x':platform}.com/${handle.replace('@','')}" target="_blank" class="lb-handle-chip">${PLATFORM_SVG_SMALL[platform]||''} ${handle}</a>`
-    ).join('');
-    return `<div class="lb-row">
-      <div class="lb-rank${i<3?' top':''}">${l.rank}</div>
-      <div class="avatar" style="width:36px;height:36px;font-size:13px">${(l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
-      <div style="flex:1;min-width:0">
-        <div class="lb-name">${l.fullName}${l.userId===currentUser?.userId?` <span class="badge badge-blue" style="font-size:10px">You</span>`:''}</div>
-        <div class="lb-score">${l.clicks} engagements this month</div>
-        ${chips?`<div class="lb-handles">${chips}</div>`:''}
-      </div>
-    </div>`;
-  }).join(''):`<div class="empty"><div class="empty-title">No data yet</div><div class="empty-body">Engage with drops to appear here.</div></div>`;
+// ─── ACCOUNT TAB ──────────────────────────────────
+const renderAccount = async c => {
+  if(!currentUser) return;
+  const u=currentUser;
+  const expiry=u.subscriptionExpiry?new Date(u.subscriptionExpiry).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—';
+  const subBadge=u.subscriptionStatus==='active'?'<span class="badge badge-green">Active</span>':u.subscriptionStatus==='expired'?'<span class="badge badge-red">Expired</span>':'<span class="badge badge-grey">None</span>';
+  const strikes=u.strikeCount||0;
+  let pips='';
+  for(let i=0;i<3;i++) pips+=`<div class="strike-pip${i<strikes?' filled':''}"></div>`;
 
   c.innerHTML=`
-    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-      <button onclick="gotoTab('profile')" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-      <span style="font-size:16px;font-weight:700">Stats and Leaderboard</span>
-    </div>
-    <div class="section-label">Your stats this month</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-num">${stats.followsReceivedThisMonth||0}</div><div class="stat-label">Handle views this month</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.followsGivenThisMonth||0}</div><div class="stat-label">Engagements given</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.totalDripAppearances||0}</div><div class="stat-label">Times your handle dropped</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.followsReceived||0}</div><div class="stat-label">Total handle views</div></div>
+    <div style="padding:24px 16px 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="profile-avatar">${(u.firstName||'?')[0].toUpperCase()}</div>
+        <div>
+          <div style="font-size:17px;font-weight:700">${u.fullName||''}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">${u.email}</div>
+          <div class="mt4">${subBadge}</div>
+        </div>
+      </div>
     </div>
     <div class="section-divider"></div>
-    <div class="section-label">Top creators this month</div>
-    ${leadersHtml}
-    <div style="font-size:11px;color:var(--text3);padding:12px 16px;text-align:center">Leaderboard resets at the start of each month.</div>
+    <div class="section-label">Subscription</div>
+    <div class="info-row"><span class="key">Plan</span><span class="val">${u.subscriptionPlan&&u.subscriptionPlan!=='none'?u.subscriptionPlan.charAt(0).toUpperCase()+u.subscriptionPlan.slice(1):'No plan'}</span></div>
+    <div class="info-row"><span class="key">Expires</span><span class="val">${expiry}</span></div>
+    <div class="info-row">
+      <span class="key">Strikes</span>
+      <span class="val"><div class="strikes-row">${pips}</div></span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Actions</div>
+    <div style="padding:8px 16px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-outline" onclick="showScreen('screen-subscribe');loadPlans()">Manage subscription</button>
+      <button class="btn btn-outline" onclick="showScreen('screen-activate')">Enter access code</button>
+      <button class="btn btn-outline" onclick="gotoTab('community')">Community feed</button>
+      <button class="btn btn-outline" onclick="renderLeaderboard($('tab-content'));$('tnav-account').classList.remove('active')">My stats and leaderboard</button>
+      <button class="btn btn-danger mt8" onclick="doLogout()">Log out</button>
+    </div>
+    <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:16px">
+      Need help? <span class="link" onclick="openTerms()">Community rules</span>
+    </p>
   `;
 };
 
-// ─── TERMS ────────────────────────────────────────
-$('terms-modal').addEventListener('click',e=>{if(e.target===$('terms-modal'))closeTerms()});
+// ─── TERMS MODAL ──────────────────────────────────
+const openTerms  = () => { $('terms-modal').classList.add('open'); };
+const closeTerms = () => { $('terms-modal').classList.remove('open'); };
+
+// Close terms on bg click
+$('terms-modal').addEventListener('click', e => { if(e.target===$('terms-modal')) closeTerms(); });
+
+// ─── COMMUNITY FEED ──────────────────────────────────────────────
+let communityPage = 1;
+let communityTab  = 'all';
+let activeCommentPostId = null;
+
+const REACTION_ICONS = {
+  fire:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>',
+  heart:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  clap:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14.5 2.5c.83 0 1.5.67 1.5 1.5v6M9.5 2.5c.83 0 1.5.67 1.5 1.5v8M4 10.5A1.5 1.5 0 0 1 5.5 9h1A1.5 1.5 0 0 1 8 10.5v2M19 11v5a6 6 0 0 1-12 0v-3"/></svg>',
+  rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l4-4-2.5-2.5-4 4zM19 3a9 9 0 0 0-9 9c0 .5.1 1 .2 1.5L12 15.5l1.5 1.5c.5.1 1 .2 1.5.2a9 9 0 0 0 9-9V3h-5z"/></svg>',
+};
+
+const POST_TYPES = ['general','milestone','win','tip','question','update'];
+const TYPE_LABELS = { general:'General', milestone:'Milestone', win:'Win', tip:'Tip', question:'Question', update:'Update' };
+
+const timeAgo = (dateStr) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60)  return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60)  return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h}h`;
+  const d = Math.floor(h / 24);
+  return `${d}d`;
+};
+
+const renderCommunity = async (c) => {
+  communityPage = 1;
+  c.innerHTML = `
+    <div class="compose-box">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="post-avatar" style="margin-top:2px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+        <div style="flex:1">
+          <textarea class="compose-textarea" id="compose-body" placeholder="Share a win, tip, or update with the community..." maxlength="500" oninput="updateCharCount(this)"></textarea>
+          <div class="compose-footer">
+            <select class="post-type-select" id="compose-type">
+              ${POST_TYPES.map(t => `<option value="${t}">${TYPE_LABELS[t]}</option>`).join('')}
+            </select>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="char-count" id="compose-count">500</span>
+              <button class="btn btn-accent btn-sm" id="btn-post" onclick="submitPost()">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feed-tabs">
+      ${['all','milestone','win','tip','question'].map(t =>
+        `<button class="feed-tab${communityTab===t?' active':''}" onclick="switchFeedTab('${t}')">${t==='all'?'All':TYPE_LABELS[t]||t}</button>`
+      ).join('')}
+    </div>
+
+    <div id="feed-posts"></div>
+    <div id="feed-load-more" style="padding:16px;text-align:center;display:none">
+      <button class="btn btn-outline btn-sm" style="width:auto" onclick="loadMorePosts()">Load more</button>
+    </div>
+  `;
+
+  await loadFeedPosts(true);
+};
+
+const updateCharCount = (el) => {
+  const remaining = 500 - el.value.length;
+  const counter = $('compose-count');
+  if (!counter) return;
+  counter.textContent = remaining;
+  counter.className = `char-count${remaining < 50 ? ' warn' : ''}${remaining < 0 ? ' over' : ''}`;
+};
+
+const switchFeedTab = async (tab) => {
+  communityTab = tab;
+  communityPage = 1;
+  document.querySelectorAll('.feed-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.toLowerCase() === (tab === 'all' ? 'all' : TYPE_LABELS[tab]?.toLowerCase()));
+  });
+  await loadFeedPosts(true);
+};
+
+const loadFeedPosts = async (reset = false) => {
+  const container = $('feed-posts');
+  if (!container) return;
+
+  if (reset) {
+    container.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+  }
+
+  const url = `/community/feed?page=${communityPage}&limit=20${communityTab !== 'all' ? '&type='+communityTab : ''}`;
+  const { ok, data } = await request(url);
+
+  if (!ok) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">Could not load posts</div><div class="empty-body">Check your connection and try again.</div></div>`;
+    return;
+  }
+
+  const posts = data.data?.posts || [];
+  const hasMore = data.data?.pagination?.hasMore;
+
+  if (reset) container.innerHTML = '';
+
+  if (!posts.length && reset) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">Be the first to share something with the community.</div></div>`;
+    return;
+  }
+
+  posts.forEach(post => container.insertAdjacentHTML('beforeend', buildPostHTML(post)));
+
+  const loadMoreBtn = $('feed-load-more');
+  if (loadMoreBtn) loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+};
+
+const loadMorePosts = async () => {
+  communityPage++;
+  await loadFeedPosts(false);
+};
+
+const buildPostHTML = (post) => {
+  const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span><br>` : '';
+  const pinTag   = post.isPinned ? `<span class="pinned-tag">Pinned</span>` : '';
+
+  // Reaction chips
+  const reactionCounts = {};
+  // We do not have the full map — just our reaction and total count
+  const chips = post.myReaction
+    ? `<div class="reaction-bar">
+        <span class="reaction-chip mine" onclick="react('${post.postId}','${post.myReaction}')">
+          <span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[post.myReaction]||''}</span>
+          ${post.reactionCount}
+        </span>
+       </div>`
+    : (post.reactionCount > 0
+        ? `<div class="reaction-bar"><span class="reaction-chip">${post.reactionCount} reaction${post.reactionCount !== 1 ? 's' : ''}</span></div>`
+        : '');
+
+  return `
+    <div class="post-card" id="post-${post.postId}">
+      ${pinTag}
+      <div class="post-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="post-avatar">${initials}</div>
+          <div>
+            <div class="post-author">${post.fullName}</div>
+            <div class="post-time">${timeAgo(post.createdAt)}</div>
+          </div>
+        </div>
+        ${post.userId === currentUser?.userId
+          ? `<button class="post-action-btn" onclick="deleteMyPost('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+             </button>`
+          : ''}
+      </div>
+      ${typeTag}
+      <div class="post-body">${escapeHtml(post.body)}</div>
+      ${chips}
+      <div class="post-actions">
+        <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="showReactionPicker('${post.postId}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span>${post.myReaction ? 'Liked' : 'Like'}</span>
+        </button>
+        <button class="post-action-btn" onclick="toggleComments('${post.postId}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>${post.commentCount || 0}</span>
+        </button>
+      </div>
+      <!-- reaction picker (hidden) -->
+      <div id="picker-${post.postId}" style="display:none;margin-top:4px;display:none">
+        <div style="display:flex;gap:8px;padding:6px 0">
+          ${Object.entries(REACTION_ICONS).map(([key, icon]) =>
+            `<button onclick="react('${post.postId}','${key}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--text-2);font-family:var(--font);font-size:12px;font-weight:600;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+               <span style="width:16px;height:16px;display:inline-flex;stroke:currentColor">${icon}</span>${key}
+             </button>`
+          ).join('')}
+        </div>
+      </div>
+      <!-- comments section (hidden) -->
+      <div id="comments-${post.postId}" style="display:none"></div>
+    </div>
+  `;
+};
+
+const escapeHtml = (text) => {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+
+const submitPost = async () => {
+  const body     = $('compose-body')?.value.trim();
+  const postType = $('compose-type')?.value || 'general';
+  if (!body) return toast('Write something first.', 'error');
+  if (body.length > 500) return toast('Post is too long.', 'error');
+
+  setBtn('btn-post', '', true);
+  const { ok, data } = await request('/community/posts', {
+    method: 'POST',
+    body: JSON.stringify({ body, postType })
+  });
+  setBtn('btn-post', 'Post', false);
+
+  if (ok) {
+    $('compose-body').value = '';
+    updateCharCount($('compose-body'));
+    // Prepend the new post to the top of the feed
+    const container = $('feed-posts');
+    if (container) {
+      container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
+    }
+    toast('Posted.', 'success');
+  } else {
+    toast(data.message || 'Could not post. Try again.', 'error');
+  }
+};
+
+const deleteMyPost = async (postId) => {
+  if (!confirm('Delete this post?')) return;
+  const { ok, data } = await request(`/community/posts/${postId}`, { method: 'DELETE' });
+  if (ok) {
+    const el = $(`post-${postId}`);
+    if (el) el.remove();
+    toast('Post deleted.', 'success');
+  } else {
+    toast(data.message || 'Could not delete.', 'error');
+  }
+};
+
+const showReactionPicker = (postId) => {
+  const picker = $(`picker-${postId}`);
+  if (!picker) return;
+  const isVisible = picker.style.display !== 'none';
+  // Hide all pickers first
+  document.querySelectorAll('[id^="picker-"]').forEach(p => p.style.display = 'none');
+  picker.style.display = isVisible ? 'none' : 'flex';
+  picker.style.flexWrap = 'wrap';
+};
+
+const react = async (postId, reaction) => {
+  // Hide picker
+  const picker = $(`picker-${postId}`);
+  if (picker) picker.style.display = 'none';
+
+  const { ok, data } = await request(`/community/posts/${postId}/react`, {
+    method: 'POST',
+    body: JSON.stringify({ reaction })
+  });
+  if (!ok) return;
+
+  // Update the post card in place
+  const postCard = $(`post-${postId}`);
+  if (!postCard) return;
+  const updatedReaction = data.data.myReaction;
+  const updatedCount    = data.data.reactionCount;
+
+  // Rebuild reaction chips
+  const reactionBar = postCard.querySelector('.reaction-bar');
+  const newChipsHtml = updatedReaction
+    ? `<div class="reaction-bar">
+        <span class="reaction-chip mine" onclick="react('${postId}','${updatedReaction}')">
+          <span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[updatedReaction]||''}</span>
+          ${updatedCount}
+        </span>
+       </div>`
+    : (updatedCount > 0 ? `<div class="reaction-bar"><span class="reaction-chip">${updatedCount} reaction${updatedCount!==1?'s':''}</span></div>` : '');
+
+  if (reactionBar) {
+    reactionBar.outerHTML = newChipsHtml;
+  } else {
+    const actionsEl = postCard.querySelector('.post-actions');
+    if (actionsEl && newChipsHtml) actionsEl.insertAdjacentHTML('beforebegin', newChipsHtml);
+  }
+};
+
+const toggleComments = async (postId) => {
+  const section = $(`comments-${postId}`);
+  if (!section) return;
+  const isOpen = section.style.display !== 'none';
+  if (isOpen) {
+    section.style.display = 'none';
+    activeCommentPostId = null;
+    return;
+  }
+  section.style.display = 'block';
+  activeCommentPostId = postId;
+  section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
+
+  const { ok, data } = await request(`/community/posts/${postId}/comments`);
+  if (!ok) {
+    section.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--text-3)">Could not load comments.</div>`;
+    return;
+  }
+
+  const comments = data.data || [];
+  let html = '';
+
+  comments.forEach(c => {
+    const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    html += `<div class="comment-item" id="comment-${c.commentId}">
+      <div class="comment-avatar">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="comment-author">${c.fullName}</span>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+        </div>
+        <div class="comment-body">${escapeHtml(c.body)}</div>
+      </div>
+      ${c.userId === currentUser?.userId
+        ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+           </button>`
+        : ''}
+    </div>`;
+  });
+
+  // Comment input
+  html += `<div class="comment-input-row">
+    <div class="post-avatar" style="width:28px;height:28px;font-size:11px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+    <input class="comment-input" id="comment-input-${postId}" type="text" placeholder="Add a comment..." maxlength="300"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${postId}')}"/>
+    <button class="comment-send-btn" onclick="sendComment('${postId}')">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>`;
+
+  section.innerHTML = html;
+};
+
+const sendComment = async (postId) => {
+  const input = $(`comment-input-${postId}`);
+  const body  = input?.value.trim();
+  if (!body) return;
+
+  const { ok, data } = await request(`/community/posts/${postId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ body })
+  });
+  if (!ok) { toast(data.message || 'Could not post comment.', 'error'); return; }
+
+  input.value = '';
+  const comment = data.data;
+  const initials = (comment.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const newHtml = `<div class="comment-item" id="comment-${comment.commentId}">
+    <div class="comment-avatar">${initials}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="comment-author">${comment.fullName}</span>
+        <span class="comment-time">just now</span>
+      </div>
+      <div class="comment-body">${escapeHtml(comment.body)}</div>
+    </div>
+    <button onclick="deleteMyComment('${postId}','${comment.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+  </div>`;
+
+  // Insert before the input row
+  const inputRow = document.querySelector(`#comments-${postId} .comment-input-row`);
+  if (inputRow) inputRow.insertAdjacentHTML('beforebegin', newHtml);
+
+  // Update comment count display
+  const postCard = $(`post-${postId}`);
+  if (postCard) {
+    const countEl = postCard.querySelector('.post-action-btn:last-child span');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+  }
+};
+
+const deleteMyComment = async (postId, commentId) => {
+  const { ok } = await request(`/community/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
+  if (ok) {
+    const el = $(`comment-${commentId}`);
+    if (el) el.remove();
+  }
+};
+
+// ─── LEADERBOARD ─────────────────────────────────────────────────
+const renderLeaderboard = async (c) => {
+  c.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+
+  const [{ ok: lok, data: ldata }, { ok: sok, data: sdata }] = await Promise.all([
+    request('/community/leaderboard'),
+    request('/community/my-stats')
+  ]);
+
+  const leaders = lok ? (ldata.data?.leaderboard || []) : [];
+  const stats   = sok ? (sdata.data || {}) : {};
+
+  const PLATFORM_SVG_SMALL = {
+    x: `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Z"/></svg>`,
+    instagram: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>`,
+    youtube:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 0-3.77-2.1C13.4 4.4 12 4.4 12 4.4s-1.4 0-3.82.19a4.83 4.83 0 0 0-3.77 2.1A15.51 15.51 0 0 0 4 12a15.51 15.51 0 0 0 .41 5.31 4.83 4.83 0 0 0 3.77 2.1C10.6 19.6 12 19.6 12 19.6s1.4 0 3.82-.19a4.83 4.83 0 0 0 3.77-2.1A15.51 15.51 0 0 0 20 12a15.51 15.51 0 0 0-.41-5.31zM9.75 15.02V8.98L15.5 12z"/></svg>`,
+    tiktok:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
+  };
+
+  let leadersHtml = '';
+  leaders.forEach((l, i) => {
+    const handleChips = Object.entries(l.handles)
+      .filter(([, v]) => v)
+      .map(([platform, handle]) =>
+        `<a href="https://${platform === 'x' ? 'x' : platform}.com/${handle.replace('@','')}" target="_blank" class="lb-handle-chip" style="display:inline-flex;align-items:center;gap:3px">${PLATFORM_SVG_SMALL[platform]||''} ${handle}</a>`
+      ).join('');
+
+    leadersHtml += `
+      <div class="lb-row">
+        <div class="lb-rank${i < 3 ? ' top' : ''}">${l.rank}</div>
+        <div class="lb-avatar">${(l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="lb-name">${l.fullName}</div>
+          <div class="lb-score">${l.clicks} engagement${l.clicks !== 1 ? 's' : ''} this month</div>
+          ${handleChips ? `<div class="lb-handles">${handleChips}</div>` : ''}
+        </div>
+        ${l.userId === currentUser?.userId ? `<span class="badge badge-blue">You</span>` : ''}
+      </div>`;
+  });
+
+  if (!leaders.length) {
+    leadersHtml = `<div class="empty"><div class="empty-title">No data yet</div><div class="empty-body">Start engaging with drops to appear on the leaderboard.</div></div>`;
+  }
+
+  c.innerHTML = `
+    <div class="section-label">Your stats this month</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsReceivedThisMonth || 0}</div>
+        <div class="stat-label">Profile views this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsGivenThisMonth || 0}</div>
+        <div class="stat-label">Engagements given</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.totalDripAppearances || 0}</div>
+        <div class="stat-label">Times your handle appeared in drops</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${stats.followsReceived || 0}</div>
+        <div class="stat-label">Total profile views</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-label">Top members this month</div>
+    ${leadersHtml}
+    <div style="font-size:11px;color:var(--text-3);padding:12px 16px;text-align:center">
+      Leaderboard resets at the start of each month.
+    </div>
+  `;
+};
+
+// ─── Plans on subscribe screen ─────────────────────
+// auto-load when subscribe screen shown
+const _origShowScreen = showScreen;
 </script>
 </body>
 </html>
