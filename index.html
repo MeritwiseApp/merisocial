@@ -721,29 +721,38 @@ const renderBadges = (user) => {
 
 // ─── BOOT ─────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  // Handle Paystack callback
   const params = new URLSearchParams(window.location.search);
-  const ref = params.get('reference') || params.get('trxref');
-  if (ref) {
-    window.history.replaceState({}, '', window.location.pathname);
-    if (token) {
-      toast('Verifying payment...', '');
-      const {ok, data} = await request(`/subscriptions/verify/${ref}`, {method:'POST'});
-      if (ok) {
-        toast('Payment successful! Check your email for your access code.', 'success');
-        const me = await request('/auth/me');
-        if (me.ok) { currentUser = me.data.user; }
-      } else {
-        toast(data.message || 'Payment verification failed.', 'error');
-      }
-    }
-  }
+  const ref    = params.get('reference') || params.get('trxref');
+
+  await sleep(1000);
 
   if(token) {
-    const {ok, data} = await request('/auth/me');
-    if(ok) { currentUser = data.user; }
-    else { token = null; localStorage.removeItem('ms_token'); }
+    const {ok,data} = await request('/auth/me');
+    if(ok) {
+      currentUser = data.user;
+    } else {
+      token=null; localStorage.removeItem('ms_token');
+      showScreen('screen-landing'); return;
+    }
+  } else {
+    showScreen('screen-landing'); return;
   }
+
+  if(ref) {
+    window.history.replaceState({},'',(window.location.pathname));
+    showScreen('screen-activate');
+    toast('Verifying your payment...','');
+    const {ok,data} = await request(`/subscriptions/verify/${ref}`,{method:'POST'});
+    if(ok) {
+      const me = await request('/auth/me');
+      if(me.ok) currentUser = me.data.user;
+      toast('Payment confirmed. Check your email for your access code.','success');
+    } else {
+      toast(data.message||'Verification failed. Contact support.','error');
+    }
+    return;
+  }
+
   route();
 });
 
