@@ -941,9 +941,9 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Explore</span>
       </button>
-      <button class="nav-btn" id="tnav-community" onclick="gotoTab('community')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span>Community</span>
+      <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Drop</span>
       </button>
       <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1250,11 +1250,11 @@ const gotoTab = tab => {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const c = $('tab-content');
-  if (tab === 'home')      renderHome(c);
-  if (tab === 'explore')   renderExplore(c);
-  if (tab === 'community') renderCommunity(c);
-  if (tab === 'handles')   renderHandles(c);
-  if (tab === 'profile')   renderProfile(c, 'me');
+  if (tab === 'home')    renderCommunity(c);
+  if (tab === 'explore') renderExplore(c);
+  if (tab === 'drop')    renderDrop(c);
+  if (tab === 'handles') renderHandles(c);
+  if (tab === 'profile') renderProfile(c, 'me');
 };
 
 const initApp = () => {
@@ -1263,25 +1263,7 @@ const initApp = () => {
 
 // ─── HOME TAB ─────────────────────────────────────
 const renderHome = async c => {
-  c.innerHTML = `
-    <div class="section-label">Your subscription</div>
-    <div class="countdown-strip" id="cd-strip">
-      <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Months</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Days</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Hours</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Mins</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Secs</div></div>
-    </div>
-    <div id="cd-expiry" class="expiry-note"></div>
-    <div class="section-divider"></div>
-    <div class="section-label">Current drop <span id="drip-remaining" style="font-weight:400;color:var(--text-tertiary)"></span></div>
-    <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar" style="width:100%"></div></div>
-    <div id="drip-list"></div>
-  `;
-  startCountdown();
-  loadDrip();
-  clearInterval(dripInt);
-  dripInt = setInterval(loadDrip, 60000);
+  renderCommunity(c);
 };
 
 const startCountdown = () => {
