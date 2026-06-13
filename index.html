@@ -864,29 +864,55 @@
 <div class="screen" id="screen-subscribe">
   <div class="app-root">
     <div class="topbar">
-      <div class="brand">Meri<em>Social</em></div>
-      <button class="btn-ghost btn-sm" onclick="doLogout()">Log out</button>
+      <button class="btn-ghost btn-sm" onclick="showScreen('screen-home');initApp()" style="padding:6px 10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <span style="font-size:16px;font-weight:700;color:var(--text)">Upgrade to Premium</span>
+      <div style="width:40px"></div>
     </div>
     <div class="page">
-      <div class="page-header">
-        <h1>Join the community</h1>
-        <p>Choose a plan to get your access code.</p>
+      <div style="padding:20px 16px;border-bottom:1px solid var(--border);background:var(--white)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:48px;height:48px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:var(--text)">MeriSocial Premium</div>
+            <div style="font-size:13px;color:var(--text-secondary)">Unlock the full creator experience</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Premium checkmark
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Creator drops access
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Submit your handle
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Growth analytics
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Leaderboard ranking
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">
+            <div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Post &amp; comment
+          </div>
+        </div>
       </div>
-      <div class="section-divider"></div>
       <div id="plans-container" class="mt12 plan-wrap"></div>
       <div class="px16 mt16">
         <button class="btn btn-accent" id="btn-checkout" onclick="doCheckout()">Continue to payment</button>
       </div>
-
-      <div class="section-divider mt16"></div>
-      <div class="section-label">What is included</div>
-      <div class="info-row"><span class="key">Handle drops</span><span class="val">Every 10 minutes</span></div>
-      <div class="info-row"><span class="key">Platforms</span><span class="val">X, Instagram, YouTube, TikTok</span></div>
-      <div class="info-row"><span class="key">Engagement type</span><span class="val">Real members, real accounts</span></div>
-      <div class="info-row"><span class="key">Handle submissions</span><span class="val">Unlimited</span></div>
-      <div class="info-row"><span class="key">Strike tolerance</span><span class="val">3 before removal</span></div>
-      <div class="section-divider"></div>
-      <div class="px16 mt12 mb16">
+      <div class="px16 mt8 mb16">
         <button class="btn btn-outline" onclick="showScreen('screen-activate')">Already have an access code?</button>
       </div>
       <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:0 16px 24px">
@@ -1313,6 +1339,31 @@ const startCountdown = () => {
 
 // ─── DROP TAB ─────────────────────────────────────
 const renderDrop = async c => {
+  const isPremium = currentUser?.isPremium ||
+    (currentUser?.subscriptionStatus === 'active' &&
+     currentUser?.subscriptionExpiry &&
+     new Date(currentUser.subscriptionExpiry) > new Date());
+
+  if (!isPremium) {
+    c.innerHTML = `
+      <div style="padding:32px 24px;text-align:center;border-bottom:1px solid var(--border)">
+        <div style="width:64px;height:64px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px">Creator Drops</div>
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:28px;line-height:1.65">Every 10 minutes, 10 creator handles are released to active members. Tap Follow to support them and get discovered yourself.</p>
+        <button class="btn btn-accent" style="max-width:280px;margin:0 auto" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to access drops</button>
+      </div>
+      <div class="section-label">What you get with Premium</div>
+      <div class="info-row"><span class="key">Creator drops</span><span class="val">Every 10 minutes</span></div>
+      <div class="info-row"><span class="key">Platforms</span><span class="val">X, Instagram, YouTube, TikTok</span></div>
+      <div class="info-row"><span class="key">Submit your handle</span><span class="val">Get discovered by members</span></div>
+      <div class="info-row"><span class="key">Growth analytics</span><span class="val">See who engaged with you</span></div>
+      <div class="info-row"><span class="key">Premium checkmark</span><span class="val">Visible on all your posts</span></div>
+    `;
+    return;
+  }
+
   c.innerHTML = `
     <div class="section-label">Current drop <span id="drip-remaining2" style="font-weight:400;color:var(--text-tertiary)"></span></div>
     <div class="drip-bar-track"><div class="drip-bar-fill" id="drip-bar2" style="width:100%"></div></div>
