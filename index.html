@@ -2129,10 +2129,11 @@ const viewProfile = (userId) => {
 
 // ─── PROFILE TAB ──────────────────────────────────
 const renderProfile = async (c, identifier) => {
-  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
-  const {ok,data} = await request(`/profile/${identifier}`);
-  if(!ok){ c.innerHTML=`<div class="empty"><div class="empty-title">Profile not found</div><div class="empty-body">This profile could not be loaded.</div></div>`; return; }
-
+  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  // Use userId directly for own profile to avoid "me" identifier issues
+  const resolvedId = (identifier === 'me' && currentUser?.userId) ? currentUser.userId : identifier;
+  const {ok,data} = await request(`/profile/${resolvedId}`);
+  if(!ok){ c.innerHTML=`<div class="empty"><div class="empty-title">Profile not found</div><div class="empty-body">This profile does not exist or could not be loaded.</div></div>`; return; }
   const user = data.data.user;
   const posts = data.data.posts || [];
   const isOwnProfile = data.data.isOwnProfile;
