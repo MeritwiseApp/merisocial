@@ -1618,10 +1618,17 @@ const renderCommunity = async (c) => {
         <div class="post-avatar" style="margin-top:2px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
         <div style="flex:1">
           <textarea class="compose-textarea" id="compose-body" placeholder="Share a win, tip, or update with the community..." maxlength="500" oninput="updateCharCount(this)"></textarea>
+          <img id="compose-preview-white" style="display:none;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);max-height:260px;object-fit:cover"/>
+          <input type="file" id="compose-image-file-white" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewImageWhite(this)"/>
           <div class="compose-footer">
-            <select class="post-type-select" id="compose-type">
-              ${POST_TYPES.map(t => `<option value="${t}">${TYPE_LABELS[t]}</option>`).join('')}
-            </select>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button onclick="$('compose-image-file-white').click()" style="background:none;border:none;cursor:pointer;color:var(--accent);padding:4px;display:flex;align-items:center" title="Add image">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <select class="post-type-select" id="compose-type">
+                ${POST_TYPES.map(t => `<option value="${t}">${TYPE_LABELS[t]}</option>`).join('')}
+              </select>
+            </div>
             <div style="display:flex;align-items:center;gap:10px">
               <span class="char-count" id="compose-count">500</span>
               <button class="btn btn-accent btn-sm" id="btn-post" onclick="submitPost()">Post</button>
@@ -1740,6 +1747,7 @@ const buildPostHTML = (post) => {
       </div>
       ${typeTag}
       <div class="post-body">${escapeHtml(post.body)}</div>
+      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:300px;object-fit:cover" loading="lazy"/>` : ''}
       ${chips}
       <div class="post-actions">
         <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="showReactionPicker('${post.postId}')">
@@ -1771,27 +1779,48 @@ const escapeHtml = (text) => {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 };
 
+const previewImageWhite = (input) => {
+  const file = input.files[0]; if(!file) return;
+  const prev = $('compose-preview-white');
+  const reader = new FileReader();
+  reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
+  reader.readAsDataURL(file);
+};
+
 const submitPost = async () => {
-  const body     = $('compose-body')?.value.trim();
-  const postType = $('compose-type')?.value || 'general';
+  const body      = $('compose-body')?.value.trim();
+  const postType  = $('compose-type')?.value || 'general';
+  const imageFile = $('compose-image-file-white')?.files[0];
   if (!body) return toast('Write something first.', 'error');
   if (body.length > 500) return toast('Post is too long.', 'error');
 
   setBtn('btn-post', '', true);
-  const { ok, data } = await request('/community/posts', {
-    method: 'POST',
-    body: JSON.stringify({ body, postType })
-  });
+
+  let ok, data;
+  if (imageFile) {
+    const fd = new FormData();
+    fd.append('body',     body);
+    fd.append('postType', postType);
+    fd.append('image',    imageFile);
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/community/posts`, { method:'POST', headers, body:fd, credentials:'include' });
+    data = await res.json().catch(()=>({}));
+    ok = res.ok;
+  } else {
+    const r = await request('/community/posts', { method:'POST', body: JSON.stringify({ body, postType }) });
+    ok = r.ok; data = r.data;
+  }
+
   setBtn('btn-post', 'Post', false);
 
   if (ok) {
     $('compose-body').value = '';
+    $('compose-image-file-white').value = '';
+    $('compose-preview-white').style.display = 'none';
     updateCharCount($('compose-body'));
-    // Prepend the new post to the top of the feed
     const container = $('feed-posts');
-    if (container) {
-      container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
-    }
+    if (container) container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
     toast('Posted.', 'success');
   } else {
     toast(data.message || 'Could not post. Try again.', 'error');
