@@ -1374,6 +1374,13 @@ const openDrawer = () => {
   const du=$('drawer-username');
   if(du) du.textContent = currentUser.username ? `@${currentUser.username}` : currentUser.email;
   const ds=$('drawer-stats');
+  // Fetch fresh counts from backend
+  request('/profile/me').then(({ok,data})=>{
+    if(ok && ds) {
+      const u = data.data?.user;
+      ds.innerHTML = `<span><strong>${u?.followingCount||0}</strong> Following</span><span><strong>${u?.followersCount||0}</strong> Followers</span>`;
+    }
+  });
   if(ds) ds.innerHTML = `<span><strong>${currentUser.followingCount||0}</strong> Following</span><span><strong>${currentUser.followersCount||0}</strong> Followers</span>`;
 
   overlay.style.display='block';
@@ -1911,7 +1918,7 @@ const buildPostHTML = (post) => {
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
           <div class="post-avatar">${initials}</div>
           <div>
-            <div class="post-author">${post.fullName}${post.isPremium?CHECK_SVG:''}</div>
+            <div class="post-author">${post.fullName}${post.isPremium?(post.userId===currentUser?.userId?getPlanCheck(currentUser):CHECK_SVG):''}</div>
             <div class="post-time">${timeAgo(post.createdAt)}</div>
           </div>
         </div>
@@ -1981,8 +1988,9 @@ const submitPost = async () => {
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API}/community/posts`, { method:'POST', headers, body:fd, credentials:'include' });
-    data = await res.json().catch(()=>({}));
+    try { data = await res.json(); } catch(e) { data = { message: 'Server error parsing response.' }; }
     ok = res.ok;
+    if(!ok) { console.error('Post with image failed:', data); }
   } else {
     const r = await request('/community/posts', { method:'POST', body: JSON.stringify({ body, postType }) });
     ok = r.ok; data = r.data;
@@ -2089,7 +2097,7 @@ const toggleComments = async (postId) => {
       <div class="comment-avatar">${initials}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span class="comment-author">${c.fullName}</span>
+          <span class="comment-author">${c.fullName}${c.isPremium?CHECK_SVG:''}</span>
           <span class="comment-time">${timeAgo(c.createdAt)}</span>
         </div>
         <div class="comment-body">${escapeHtml(c.body)}</div>
@@ -2323,7 +2331,7 @@ const renderProfile = async (c, identifier) => {
     : (user.fullName||'?')[0].toUpperCase();
 
   c.innerHTML = `
-    <div class="profile-banner">
+    <div class="profile-banner" ${user.bannerUrl?`style="background:url('${API.replace('/api','')}${user.bannerUrl}') center/cover no-repeat;border-bottom:1px solid var(--border)"`:''}>
       <div class="profile-avatar-wrap">${avatarContent}</div>
     </div>
     <div class="profile-info">
@@ -2376,13 +2384,10 @@ const renderProfile = async (c, identifier) => {
     </div>
     <div id="cd-expiry" class="expiry-note"></div>` : ''}
 
-    ${isOwnProfile ? `
+    ${isOwnProfile && !(user.isPremium||user.subscriptionStatus==='active') ? `
     <div class="section-divider"></div>
-    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">
-      ${!(user.isPremium||user.subscriptionStatus==='active')?`<button class="btn btn-accent" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</button>`:''}
-      <button class="btn btn-outline btn-sm" style="width:auto" onclick="renderLeaderboard($('tab-content'))">My stats and leaderboard</button>
-      <button class="btn btn-outline" onclick="showScreen('screen-activate')">Enter access code</button>
-      <button class="btn btn-danger mt8" onclick="doLogout()">Log out</button>
+    <div style="padding:12px 16px">
+      <button class="btn btn-accent" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</button>
     </div>` : ''}
 
     <div style="display:flex;border-bottom:1px solid var(--border);background:var(--white)">
@@ -2509,6 +2514,92 @@ const uploadBanner = async (input) => {
     toast(data.message||'Upload failed.','error');
   }
 };
+
+// ─── MENTION AUTOCOMPLETE ──────────────────────────
+let mentionStart = -1;
+let mentionActive = false;
+
+const setupMentionAutocomplete = (inputEl, dropdownId) => {
+  if(inputEl._mentionSetup) return;
+  inputEl._mentionSetup = true;
+
+  inputEl.addEventListener('input', async () => {
+    const val = inputEl.value;
+    const pos = inputEl.selectionStart;
+    const atIdx = val.lastIndexOf('@', pos - 1);
+    if(atIdx === -1 || (atIdx > 0 && !/\s/.test(val[atIdx-1]) && val[atIdx-1] !== '\n')) {
+      hideMentionDropdown(dropdownId); return;
+    }
+    const query = val.slice(atIdx+1, pos);
+    if(!query || query.length < 1) { hideMentionDropdown(dropdownId); return; }
+    mentionStart = atIdx;
+    mentionActive = true;
+    const {ok,data} = await request(`/profile/suggestions?search=${encodeURIComponent(query)}&limit=5`);
+    if(!ok || !mentionActive) return;
+    showMentionDropdown(dropdownId, data.data||[], inputEl);
+  });
+
+  inputEl.addEventListener('keydown', e => {
+    if(e.key==='Escape') hideMentionDropdown(dropdownId);
+  });
+  inputEl.addEventListener('blur', () => {
+    setTimeout(()=>hideMentionDropdown(dropdownId), 200);
+  });
+};
+
+const showMentionDropdown = (id, users, inputEl) => {
+  let dd = $(id);
+  if(!dd) {
+    dd = document.createElement('div');
+    dd.id = id;
+    dd.style.cssText = 'position:absolute;background:var(--white);border:1px solid var(--border-dark);border-radius:12px;z-index:200;width:220px;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.1)';
+    inputEl.parentElement.style.position='relative';
+    inputEl.parentElement.appendChild(dd);
+  }
+  if(!users.length) { hideMentionDropdown(id); return; }
+  dd.innerHTML = users.map(u=>`
+    <div onmousedown="insertMention('${u.userId}','${(u.username||u.fullName||'').replace(/'/g,"\\'")}','${id}')"
+      style="padding:10px 14px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div>
+        <div style="font-weight:600;color:var(--text)">${u.fullName||''}</div>
+        ${u.username?`<div style="font-size:12px;color:var(--text-secondary)">@${u.username}</div>`:''}
+      </div>
+    </div>`).join('');
+  dd.style.display='block';
+};
+
+const hideMentionDropdown = (id) => {
+  mentionActive = false;
+  const d=$(id); if(d) d.style.display='none';
+};
+
+const insertMention = (userId, handle, dropdownId) => {
+  const active = document.activeElement;
+  if(!active || mentionStart===-1) { hideMentionDropdown(dropdownId); return; }
+  const val    = active.value;
+  const pos    = active.selectionStart;
+  const before = val.slice(0, mentionStart);
+  const after  = val.slice(pos);
+  const tag    = `@${handle} `;
+  active.value = before + tag + after;
+  active.selectionStart = active.selectionEnd = before.length + tag.length;
+  hideMentionDropdown(dropdownId);
+  mentionStart = -1;
+};
+
+// Hook up mention autocomplete after compose box renders
+const _origRenderCommunity = renderCommunity;
+// Auto-setup on compose textarea focus
+document.addEventListener('focusin', e => {
+  if(e.target.id === 'compose-body') {
+    setupMentionAutocomplete(e.target, 'mention-dd-compose');
+  }
+  if(e.target.classList.contains('comment-input')) {
+    const postId = e.target.id.replace('comment-input-','');
+    setupMentionAutocomplete(e.target, `mention-dd-comment-${postId}`);
+  }
+});
 </script>
 </body>
 </html>
