@@ -969,6 +969,17 @@
         <div id="drawer-username" style="font-size:13px;color:var(--text-secondary);margin-bottom:6px"></div>
         <div id="drawer-stats" style="display:flex;gap:16px;font-size:13px;color:var(--text-secondary)"></div>
       </div>
+      <div id="drawer-countdown-wrap" style="display:none;padding:0 16px 12px">
+        <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Your subscription</div>
+        <div class="countdown-strip" style="border:1px solid var(--border);border-radius:8px">
+          <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Mo</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">D</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">H</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">M</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">S</div></div>
+        </div>
+        <div id="cd-expiry" class="expiry-note" style="padding:6px 0 0"></div>
+      </div>
       <div style="height:1px;background:var(--border);margin:0 0 8px"></div>
       <!-- Drawer menu items -->
       <div id="drawer-menu">
@@ -1027,7 +1038,7 @@
       <button class="nav-btn" id="tnav-notifications" onclick="gotoTab('notifications')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Notifications</span>
-        <span id="notif-dot" style="display:none;position:absolute;top:8px;right:calc(50% - 14px);width:8px;height:8px;background:var(--accent);border-radius:50%;border:2px solid var(--white)"></span>
+        <span id="notif-dot" style="display:none;position:absolute;top:4px;right:calc(50% - 18px);min-width:16px;height:16px;padding:0 4px;background:var(--accent);border-radius:9px;border:2px solid var(--white);color:#fff;font-size:10px;font-weight:700;line-height:12px;text-align:center"></span>
       </button>
     </nav>
   </div>
@@ -1344,6 +1355,7 @@ const gotoTab = tab => {
 
 const initApp = () => {
   updateTopbarAvatar();
+  refreshNotificationBadge();
   gotoTab('home');
 };
 
@@ -1370,7 +1382,7 @@ const openDrawer = () => {
     else da.textContent=(currentUser.firstName||'?')[0].toUpperCase();
   }
   const dn=$('drawer-name');
-  if(dn) dn.innerHTML = `${currentUser.fullName||''}${currentUser.isPremium?CHECK_SVG:''}`;
+  if(dn) dn.innerHTML = `${currentUser.fullName||''}${getPlanCheck(currentUser)}`;
   const du=$('drawer-username');
   if(du) du.textContent = currentUser.username ? `@${currentUser.username}` : currentUser.email;
   const ds=$('drawer-stats');
@@ -1379,9 +1391,15 @@ const openDrawer = () => {
     if(ok && ds) {
       const u = data.data?.user;
       ds.innerHTML = `<span><strong>${u?.followingCount||0}</strong> Following</span><span><strong>${u?.followersCount||0}</strong> Followers</span>`;
+      if(u?.subscriptionPlan) currentUser.subscriptionPlan = u.subscriptionPlan;
     }
   });
   if(ds) ds.innerHTML = `<span><strong>${currentUser.followingCount||0}</strong> Following</span><span><strong>${currentUser.followersCount||0}</strong> Followers</span>`;
+
+  const isPremium = currentUser.isPremium || currentUser.subscriptionStatus === 'active';
+  const cdWrap = $('drawer-countdown-wrap');
+  if(cdWrap) cdWrap.style.display = isPremium ? 'block' : 'none';
+  if(isPremium) startCountdown();
 
   overlay.style.display='block';
   drawer.style.left='0';
@@ -1393,8 +1411,37 @@ const closeDrawer = () => {
   if(overlay) overlay.style.display='none';
 };
 
+const goToPost = async (postId) => {
+  gotoTab('home');
+  await sleep(400);
+  const el = $(`post-${postId}`);
+  if(el){
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.style.transition = 'background 0.3s';
+    el.style.background = 'var(--accent-light)';
+    setTimeout(()=>{ el.style.background=''; }, 1200);
+    toggleComments(postId);
+  } else {
+    toast('Opening post...','');
+  }
+};
+
+const refreshNotificationBadge = async () => {
+  const {ok,data} = await request('/community/feed?page=1&limit=50');
+  if(!ok) return;
+  const myPosts = (data.data?.posts||[]).filter(p=>p.userId===currentUser?.userId);
+  let count = 0;
+  myPosts.forEach(p=>{ count += (p.reactionCount||0) + (p.commentCount||0); });
+  const dot = $('notif-dot');
+  if(!dot) return;
+  if(count > 0){ dot.textContent = count>99?'99+':count; dot.style.display='block'; }
+  else dot.style.display='none';
+};
+
 // ─── NOTIFICATIONS ─────────────────────────────────
 const renderNotifications = async (c) => {
+  const dot = $('notif-dot');
+  if(dot) dot.style.display='none';
   c.innerHTML=`<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
 
   // Fetch recent activity: reactions and comments on your posts
@@ -1440,7 +1487,7 @@ const renderNotifications = async (c) => {
   }
 
   const items = activities.map(a=>`
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+    <div onclick="goToPost('${a.postId}')" style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;cursor:pointer">
       <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         ${a.type==='reaction'
           ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
@@ -1744,7 +1791,7 @@ const getPlanCheck = (user) => {
   if(!isPrem) return '';
   const plan = (user.subscriptionPlan || user.plan || userPlanMap[user.userId] || 'monthly').toLowerCase();
   if(plan === 'yearly')    return `<div class="premium-check" style="background:#f59e0b" title="Yearly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
-  if(plan === 'quarterly') return `<div class="premium-check" style="background:#8b5cf6" title="Quarterly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+  if(plan === 'quarterly') return `<div class="premium-check" style="background:#9ca3af" title="Quarterly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
   return `<div class="premium-check" style="background:var(--accent)" title="Monthly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
 };
 
@@ -2004,30 +2051,43 @@ const submitPost = async () => {
 
   setBtn('btn-post', '', true);
 
-  let ok, data;
-  if (imageFile) {
-    const fd = new FormData();
-    fd.append('body',     body);
-    fd.append('postType', postType);
-    fd.append('image',    imageFile);
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/community/posts`, { method:'POST', headers, body:fd, credentials:'include' });
-    try { data = await res.json(); } catch(e) { data = { message: 'Server error parsing response.' }; }
-    ok = res.ok;
-    if(!ok) { console.error('Post with image failed:', data); }
-  } else {
-    const r = await request('/community/posts', { method:'POST', body: JSON.stringify({ body, postType }) });
-    ok = r.ok; data = r.data;
-  }
+  let ok = false, data = {};
+  try {
+    if (imageFile) {
+      const fd = new FormData();
+      fd.append('body',     body);
+      fd.append('postType', postType);
+      fd.append('image',    imageFile);
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  setBtn('btn-post', 'Post', false);
+      const controller = new AbortController();
+      const timeoutId  = setTimeout(()=>controller.abort(), 30000);
+      const res = await fetch(`${API}/community/posts`, { method:'POST', headers, body:fd, credentials:'include', signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      try { data = await res.json(); } catch(e) { data = { message: 'Server error parsing response.' }; }
+      ok = res.ok;
+      if(!ok) console.error('Post with image failed:', data);
+    } else {
+      const r = await request('/community/posts', { method:'POST', body: JSON.stringify({ body, postType }) });
+      ok = r.ok; data = r.data;
+    }
+  } catch(err) {
+    console.error('submitPost error:', err);
+    ok = false;
+    data = { message: err.name === 'AbortError' ? 'Upload timed out. Try a smaller image.' : 'Network error. Please try again.' };
+  } finally {
+    setBtn('btn-post', 'Post', false);
+  }
 
   if (ok) {
     $('compose-body').value = '';
     try { $('compose-image-file-white').value = ''; } catch(e) {}
-    $('compose-preview-white').style.display = 'none';
-    $('compose-preview-white').src = '';
+    if ($('compose-preview-white')) {
+      $('compose-preview-white').style.display = 'none';
+      $('compose-preview-white').src = '';
+    }
     updateCharCount($('compose-body'));
     const container = $('feed-posts');
     if (container) container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
@@ -2301,10 +2361,10 @@ const renderSuggestions = (users) => {
     <div class="suggestion-row">
       <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
       <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-        <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+        <div class="suggestion-name">${u.fullName||''}${getPlanCheck(u)}</div>
         <div class="suggestion-bio">${u.bio||'MeriSocial creator'}</div>
       </div>
-      <button class="follow-pill" id="fol-${u.userId}" onclick="quickFollow('${u.userId}')">Follow</button>
+      <button class="follow-pill${u.isFollowing?' following':''}" id="fol-${u.userId}" onclick="quickFollow('${u.userId}')">${u.isFollowing?'Following':'Follow'}</button>
     </div>`).join('');
 };
 
@@ -2320,10 +2380,15 @@ const doSearch = async (query) => {
 };
 
 const quickFollow = async (userId) => {
+  const btn = $(`fol-${userId}`);
+  if(btn){ btn.disabled=true; }
   const {ok,data} = await request(`/profile/follow/${userId}`,{method:'POST'});
-  if(ok){
-    const btn = $(`fol-${userId}`);
-    if(btn){ btn.textContent=data.data.isFollowing?'Following':'Follow'; btn.className=`follow-pill${data.data.isFollowing?' following':''}`; }
+  if(ok && btn){
+    btn.disabled=false;
+    btn.textContent = data.isFollowing ? 'Following' : 'Follow';
+    btn.className   = `follow-pill${data.isFollowing ? ' following' : ''}`;
+  } else if(btn) {
+    btn.disabled=false;
   }
 };
 
@@ -2361,7 +2426,7 @@ const renderProfile = async (c, identifier) => {
 
   c.innerHTML = `
     <div class="profile-banner" ${user.bannerUrl?`style="background:url('${API.replace('/api','')}${user.bannerUrl}') center/cover no-repeat;border-bottom:1px solid var(--border)"`:''}>
-      <div class="profile-avatar-wrap">${avatarContent}</div>
+      <div class="profile-avatar-wrap" id="profile-avatar-wrap">${avatarContent}</div>
     </div>
     <div class="profile-info">
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px">
@@ -2375,7 +2440,7 @@ const renderProfile = async (c, identifier) => {
       </div>
       <div class="profile-name-row">
         <span class="profile-display-name">${user.fullName}</span>
-        ${user.isPremium?CHECK_SVG:''}
+        ${getPlanCheck(user)}
       </div>
       ${user.username?`<div class="profile-username">@${user.username}</div>`:''}
       ${user.bio?`<div class="profile-bio">${escapeHtml(user.bio)}</div>`:''}
@@ -2401,18 +2466,6 @@ const renderProfile = async (c, identifier) => {
       </div>` : ''}
     </div>
 
-    ${isOwnProfile && (user.isPremium||user.subscriptionStatus==='active') ? `
-    <div class="section-divider"></div>
-    <div class="section-label">Your subscription</div>
-    <div class="countdown-strip">
-      <div class="cd-unit"><div class="cd-num" id="cd-mo">--</div><div class="cd-label">Months</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Days</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Hours</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Mins</div></div>
-      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Secs</div></div>
-    </div>
-    <div id="cd-expiry" class="expiry-note"></div>` : ''}
-
     ${isOwnProfile && !(user.isPremium||user.subscriptionStatus==='active') ? `
     <div class="section-divider"></div>
     <div style="padding:12px 16px">
@@ -2427,21 +2480,19 @@ const renderProfile = async (c, identifier) => {
     </div>
   `;
 
-  if(isOwnProfile && (user.isPremium||user.subscriptionStatus==='active')) startCountdown();
-};
+  };
 
 const toggleFollow = async (userId, btn) => {
   if(btn) { btn.disabled=true; btn.textContent='...'; }
   const {ok,data} = await request(`/profile/follow/${userId}`,{method:'POST'});
   if(ok && btn){
     btn.disabled = false;
-    btn.textContent = data.data.isFollowing?'Following':'Follow';
-    btn.className   = `profile-follow-btn${data.data.isFollowing?' following':''}`;
-    // Update follower count in page without full reload
+    btn.textContent = data.isFollowing?'Following':'Follow';
+    btn.className   = `profile-follow-btn${data.isFollowing?' following':''}`;
     const followerEl = document.querySelector('.profile-stat:last-child .num');
     if(followerEl){
       const current = parseInt(followerEl.textContent.replace(/,/g,'')||'0');
-      followerEl.textContent = (data.data.isFollowing ? current+1 : Math.max(0,current-1)).toLocaleString();
+      followerEl.textContent = (data.isFollowing ? current+1 : Math.max(0,current-1)).toLocaleString();
     }
   } else if(btn) {
     btn.disabled = false;
@@ -2505,10 +2556,7 @@ const saveProfile = async () => {
   const {ok,data} = await request('/profile/me',{method:'PATCH',body:JSON.stringify({username,bio,location,website})});
   setBtn('btn-save-profile','Save',false);
   if(ok){
-    // Refresh currentUser from backend to get latest avatarUrl, bannerUrl etc.
-    const me = await request('/auth/me');
-    if(me.ok) currentUser = {...currentUser, ...me.data.user};
-    else currentUser = {...currentUser,...(data.data||{})};
+    currentUser = {...currentUser, ...(data.data||{})};
     closeModal('modal-edit-profile');
     toast('Profile saved.','success');
     renderProfile($('tab-content'),'me');
@@ -2527,6 +2575,9 @@ const uploadAvatar = async (input) => {
     if(status) status.textContent='✓ Profile picture updated';
     toast('Avatar updated.','success');
     updateTopbarAvatar();
+    if($('profile-avatar-wrap')) {
+      $('profile-avatar-wrap').innerHTML = `<img src="${API.replace('/api','')}${currentUser.avatarUrl}?t=${Date.now()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+    }
   } else {
     if(status) status.textContent='Upload failed';
     toast(data.message||'Upload failed.','error');
@@ -2543,6 +2594,8 @@ const uploadBanner = async (input) => {
     currentUser.bannerUrl=data.bannerUrl||data.data?.bannerUrl;
     if(status) status.textContent='✓ Cover image updated';
     toast('Cover image updated.','success');
+    const banner = document.querySelector('.profile-banner');
+    if(banner) banner.style.cssText += `background:url('${API.replace('/api','')}${currentUser.bannerUrl}?t=${Date.now()}') center/cover no-repeat;border-bottom:1px solid var(--border)`;
   } else {
     if(status) status.textContent='Upload failed';
     toast(data.message||'Upload failed.','error');
