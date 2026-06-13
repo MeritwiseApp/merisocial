@@ -739,6 +739,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  if(token) {
+    const {ok, data} = await request('/auth/me');
+    if(ok) { currentUser = data.user; }
+    else { token = null; localStorage.removeItem('ms_token'); }
+  }
   route();
 });
 
