@@ -1733,14 +1733,26 @@ const closeTerms = () => { $('terms-modal').classList.remove('open'); };
 // Close terms on bg click
 $('terms-modal').addEventListener('click', e => { if(e.target===$('terms-modal')) closeTerms(); });
 
+// Plan color map: userId -> plan, populated as we see users
+const userPlanMap = {};
+
 const CHECK_SVG = `<div class="premium-check" style="background:var(--accent)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
 
 const getPlanCheck = (user) => {
-  if(!user?.isPremium && user?.subscriptionStatus !== 'active') return '';
-  const plan = user?.subscriptionPlan || user?.plan || 'monthly';
+  if(!user) return '';
+  const isPrem = user.isPremium || user.subscriptionStatus === 'active';
+  if(!isPrem) return '';
+  const plan = user.subscriptionPlan || user.plan || userPlanMap[user.userId] || 'monthly';
   if(plan === 'yearly')    return `<div class="premium-check" style="background:#f59e0b" title="Yearly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
   if(plan === 'quarterly') return `<div class="premium-check" style="background:#8b5cf6" title="Quarterly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
   return `<div class="premium-check" style="background:var(--accent)" title="Monthly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+};
+
+const getCheckForPost = (post) => {
+  if(!post.isPremium) return '';
+  if(post.userId === currentUser?.userId) return getPlanCheck(currentUser);
+  const plan = userPlanMap[post.userId] || 'monthly';
+  return getPlanCheck({isPremium:true, subscriptionPlan: plan});
 };
 
 const openModal  = id => document.getElementById(id)?.classList.add('open');
@@ -1918,7 +1930,7 @@ const buildPostHTML = (post) => {
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
           <div class="post-avatar">${initials}</div>
           <div>
-            <div class="post-author">${post.fullName}${post.isPremium?(post.userId===currentUser?.userId?getPlanCheck(currentUser):CHECK_SVG):''}</div>
+            <div class="post-author">${post.fullName}${getCheckForPost(post)}</div>
             <div class="post-time">${timeAgo(post.createdAt)}</div>
           </div>
         </div>
@@ -2097,7 +2109,7 @@ const toggleComments = async (postId) => {
       <div class="comment-avatar">${initials}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span class="comment-author">${c.fullName}${c.isPremium?CHECK_SVG:''}</span>
+          <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
           <span class="comment-time">${timeAgo(c.createdAt)}</span>
         </div>
         <div class="comment-body">${escapeHtml(c.body)}</div>
@@ -2151,7 +2163,7 @@ const sendComment = async (postId) => {
     <div class="comment-avatar">${initials}</div>
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="comment-author">${comment.fullName}</span>
+        <span class="comment-author">${comment.fullName}${comment.isPremium?getCheckForPost(comment):''}</span>
         <span class="comment-time">just now</span>
       </div>
       <div class="comment-body">${escapeHtml(comment.body)}</div>
@@ -2325,6 +2337,9 @@ const renderProfile = async (c, identifier) => {
   const posts = data.data.posts || [];
   const isOwnProfile = data.data.isOwnProfile;
   const isFollowing  = data.data.isFollowing;
+  // Store plan for checkmark color
+  if(user.subscriptionPlan) userPlanMap[user.userId] = user.subscriptionPlan;
+  if(isOwnProfile && user.subscriptionPlan) currentUser.subscriptionPlan = user.subscriptionPlan;
 
   const avatarContent = user.avatarUrl
     ? `<img src="${API.replace('/api','')}${user.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
@@ -2552,20 +2567,27 @@ const showMentionDropdown = (id, users, inputEl) => {
   if(!dd) {
     dd = document.createElement('div');
     dd.id = id;
-    dd.style.cssText = 'position:absolute;background:var(--white);border:1px solid var(--border-dark);border-radius:12px;z-index:200;width:220px;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.1)';
+    dd.style.cssText = 'position:absolute;bottom:calc(100% + 4px);left:0;background:var(--white);border:1px solid var(--border-dark);border-radius:16px;z-index:500;width:280px;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15)';
     inputEl.parentElement.style.position='relative';
     inputEl.parentElement.appendChild(dd);
   }
   if(!users.length) { hideMentionDropdown(id); return; }
-  dd.innerHTML = users.map(u=>`
-    <div onmousedown="insertMention('${u.userId}','${(u.username||u.fullName||'').replace(/'/g,"\\'")}','${id}')"
-      style="padding:10px 14px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${(u.fullName||'?')[0].toUpperCase()}</div>
-      <div>
-        <div style="font-weight:600;color:var(--text)">${u.fullName||''}</div>
-        ${u.username?`<div style="font-size:12px;color:var(--text-secondary)">@${u.username}</div>`:''}
+  dd.innerHTML = users.map(u=>{
+    const isMutual = u.isFollowing; // will be true if getSuggestions marks it
+    const rel = isMutual ? `<div style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;margin-bottom:2px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>You follow each other</div>` : '';
+    const avatarHtml = u.avatarUrl
+      ? `<img src="${API.replace('/api','')}${u.avatarUrl}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+      : `<div style="width:40px;height:40px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--text);flex-shrink:0">${(u.fullName||'?')[0].toUpperCase()}</div>`;
+    return `<div onmousedown="insertMention('${u.userId}','${(u.username||u.fullName.replace(/\s+/g,'_')||'').replace(/'/g,"\\'")}','${id}')"
+      style="padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+      ${avatarHtml}
+      <div style="flex:1;min-width:0">
+        ${rel}
+        <div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.fullName||''}</div>
+        ${u.username?`<div style="font-size:13px;color:var(--text-secondary)">@${u.username}</div>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   dd.style.display='block';
 };
 
