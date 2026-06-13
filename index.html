@@ -236,6 +236,7 @@
       color:var(--text-secondary);
       font-family:var(--font);font-size:11px;font-weight:500;
       transition:color var(--transition);
+      position:relative;
     }
     .nav-btn.active{color:var(--text)}
     .nav-btn svg{width:22px;height:22px;stroke-width:1.8}
@@ -948,10 +949,58 @@
 <div class="screen" id="screen-home">
   <div class="app-root">
     <div class="topbar" id="main-topbar">
+      <button id="topbar-avatar-btn" onclick="openDrawer()" style="width:34px;height:34px;border-radius:50%;border:2px solid var(--border-dark);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);overflow:hidden;flex-shrink:0;padding:0">
+        <span id="topbar-avatar-initials"></span>
+      </button>
       <div class="brand">Meri<em>Social</em></div>
       <div class="row">
         <div class="live-dot"></div>
         <span style="font-size:12px;color:var(--text-secondary);margin-left:4px">Live</span>
+      </div>
+    </div>
+
+    <!-- SIDE DRAWER -->
+    <div id="drawer-overlay" onclick="closeDrawer()" style="position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:300;display:none"></div>
+    <div id="side-drawer" style="position:fixed;top:0;left:-280px;width:280px;height:100%;background:var(--white);z-index:400;transition:left .25s ease;overflow-y:auto;box-shadow:2px 0 16px rgba(0,0,0,.1)">
+      <!-- Drawer header -->
+      <div style="padding:20px 16px 12px">
+        <div id="drawer-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--bg);border:2px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;overflow:hidden"></div>
+        <div id="drawer-name" style="font-size:16px;font-weight:700;color:var(--text)"></div>
+        <div id="drawer-username" style="font-size:13px;color:var(--text-secondary);margin-bottom:6px"></div>
+        <div id="drawer-stats" style="display:flex;gap:16px;font-size:13px;color:var(--text-secondary)"></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 0 8px"></div>
+      <!-- Drawer menu items -->
+      <div id="drawer-menu">
+        <button onclick="closeDrawer();renderProfile($('tab-content'),'me');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'))" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          Profile
+        </button>
+        <button onclick="closeDrawer();gotoTab('handles')" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          My Handles
+        </button>
+        <button onclick="closeDrawer();renderLeaderboard($('tab-content'))" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Stats &amp; Leaderboard
+        </button>
+        <button onclick="closeDrawer();showScreen('screen-subscribe');loadPlans()" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Subscription
+        </button>
+        <button onclick="closeDrawer();showScreen('screen-activate')" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Enter Access Code
+        </button>
+        <button onclick="closeDrawer();openTerms()" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Community Rules
+        </button>
+        <div style="height:1px;background:var(--border);margin:8px 0"></div>
+        <button onclick="closeDrawer();doLogout()" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--red);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign out
+        </button>
       </div>
     </div>
 
@@ -975,9 +1024,10 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span>Handles</span>
       </button>
-      <button class="nav-btn" id="tnav-profile" onclick="gotoTab('profile')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-        <span>Profile</span>
+      <button class="nav-btn" id="tnav-notifications" onclick="gotoTab('notifications')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Notifications</span>
+        <span id="notif-dot" style="display:none;position:absolute;top:8px;right:calc(50% - 14px);width:8px;height:8px;background:var(--accent);border-radius:50%;border:2px solid var(--white)"></span>
       </button>
     </nav>
   </div>
@@ -996,10 +1046,19 @@
     </div>
     <div class="modal-box-body">
       <div class="field"><label>Username</label><input id="edit-username" type="text" placeholder="yourhandle"/></div>
-      <div class="field"><label>Bio (160 chars)</label><textarea id="edit-bio" maxlength="160" placeholder="Tell the community about yourself..."></textarea></div>
+      <div class="field"><label>Bio <span style="font-weight:400;color:var(--text-tertiary)">(160 chars)</span></label><textarea id="edit-bio" maxlength="160" placeholder="Tell the community about yourself..."></textarea></div>
       <div class="field"><label>Location</label><input id="edit-location" type="text" placeholder="Lagos, Nigeria"/></div>
       <div class="field"><label>Website</label><input id="edit-website" type="text" placeholder="https://yoursite.com"/></div>
-      <div class="field"><label>Profile picture</label><input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" onchange="uploadAvatar(this)"/></div>
+      <div class="field">
+        <label>Profile picture</label>
+        <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" onchange="uploadAvatar(this)"/>
+        <div id="avatar-upload-status" style="font-size:12px;color:var(--text-tertiary);margin-top:4px"></div>
+      </div>
+      <div class="field">
+        <label>Cover image</label>
+        <input type="file" id="banner-file" accept="image/jpeg,image/png,image/webp" onchange="uploadBanner(this)"/>
+        <div id="banner-upload-status" style="font-size:12px;color:var(--text-tertiary);margin-top:4px"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1276,15 +1335,124 @@ const gotoTab = tab => {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const c = $('tab-content');
-  if (tab === 'home')    renderCommunity(c);
-  if (tab === 'explore') renderExplore(c);
-  if (tab === 'drop')    renderDrop(c);
-  if (tab === 'handles') renderHandles(c);
-  if (tab === 'profile') renderProfile(c, 'me');
+  if (tab === 'home')          renderCommunity(c);
+  if (tab === 'explore')       renderExplore(c);
+  if (tab === 'drop')          renderDrop(c);
+  if (tab === 'handles')       renderHandles(c);
+  if (tab === 'notifications') renderNotifications(c);
 };
 
 const initApp = () => {
+  updateTopbarAvatar();
   gotoTab('home');
+};
+
+const updateTopbarAvatar = () => {
+  const btn = $('topbar-avatar-btn');
+  const initEl = $('topbar-avatar-initials');
+  if(!btn || !currentUser) return;
+  if(currentUser.avatarUrl) {
+    btn.innerHTML = `<img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  } else {
+    if(initEl) initEl.textContent = (currentUser.firstName||'?')[0].toUpperCase();
+  }
+};
+
+const openDrawer = () => {
+  // Populate drawer with current user info
+  const drawer = $('side-drawer');
+  const overlay = $('drawer-overlay');
+  if(!drawer || !currentUser) return;
+
+  const da = $('drawer-avatar');
+  if(da) {
+    if(currentUser.avatarUrl) da.innerHTML=`<img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+    else da.textContent=(currentUser.firstName||'?')[0].toUpperCase();
+  }
+  const dn=$('drawer-name');
+  if(dn) dn.innerHTML = `${currentUser.fullName||''}${currentUser.isPremium?CHECK_SVG:''}`;
+  const du=$('drawer-username');
+  if(du) du.textContent = currentUser.username ? `@${currentUser.username}` : currentUser.email;
+  const ds=$('drawer-stats');
+  if(ds) ds.innerHTML = `<span><strong>${currentUser.followingCount||0}</strong> Following</span><span><strong>${currentUser.followersCount||0}</strong> Followers</span>`;
+
+  overlay.style.display='block';
+  drawer.style.left='0';
+};
+
+const closeDrawer = () => {
+  const drawer=$('side-drawer'), overlay=$('drawer-overlay');
+  if(drawer) drawer.style.left='-280px';
+  if(overlay) overlay.style.display='none';
+};
+
+// ─── NOTIFICATIONS ─────────────────────────────────
+const renderNotifications = async (c) => {
+  c.innerHTML=`<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  // Fetch recent activity: reactions and comments on your posts
+  const [{ok:lok,data:ldata},{ok:pok,data:pdata}] = await Promise.all([
+    request('/community/feed?page=1&limit=50'),
+    request('/profile/me')
+  ]);
+
+  const myPosts = lok ? (ldata.data?.posts||[]).filter(p=>p.userId===currentUser?.userId) : [];
+
+  // Gather all activity on your posts
+  const activities = [];
+  myPosts.forEach(p=>{
+    if(p.reactionCount>0){
+      activities.push({
+        type:'reaction',
+        postId: p.postId,
+        postBody: p.body?.slice(0,60),
+        count: p.reactionCount,
+        time: p.createdAt
+      });
+    }
+    if(p.commentCount>0){
+      activities.push({
+        type:'comment',
+        postId: p.postId,
+        postBody: p.body?.slice(0,60),
+        count: p.commentCount,
+        time: p.createdAt
+      });
+    }
+  });
+
+  if(!activities.length){
+    c.innerHTML=`
+      <div class="section-label">Notifications</div>
+      <div class="empty">
+        <div style="font-size:40px;margin-bottom:16px">🔔</div>
+        <div class="empty-title">Nothing yet</div>
+        <div class="empty-body">When someone reacts to or comments on your posts, you will see it here.</div>
+      </div>`;
+    return;
+  }
+
+  const items = activities.map(a=>`
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        ${a.type==='reaction'
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+          : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+        }
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;color:var(--text);line-height:1.4">
+          ${a.type==='reaction'
+            ? `<strong>${a.count} reaction${a.count!==1?'s':''}</strong> on your post`
+            : `<strong>${a.count} comment${a.count!==1?'s':''}</strong> on your post`
+          }
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">"${escapeHtml(a.postBody||'')}..."</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:3px">${timeAgo(a.time)}</div>
+      </div>
+    </div>`).join('');
+
+  c.innerHTML=`<div class="section-label">Notifications</div>${items}`;
 };
 
 // ─── HOME TAB ─────────────────────────────────────
@@ -1558,7 +1726,15 @@ const closeTerms = () => { $('terms-modal').classList.remove('open'); };
 // Close terms on bg click
 $('terms-modal').addEventListener('click', e => { if(e.target===$('terms-modal')) closeTerms(); });
 
-const CHECK_SVG = `<div class="premium-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+const CHECK_SVG = `<div class="premium-check" style="background:var(--accent)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+
+const getPlanCheck = (user) => {
+  if(!user?.isPremium && user?.subscriptionStatus !== 'active') return '';
+  const plan = user?.subscriptionPlan || user?.plan || 'monthly';
+  if(plan === 'yearly')    return `<div class="premium-check" style="background:#f59e0b" title="Yearly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+  if(plan === 'quarterly') return `<div class="premium-check" style="background:#8b5cf6" title="Quarterly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+  return `<div class="premium-check" style="background:var(--accent)" title="Monthly member"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+};
 
 const openModal  = id => document.getElementById(id)?.classList.add('open');
 const closeModal = id => document.getElementById(id)?.classList.remove('open');
@@ -1732,10 +1908,10 @@ const buildPostHTML = (post) => {
     <div class="post-card" id="post-${post.postId}">
       ${pinTag}
       <div class="post-header">
-        <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
           <div class="post-avatar">${initials}</div>
           <div>
-            <div class="post-author">${post.fullName}</div>
+            <div class="post-author">${post.fullName}${post.isPremium?CHECK_SVG:''}</div>
             <div class="post-time">${timeAgo(post.createdAt)}</div>
           </div>
         </div>
@@ -2103,14 +2279,9 @@ const doSearch = async (query) => {
   clearTimeout(searchTimeout);
   if(!query.trim()){ const {ok,data}=await request('/profile/suggestions'); renderSuggestions(ok?(data.data||[]):[]); return; }
   searchTimeout = setTimeout(async()=>{
-    const {ok,data} = await request(`/admin/users?search=${encodeURIComponent(query)}&limit=20`);
+    const {ok,data} = await request(`/profile/suggestions?search=${encodeURIComponent(query)}&limit=30`);
     if(!ok) return;
-    const users = (data.data?.users||[]).map(u=>({
-      userId:u.userId, fullName:u.fullName||'',
-      isPremium: u.subscriptionStatus==='active' && u.subscriptionExpiry && new Date(u.subscriptionExpiry)>new Date(),
-      bio:''
-    }));
-    renderSuggestions(users);
+    renderSuggestions(data.data||[]);
   }, 400);
 };
 
@@ -2159,7 +2330,10 @@ const renderProfile = async (c, identifier) => {
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px">
         ${isOwnProfile
           ? `<button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>`
-          : `<button class="profile-follow-btn${isFollowing?' following':''}" id="main-follow-btn" onclick="toggleFollow('${user.userId}',this)">${isFollowing?'Following':'Follow'}</button>`
+          : `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+               ${data.data.followsYouBack ? `<span style="font-size:12px;color:var(--text-secondary)">Follows you</span>` : ''}
+               <button class="profile-follow-btn${isFollowing?' following':''}" id="main-follow-btn" onclick="toggleFollow('${user.userId}',this)">${isFollowing && !data.data.followsYouBack ? 'Following' : !isFollowing && data.data.followsYouBack ? 'Follow back' : isFollowing ? 'Following' : 'Follow'}</button>
+             </div>`
         }
       </div>
       <div class="profile-name-row">
@@ -2181,6 +2355,13 @@ const renderProfile = async (c, identifier) => {
           <span class="num">${(user.followersCount||0).toLocaleString()}</span><span class="lbl"> Followers</span>
         </div>
       </div>
+      ${data.data.mutualFollowers?.length ? `
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;display:flex;align-items:center;gap:6px">
+        <div style="display:flex">
+          ${data.data.mutualFollowers.slice(0,3).map(m=>`<div style="width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;margin-right:-4px">${(m.fullName||'?')[0].toUpperCase()}</div>`).join('')}
+        </div>
+        <span>Followed by ${data.data.mutualFollowers.slice(0,2).map(m=>m.fullName.split(' ')[0]).join(', ')}${data.data.mutualFollowers.length>2?` and ${data.data.mutualFollowers.length-2} others`:''}</span>
+      </div>` : ''}
     </div>
 
     ${isOwnProfile && (user.isPremium||user.subscriptionStatus==='active') ? `
@@ -2216,10 +2397,21 @@ const renderProfile = async (c, identifier) => {
 };
 
 const toggleFollow = async (userId, btn) => {
+  if(btn) { btn.disabled=true; btn.textContent='...'; }
   const {ok,data} = await request(`/profile/follow/${userId}`,{method:'POST'});
   if(ok && btn){
+    btn.disabled = false;
     btn.textContent = data.data.isFollowing?'Following':'Follow';
     btn.className   = `profile-follow-btn${data.data.isFollowing?' following':''}`;
+    // Update follower count in page without full reload
+    const followerEl = document.querySelector('.profile-stat:last-child .num');
+    if(followerEl){
+      const current = parseInt(followerEl.textContent.replace(/,/g,'')||'0');
+      followerEl.textContent = (data.data.isFollowing ? current+1 : Math.max(0,current-1)).toLocaleString();
+    }
+  } else if(btn) {
+    btn.disabled = false;
+    btn.textContent = 'Follow';
   }
 };
 
@@ -2288,10 +2480,34 @@ const saveProfile = async () => {
 
 const uploadAvatar = async (input) => {
   const file=input.files[0]; if(!file) return;
+  const status=$('avatar-upload-status');
+  if(status) status.textContent='Uploading...';
   const fd=new FormData(); fd.append('avatar',file);
   const {ok,data}=await requestForm('/profile/me/avatar',fd);
-  if(ok){ currentUser.avatarUrl=data.avatarUrl; toast('Avatar updated.','success'); }
-  else toast(data.message||'Upload failed.','error');
+  if(ok){
+    currentUser.avatarUrl=data.avatarUrl||data.data?.avatarUrl;
+    if(status) status.textContent='✓ Profile picture updated';
+    toast('Avatar updated.','success');
+  } else {
+    if(status) status.textContent='Upload failed';
+    toast(data.message||'Upload failed.','error');
+  }
+};
+
+const uploadBanner = async (input) => {
+  const file=input.files[0]; if(!file) return;
+  const status=$('banner-upload-status');
+  if(status) status.textContent='Uploading...';
+  const fd=new FormData(); fd.append('banner',file);
+  const {ok,data}=await requestForm('/profile/me/banner',fd);
+  if(ok){
+    currentUser.bannerUrl=data.bannerUrl||data.data?.bannerUrl;
+    if(status) status.textContent='✓ Cover image updated';
+    toast('Cover image updated.','success');
+  } else {
+    if(status) status.textContent='Upload failed — this feature may need backend support';
+    toast(data.message||'Upload failed.','error');
+  }
 };
 </script>
 </body>
