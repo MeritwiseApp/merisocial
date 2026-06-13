@@ -2012,8 +2012,9 @@ const submitPost = async () => {
 
   if (ok) {
     $('compose-body').value = '';
-    $('compose-image-file-white').value = '';
+    try { $('compose-image-file-white').value = ''; } catch(e) {}
     $('compose-preview-white').style.display = 'none';
+    $('compose-preview-white').src = '';
     updateCharCount($('compose-body'));
     const container = $('feed-posts');
     if (container) container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
@@ -2491,10 +2492,14 @@ const saveProfile = async () => {
   const {ok,data} = await request('/profile/me',{method:'PATCH',body:JSON.stringify({username,bio,location,website})});
   setBtn('btn-save-profile','Save',false);
   if(ok){
-    currentUser = {...currentUser,...(data.data||{})};
+    // Refresh currentUser from backend to get latest avatarUrl, bannerUrl etc.
+    const me = await request('/auth/me');
+    if(me.ok) currentUser = {...currentUser, ...me.data.user};
+    else currentUser = {...currentUser,...(data.data||{})};
     closeModal('modal-edit-profile');
     toast('Profile saved.','success');
     renderProfile($('tab-content'),'me');
+    updateTopbarAvatar();
   } else toast(data.message||'Failed.','error');
 };
 
@@ -2508,6 +2513,7 @@ const uploadAvatar = async (input) => {
     currentUser.avatarUrl=data.avatarUrl||data.data?.avatarUrl;
     if(status) status.textContent='✓ Profile picture updated';
     toast('Avatar updated.','success');
+    updateTopbarAvatar();
   } else {
     if(status) status.textContent='Upload failed';
     toast(data.message||'Upload failed.','error');
@@ -2525,7 +2531,7 @@ const uploadBanner = async (input) => {
     if(status) status.textContent='✓ Cover image updated';
     toast('Cover image updated.','success');
   } else {
-    if(status) status.textContent='Upload failed — this feature may need backend support';
+    if(status) status.textContent='Upload failed';
     toast(data.message||'Upload failed.','error');
   }
 };
