@@ -1196,12 +1196,34 @@ window.addEventListener('DOMContentLoaded', async () => {
   await sleep(1000);
   if (token) {
     const { ok, data } = await request('/auth/me');
-    if (ok) { currentUser = data.user; route(); }
-    else     { token = null; localStorage.removeItem('ms_token'); showScreen('screen-landing'); }
+    if (ok) {
+      currentUser = data.user;
+      await hydrateUserExtras();
+      route();
+    } else {
+      token = null; localStorage.removeItem('ms_token'); showScreen('screen-landing');
+    }
   } else {
     showScreen('screen-landing');
   }
 });
+
+const hydrateUserExtras = async () => {
+  if(!currentUser) return;
+  const {ok,data} = await request('/profile/me');
+  if(ok && data.data?.user){
+    const u = data.data.user;
+    currentUser.avatarUrl        = u.avatarUrl        || currentUser.avatarUrl        || null;
+    currentUser.bannerUrl        = u.bannerUrl        || currentUser.bannerUrl        || null;
+    currentUser.username         = u.username         || currentUser.username;
+    currentUser.bio              = u.bio              || currentUser.bio;
+    currentUser.location         = u.location         || currentUser.location;
+    currentUser.website          = u.website          || currentUser.website;
+    currentUser.subscriptionPlan = u.subscriptionPlan || currentUser.subscriptionPlan;
+    currentUser.followersCount   = u.followersCount   ?? currentUser.followersCount;
+    currentUser.followingCount   = u.followingCount   ?? currentUser.followingCount;
+  }
+};
 
 const route = () => {
   if(!currentUser) return showScreen('screen-landing');
@@ -1248,7 +1270,9 @@ const doLogin = async () => {
   const {ok,data} = await request('/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})});
   setBtn('btn-login','Log in',false);
   if(ok){
-    token=data.token; localStorage.setItem('ms_token',token); currentUser=data.user; route();
+    token=data.token; localStorage.setItem('ms_token',token); currentUser=data.user;
+    await hydrateUserExtras();
+    route();
   } else {
     if(data.verificationRequired){ verifyEmail=e; $('verify-sub').textContent=`We sent a code to ${e}.`; showScreen('screen-verify'); toast('Verify your email first.','error'); }
     else toast(data.message||'Login failed.','error');
@@ -1335,6 +1359,7 @@ const doActivate = async () => {
     toast('Access activated. Welcome to MeriSocial.','success');
     const me=await request('/auth/me');
     if(me.ok){currentUser=me.data.user;}
+    await hydrateUserExtras();
     showScreen('screen-home'); initApp();
   } else toast(data.message||'Invalid code.','error');
 };
@@ -1859,7 +1884,9 @@ const renderCommunity = async (c) => {
     ${isPremium ? `
     <div class="compose-box">
       <div style="display:flex;gap:10px;align-items:flex-start">
-        <div class="post-avatar" style="margin-top:2px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+        ${currentUser?.avatarUrl
+          ? `<div class="post-avatar" style="margin-top:2px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+          : `<div class="post-avatar" style="margin-top:2px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>`}
         <div style="flex:1">
           <textarea class="compose-textarea" id="compose-body" placeholder="Share a win, tip, or update with the community..." maxlength="500" oninput="updateCharCount(this)"></textarea>
           <img id="compose-preview-white" style="display:none;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);max-height:260px;object-fit:cover"/>
@@ -1977,7 +2004,7 @@ const buildPostHTML = (post) => {
       ${pinTag}
       <div class="post-header">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
-          <div class="post-avatar">${initials}</div>
+          ${avatarOrInitials(post.avatarUrl, initials, 'post-avatar')}
           <div>
             <div class="post-author">${post.fullName}${getCheckForPost(post)}</div>
             <div class="post-time">${timeAgo(post.createdAt)}</div>
@@ -2021,6 +2048,11 @@ const buildPostHTML = (post) => {
 
 const escapeHtml = (text) => {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+
+const avatarOrInitials = (url, initials, className) => {
+  if(url) return `<div class="${className}" style="overflow:hidden;padding:0"><img src="${API.replace('/api','')}${url}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`;
+  return `<div class="${className}">${initials}</div>`;
 };
 
 const linkifyMentions = (text) => {
@@ -2180,7 +2212,7 @@ const toggleComments = async (postId) => {
   comments.forEach(c => {
     const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     html += `<div class="comment-item" id="comment-${c.commentId}">
-      <div class="comment-avatar">${initials}</div>
+      ${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
@@ -2202,8 +2234,12 @@ const toggleComments = async (postId) => {
      new Date(currentUser.subscriptionExpiry) > new Date());
 
   if(isPremium) {
+    const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
+    const myAvatarHtml = currentUser?.avatarUrl
+      ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
     html += `<div class="comment-input-row">
-      <div class="post-avatar" style="width:28px;height:28px;font-size:11px">${(currentUser?.firstName||'?')[0].toUpperCase()}</div>
+      ${myAvatarHtml}
       <input class="comment-input" id="comment-input-${postId}" type="text" placeholder="Add a comment..." maxlength="300"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${postId}')}"/>
       <button class="comment-send-btn" onclick="sendComment('${postId}')">
@@ -2234,7 +2270,7 @@ const sendComment = async (postId) => {
   const comment = data.data;
   const initials = (comment.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const newHtml = `<div class="comment-item" id="comment-${comment.commentId}">
-    <div class="comment-avatar">${initials}</div>
+    ${avatarOrInitials(comment.avatarUrl, initials, 'comment-avatar')}
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span class="comment-author">${comment.fullName}${comment.isPremium?getCheckForPost(comment):''}</span>
