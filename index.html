@@ -608,6 +608,27 @@
       padding:10px 16px;border-bottom:1px solid var(--border);
       display:flex;gap:10px;
     }
+    .comment-item.is-reply{
+      padding-left:48px;border-bottom:none;
+      background:var(--bg);
+    }
+    .comment-reply-tag{
+      font-size:12px;color:var(--accent);margin-bottom:2px;font-weight:500;
+    }
+    .comment-actions{
+      display:flex;gap:14px;margin-top:4px;
+    }
+    .comment-action-btn{
+      display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;
+      color:var(--text-tertiary);font-family:var(--font);font-size:12px;font-weight:600;padding:2px 0;
+    }
+    .comment-action-btn.reacted{color:var(--accent)}
+    .comment-action-btn svg{width:14px;height:14px}
+    .reply-banner{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:8px 16px;background:var(--accent-light);font-size:12px;color:var(--accent);font-weight:600;
+    }
+    .reply-banner button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;line-height:1;padding:0}
     .comment-avatar{
       width:28px;height:28px;border-radius:50%;
       background:var(--surface2);
@@ -1436,6 +1457,120 @@ const closeDrawer = () => {
   if(overlay) overlay.style.display='none';
 };
 
+// ─── POST DETAIL SCREEN ────────────────────────────
+const openPostDetail = async (postId) => {
+  const c = $('tab-content');
+  if(!c) return;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+
+  // Hide topbar brand, show back button
+  const topbar = $('main-topbar');
+  if(topbar) topbar.innerHTML = `
+    <button onclick="gotoTab('home')" style="background:none;border:none;cursor:pointer;color:var(--text);padding:4px;display:flex;align-items:center;gap:6px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span style="font-size:15px;font-weight:700">Post</span>
+    </button>
+    <div></div>
+  `;
+
+  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  const { ok, data } = await request(`/community/posts/${postId}`);
+  if(!ok) {
+    c.innerHTML = `<div class="empty"><div class="empty-title">Post not found</div><div class="empty-body">This post may have been removed.</div></div>`;
+    return;
+  }
+
+  const post = data.data;
+  const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span>` : '';
+
+  const chips = post.myReaction
+    ? `<div class="reaction-bar"><span class="reaction-chip mine" onclick="react('${post.postId}','${post.myReaction}')"><span style="width:14px;height:14px;display:inline-flex">${REACTION_ICONS[post.myReaction]||''}</span>${post.reactionCount}</span></div>`
+    : (post.reactionCount > 0 ? `<div class="reaction-bar"><span class="reaction-chip">${post.reactionCount} reaction${post.reactionCount!==1?'s':''}</span></div>` : '');
+
+  const fullTimestamp = new Date(post.createdAt).toLocaleString('en-NG', { hour:'numeric', minute:'2-digit', hour12:true, month:'short', day:'numeric', year:'numeric' });
+
+  c.innerHTML = `
+    <div class="post-card" id="post-${post.postId}" style="border-bottom:1px solid var(--border)">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
+        ${avatarOrInitials(post.avatarUrl, initials, 'post-avatar')}
+        <div>
+          <div class="post-author">${post.fullName}${getCheckForPost(post)}</div>
+        </div>
+      </div>
+      ${typeTag}
+      <div class="post-body" style="font-size:18px;line-height:1.5;margin-top:${typeTag?'8px':'0'}">${linkifyMentions(escapeHtml(post.body))}</div>
+      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:12px;margin:10px 0;border:1px solid var(--border);max-height:420px;object-fit:cover"/>` : ''}
+      <div style="font-size:13px;color:var(--text-tertiary);padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
+        ${fullTimestamp} &middot; <strong style="color:var(--text-secondary)">${(post.viewCount||0).toLocaleString()}</strong> views
+      </div>
+      ${chips}
+      <div class="post-actions">
+        <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="react('${post.postId}','heart')">
+          <svg viewBox="0 0 24 24" fill="${post.myReaction?'var(--red)':'none'}" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span>Like</span>
+        </button>
+        <button class="post-action-btn" onclick="$('comment-input-${post.postId}')?.focus()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>${post.commentCount || 0}</span>
+        </button>
+      </div>
+    </div>
+    <div id="comments-${post.postId}" style="display:block"></div>
+  `;
+
+  // Load comments directly (skip the toggle-hide logic since they're always shown here)
+  activeCommentPostId = post.postId;
+  const section = $(`comments-${post.postId}`);
+  section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
+
+  const { ok: cok, data: cdata } = await request(`/community/posts/${post.postId}/comments`);
+  const comments = cok ? (cdata.data || []) : [];
+  const topLevel = comments.filter(cm => !cm.parentCommentId);
+  const repliesByParent = {};
+  comments.filter(cm => cm.parentCommentId).forEach(cm => {
+    (repliesByParent[cm.parentCommentId] = repliesByParent[cm.parentCommentId] || []).push(cm);
+  });
+
+  let html = '';
+  topLevel.forEach(cm => {
+    html += buildCommentHTML(cm, post.postId, false);
+    (repliesByParent[cm.commentId] || []).forEach(r => { html += buildCommentHTML(r, post.postId, true); });
+  });
+
+  const isPremium = currentUser?.isPremium ||
+    (currentUser?.subscriptionStatus === 'active' &&
+     currentUser?.subscriptionExpiry &&
+     new Date(currentUser.subscriptionExpiry) > new Date());
+
+  html += `<div id="reply-banner-${post.postId}"></div>`;
+
+  if(isPremium) {
+    const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
+    const myAvatarHtml = currentUser?.avatarUrl
+      ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
+    html += `<div class="comment-input-row">
+      ${myAvatarHtml}
+      <input class="comment-input" id="comment-input-${post.postId}" type="text" placeholder="Add a comment..." maxlength="300"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${post.postId}')}"/>
+      <button class="comment-send-btn" onclick="sendComment('${post.postId}')">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>`;
+  } else {
+    html += `<div style="padding:10px 16px;font-size:13px;color:var(--text-secondary)">
+      <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</span> to comment.
+    </div>`;
+  }
+
+  section.innerHTML = (topLevel.length ? '' : `<div style="padding:16px;font-size:13px;color:var(--text-tertiary);text-align:center">No comments yet. Be the first to reply.</div>`) + html;
+
+  // Record the view
+  request(`/community/posts/${post.postId}/view`, {method:'POST'}).catch(()=>{});
+};
+
 const goToPost = async (postId) => {
   gotoTab('home');
   await sleep(400);
@@ -1943,6 +2078,35 @@ const updateCharCount = (el) => {
 
 // switchFeedTab replaced by switchCommunityFilter above
 
+// ─── VIEW TRACKING ─────────────────────────────────
+const viewObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting) {
+      const postId = entry.target.dataset.postId;
+      if(postId && !entry.target.dataset.viewed) {
+        entry.target.dataset.viewed = '1';
+        request(`/community/posts/${postId}/view`, {method:'POST'}).then(({ok,data})=>{
+          if(ok) {
+            const el = $(`view-count-${postId}`);
+            if(el) {
+              const span = el.querySelector('span');
+              if(span) span.textContent = (data.data.viewCount||0).toLocaleString();
+            }
+          }
+        }).catch(()=>{});
+      }
+      viewObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.6 });
+
+const observeNewPosts = () => {
+  document.querySelectorAll('.post-card[data-post-id]:not([data-observed])').forEach(el => {
+    el.dataset.observed = '1';
+    viewObserver.observe(el);
+  });
+};
+
 const loadFeedPosts = async (reset = false) => {
   const container = $('feed-posts');
   if (!container) return;
@@ -1970,6 +2134,7 @@ const loadFeedPosts = async (reset = false) => {
   }
 
   posts.forEach(post => container.insertAdjacentHTML('beforeend', buildPostHTML(post)));
+  observeNewPosts();
 
   const loadMoreBtn = $('feed-load-more');
   if (loadMoreBtn) loadMoreBtn.style.display = hasMore ? 'block' : 'none';
@@ -2000,7 +2165,7 @@ const buildPostHTML = (post) => {
         : '');
 
   return `
-    <div class="post-card" id="post-${post.postId}">
+    <div class="post-card" id="post-${post.postId}" data-post-id="${post.postId}">
       ${pinTag}
       <div class="post-header">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
@@ -2017,10 +2182,14 @@ const buildPostHTML = (post) => {
           : ''}
       </div>
       ${typeTag}
-      <div class="post-body">${linkifyMentions(escapeHtml(post.body))}</div>
-      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:300px;object-fit:cover" loading="lazy"/>` : ''}
+      <div class="post-body" onclick="openPostDetail('${post.postId}')" style="cursor:pointer">${linkifyMentions(escapeHtml(post.body))}</div>
+      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" onclick="openPostDetail('${post.postId}')" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:300px;object-fit:cover;cursor:pointer" loading="lazy"/>` : ''}
       ${chips}
       <div class="post-actions">
+        <span class="post-action-btn" style="cursor:default;color:var(--text-3)" id="view-count-${post.postId}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:15px;height:15px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>${(post.viewCount||0).toLocaleString()}</span>
+        </span>
         <button class="post-action-btn${post.myReaction ? ' reacted' : ''}" onclick="showReactionPicker('${post.postId}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span>${post.myReaction ? 'Liked' : 'Like'}</span>
@@ -2192,6 +2361,43 @@ const react = async (postId, reaction) => {
   }
 };
 
+let replyTarget = {}; // postId -> {commentId, fullName}
+
+const buildCommentHTML = (c, postId, isReply) => {
+  const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const replyTag = (isReply && c.replyToFullName) ? `<div class="comment-reply-tag">Replying to @${c.replyToFullName.replace(/\s+/g,'')}</div>` : '';
+
+  const reactionDisplay = c.myReaction
+    ? `<span style="display:inline-flex;width:13px;height:13px">${REACTION_ICONS[c.myReaction]||''}</span>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+
+  return `<div class="comment-item${isReply?' is-reply':''}" id="comment-${c.commentId}">
+      ${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}
+      <div style="flex:1;min-width:0">
+        ${replyTag}
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+        </div>
+        <div class="comment-body">${linkifyMentions(escapeHtml(c.body))}</div>
+        <div class="comment-actions">
+          <button class="comment-action-btn${c.myReaction?' reacted':''}" onclick="reactToComment('${postId}','${c.commentId}','heart')">
+            ${reactionDisplay} <span id="creact-count-${c.commentId}">${c.reactionCount||''}</span>
+          </button>
+          <button class="comment-action-btn" onclick="startReply('${postId}','${c.commentId}','${(c.fullName||'').replace(/'/g,"\\'")}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Reply${c.replyCount?` (${c.replyCount})`:''}
+          </button>
+        </div>
+      </div>
+      ${c.userId === currentUser?.userId
+        ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+           </button>`
+        : ''}
+    </div>`;
+};
+
 const toggleComments = async (postId) => {
   const section = $(`comments-${postId}`);
   if (!section) return;
@@ -2212,31 +2418,26 @@ const toggleComments = async (postId) => {
   }
 
   const comments = data.data || [];
-  let html = '';
+  const topLevel = comments.filter(c => !c.parentCommentId);
+  const repliesByParent = {};
+  comments.filter(c => c.parentCommentId).forEach(c => {
+    (repliesByParent[c.parentCommentId] = repliesByParent[c.parentCommentId] || []).push(c);
+  });
 
-  comments.forEach(c => {
-    const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    html += `<div class="comment-item" id="comment-${c.commentId}">
-      ${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
-          <span class="comment-time">${timeAgo(c.createdAt)}</span>
-        </div>
-        <div class="comment-body">${linkifyMentions(escapeHtml(c.body))}</div>
-      </div>
-      ${c.userId === currentUser?.userId
-        ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
-             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-           </button>`
-        : ''}
-    </div>`;
+  let html = '';
+  topLevel.forEach(c => {
+    html += buildCommentHTML(c, postId, false);
+    (repliesByParent[c.commentId] || []).forEach(r => {
+      html += buildCommentHTML(r, postId, true);
+    });
   });
 
   const isPremium = currentUser?.isPremium ||
     (currentUser?.subscriptionStatus === 'active' &&
      currentUser?.subscriptionExpiry &&
      new Date(currentUser.subscriptionExpiry) > new Date());
+
+  html += `<div id="reply-banner-${postId}"></div>`;
 
   if(isPremium) {
     const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
@@ -2257,7 +2458,52 @@ const toggleComments = async (postId) => {
     </div>`;
   }
 
-  section.innerHTML = html || `<div style="padding:10px 16px;font-size:13px;color:var(--text-tertiary)">No comments yet.</div>` + html;
+  section.innerHTML = (topLevel.length ? '' : `<div style="padding:10px 16px;font-size:13px;color:var(--text-tertiary)">No comments yet.</div>`) + html;
+};
+
+const startReply = (postId, commentId, fullName) => {
+  replyTarget[postId] = { commentId, fullName };
+  const banner = $(`reply-banner-${postId}`);
+  if(banner) banner.innerHTML = `<div class="reply-banner">
+    <span>Replying to @${fullName.replace(/\s+/g,'')}</span>
+    <button onclick="cancelReply('${postId}')">&times;</button>
+  </div>`;
+  const input = $(`comment-input-${postId}`);
+  if(input){ input.focus(); input.placeholder = `Reply to ${fullName}...`; }
+};
+
+const cancelReply = (postId) => {
+  delete replyTarget[postId];
+  const banner = $(`reply-banner-${postId}`);
+  if(banner) banner.innerHTML = '';
+  const input = $(`comment-input-${postId}`);
+  if(input) input.placeholder = 'Add a comment...';
+};
+
+const reactToComment = async (postId, commentId, reaction) => {
+  const { ok, data } = await request(`/community/comments/${commentId}/react`, {
+    method: 'POST',
+    body: JSON.stringify({ reaction })
+  });
+  if(!ok) return;
+  const countEl = $(`creact-count-${commentId}`);
+  if(countEl) countEl.textContent = data.data.reactionCount || '';
+  const btn = countEl?.closest('.comment-action-btn');
+  if(btn){
+    btn.classList.toggle('reacted', !!data.data.myReaction);
+    const iconSpan = btn.querySelector('span[style], svg');
+    if(data.data.myReaction){
+      const newIcon = document.createElement('span');
+      newIcon.style.display='inline-flex'; newIcon.style.width='13px'; newIcon.style.height='13px';
+      newIcon.innerHTML = REACTION_ICONS[data.data.myReaction]||'';
+      iconSpan?.replaceWith(newIcon);
+    } else {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.75');
+      svg.innerHTML = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+      iconSpan?.replaceWith(svg);
+    }
+  }
 };
 
 const sendComment = async (postId) => {
@@ -2265,37 +2511,51 @@ const sendComment = async (postId) => {
   const body  = input?.value.trim();
   if (!body) return;
 
+  const target = replyTarget[postId];
+  const payload = { body };
+  if(target) payload.parentCommentId = target.commentId;
+
   const { ok, data } = await request(`/community/posts/${postId}/comments`, {
     method: 'POST',
-    body: JSON.stringify({ body })
+    body: JSON.stringify(payload)
   });
   if (!ok) { toast(data.message || 'Could not post comment.', 'error'); return; }
 
   input.value = '';
+  input.placeholder = 'Add a comment...';
   const comment = data.data;
-  const initials = (comment.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const newHtml = `<div class="comment-item" id="comment-${comment.commentId}">
-    ${avatarOrInitials(comment.avatarUrl, initials, 'comment-avatar')}
-    <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="comment-author">${comment.fullName}${comment.isPremium?getCheckForPost(comment):''}</span>
-        <span class="comment-time">just now</span>
-      </div>
-      <div class="comment-body">${linkifyMentions(escapeHtml(comment.body))}</div>
-    </div>
-    <button onclick="deleteMyComment('${postId}','${comment.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-    </button>
-  </div>`;
+  comment.replyToFullName = comment.replyToFullName || target?.fullName || null;
+  const isReply = !!target;
+  const newHtml = buildCommentHTML(comment, postId, isReply);
 
-  // Insert before the input row
-  const inputRow = document.querySelector(`#comments-${postId} .comment-input-row`);
-  if (inputRow) inputRow.insertAdjacentHTML('beforebegin', newHtml);
+  if(isReply) {
+    // Insert directly after the parent comment (and after any existing replies to it)
+    const parentEl = $(`comment-${target.commentId}`);
+    let insertAfter = parentEl;
+    let next = parentEl?.nextElementSibling;
+    while(next && next.classList.contains('is-reply')) {
+      insertAfter = next;
+      next = next.nextElementSibling;
+    }
+    if(insertAfter) insertAfter.insertAdjacentHTML('afterend', newHtml);
 
-  // Update comment count display
+    // Bump parent's reply count label
+    const parentReplyBtn = parentEl?.querySelector('.comment-action-btn:last-child');
+    if(parentReplyBtn) {
+      const m = parentReplyBtn.textContent.match(/\((\d+)\)/);
+      const n = m ? parseInt(m[1])+1 : 1;
+      parentReplyBtn.innerHTML = parentReplyBtn.innerHTML.replace(/Reply.*$/, `Reply (${n})`);
+    }
+    cancelReply(postId);
+  } else {
+    const inputRow = document.querySelector(`#comments-${postId} .comment-input-row`);
+    if (inputRow) inputRow.insertAdjacentHTML('beforebegin', newHtml);
+  }
+
+  // Update comment count display on the post card
   const postCard = $(`post-${postId}`);
   if (postCard) {
-    const countEl = postCard.querySelector('.post-action-btn:last-child span');
+    const countEl = postCard.querySelector('.post-actions .post-action-btn:last-child span');
     if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
   }
 };
@@ -2501,7 +2761,10 @@ const renderProfile = async (c, identifier) => {
       ${data.data.mutualFollowers?.length ? `
       <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;display:flex;align-items:center;gap:6px">
         <div style="display:flex">
-          ${data.data.mutualFollowers.slice(0,3).map(m=>`<div style="width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;margin-right:-4px">${(m.fullName||'?')[0].toUpperCase()}</div>`).join('')}
+          ${data.data.mutualFollowers.slice(0,3).map(m=>m.avatarUrl
+            ? `<div style="width:18px;height:18px;border-radius:50%;overflow:hidden;border:1px solid var(--white);margin-right:-4px"><img src="${API.replace('/api','')}${m.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+            : `<div style="width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;margin-right:-4px">${(m.fullName||'?')[0].toUpperCase()}</div>`
+          ).join('')}
         </div>
         <span>Followed by ${data.data.mutualFollowers.slice(0,2).map(m=>m.fullName.split(' ')[0]).join(', ')}${data.data.mutualFollowers.length>2?` and ${data.data.mutualFollowers.length-2} others`:''}</span>
       </div>` : ''}
