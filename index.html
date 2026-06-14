@@ -2055,6 +2055,11 @@ const avatarOrInitials = (url, initials, className) => {
   return `<div class="${className}">${initials}</div>`;
 };
 
+const avatarCircle = (url, initials, sizePx, fontPx) => {
+  if(url) return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${API.replace('/api','')}${url}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`;
+  return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:${fontPx}px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+};
+
 const linkifyMentions = (text) => {
   return text.replace(/(^|[\s])@([a-zA-Z0-9_]{2,30})/g, (match, pre, username) => {
     return `${pre}<span class="mention-link" onclick="event.stopPropagation();viewProfileByUsername('${username}')" style="color:var(--accent);font-weight:600;cursor:pointer">@${username}</span>`;
@@ -2395,7 +2400,7 @@ const renderSuggestions = (users) => {
   if(!users.length){ c.innerHTML=`<div class="empty"><div class="empty-title">No suggestions</div><div class="empty-body">Check back as more creators join.</div></div>`; return; }
   c.innerHTML = users.map(u=>`
     <div class="suggestion-row">
-      <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
+      <div onclick="viewProfile('${u.userId}')" style="cursor:pointer">${avatarCircle(u.avatarUrl, (u.fullName||'?')[0].toUpperCase(), 40, 14)}</div>
       <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
         <div class="suggestion-name">${u.fullName||''}${getPlanCheck(u)}</div>
         <div class="suggestion-bio">${u.bio||'MeriSocial creator'}</div>
@@ -2546,9 +2551,9 @@ const viewFollowers = async (userId) => {
     <span style="font-size:16px;font-weight:700">Followers</span>
   </div>
   ${users.map(u=>`<div class="suggestion-row">
-    <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
+    <div onclick="viewProfile('${u.userId}')" style="cursor:pointer">${avatarCircle(u.avatarUrl, (u.fullName||'?')[0].toUpperCase(), 40, 14)}</div>
     <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-      <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+      <div class="suggestion-name">${u.fullName||''}${getPlanCheck(u)}</div>
       <div class="suggestion-bio">${u.bio||''}</div>
     </div>
   </div>`).join('')||`<div class="empty"><div class="empty-title">No followers yet</div></div>`}`;
@@ -2564,9 +2569,9 @@ const viewFollowing = async (userId) => {
     <span style="font-size:16px;font-weight:700">Following</span>
   </div>
   ${users.map(u=>`<div class="suggestion-row">
-    <div class="profile-avatar" style="width:40px;height:40px;font-size:14px;cursor:pointer" onclick="viewProfile('${u.userId}')">${(u.fullName||'?')[0].toUpperCase()}</div>
+    <div onclick="viewProfile('${u.userId}')" style="cursor:pointer">${avatarCircle(u.avatarUrl, (u.fullName||'?')[0].toUpperCase(), 40, 14)}</div>
     <div class="suggestion-info" onclick="viewProfile('${u.userId}')" style="cursor:pointer">
-      <div class="suggestion-name">${u.fullName||''}${u.isPremium?CHECK_SVG:''}</div>
+      <div class="suggestion-name">${u.fullName||''}${getPlanCheck(u)}</div>
       <div class="suggestion-bio">${u.bio||''}</div>
     </div>
   </div>`).join('')||`<div class="empty"><div class="empty-title">Not following anyone yet</div></div>`}`;
