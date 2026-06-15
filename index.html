@@ -749,6 +749,35 @@
     .chat-input-row input:focus{border-color:var(--accent)}
     .chat-send-btn{background:var(--accent);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
     .chat-send-btn svg{width:15px;height:15px;stroke:#fff;stroke-width:2.5}
+
+    /* CREATOR STUDIO / STATS */
+    .cs-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--white);cursor:pointer}
+    .cs-row:hover{background:var(--bg)}
+    .cs-row svg{width:20px;height:20px;stroke:var(--text);flex-shrink:0}
+    .cs-row .cs-label{flex:1;font-size:15px;font-weight:600;color:var(--text)}
+    .cs-row .cs-sub{font-size:12px;color:var(--text-secondary);margin-top:1px}
+    .cs-chevron{width:16px;height:16px;stroke:var(--text-tertiary);flex-shrink:0}
+    .cs-section-title{font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;padding:16px 16px 8px}
+    .range-pills{display:flex;gap:8px;padding:12px 16px;overflow-x:auto}
+    .range-pill{flex-shrink:0;padding:6px 16px;border-radius:var(--radius-pill);border:1px solid var(--border-dark);background:var(--white);font-family:var(--font);font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+    .range-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
+    .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px}
+    .ov-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px}
+    .ov-card .ov-label{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .ov-card .ov-value{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+    .ov-card .ov-delta{font-size:12px;font-weight:600;margin-top:2px}
+    .ov-delta.up{color:var(--green)}
+    .ov-delta.down{color:var(--red)}
+    .bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:16px;background:var(--white);border:1px solid var(--border);border-radius:12px;margin:0 16px}
+    .bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+    .bar-chart-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .3s}
+    .bar-chart-label{font-size:10px;color:var(--text-tertiary)}
+    .elig-row{display:flex;align-items:flex-start;gap:12px;padding:16px;border-bottom:1px solid var(--border);background:var(--white)}
+    .elig-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .elig-icon.met{background:#e6f9f3;color:var(--green)}
+    .elig-icon.unmet{background:var(--bg);color:var(--text-tertiary);border:1px solid var(--border-dark)}
+    .elig-text{font-size:14px;color:var(--text);line-height:1.4}
+    .elig-progress{font-size:12px;color:var(--text-secondary);margin-top:3px}
   </style>
 </head>
 <body>
@@ -1052,6 +1081,10 @@
         <button onclick="closeDrawer();renderLeaderboard($('tab-content'))" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Stats &amp; Leaderboard
+        </button>
+        <button onclick="closeDrawer();renderCreatorStudio($('tab-content'))" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l4-4-2.5-2.5-4 4zM19 3a9 9 0 0 0-9 9c0 .5.1 1 .2 1.5L12 15.5l1.5 1.5c.5.1 1 .2 1.5.2a9 9 0 0 0 9-9V3h-5z"/></svg>
+          Creator Studio
         </button>
         <button onclick="closeDrawer();showScreen('screen-subscribe');loadPlans()" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2695,6 +2728,151 @@ const deleteMyComment = async (postId, commentId) => {
     const el = $(`comment-${commentId}`);
     if (el) el.remove();
   }
+};
+
+// ─── CREATOR STUDIO ────────────────────────────────
+const csBackButton = (onClick) => `
+  <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--white)">
+    <button onclick="${onClick}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <span style="font-size:16px;font-weight:700" id="cs-header-title">Creator Studio</span>
+  </div>`;
+
+const renderCreatorStudio = (c) => {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+
+  const isPremium = currentUser?.isPremium ||
+    (currentUser?.subscriptionStatus === 'active' &&
+     currentUser?.subscriptionExpiry &&
+     new Date(currentUser.subscriptionExpiry) > new Date());
+
+  c.innerHTML = `
+    ${csBackButton("renderProfile($('tab-content'),'me')")}
+    <div class="cs-section-title">Programs</div>
+    <div class="cs-row" onclick="renderEligibility($('tab-content'))">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>
+      <div><div class="cs-label">Revenue Sharing</div><div class="cs-sub">Earn from your posts</div></div>
+      <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="cs-section-title">Tools</div>
+    <div class="cs-row" onclick="renderCreatorAnalytics($('tab-content'))">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <div><div class="cs-label">Analytics</div><div class="cs-sub">Impressions, engagement, growth</div></div>
+      <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    ${!isPremium ? `
+    <div style="background:#e8f5fd;border:1px solid #b3d9f7;border-radius:12px;padding:14px 16px;margin:16px;font-size:13px;color:var(--text-secondary);line-height:1.5">
+      <strong style="color:var(--text)">Unlock the full creator toolkit.</strong> Premium members get verification, payout eligibility, and detailed analytics.
+      <span class="link" onclick="showScreen('screen-subscribe');loadPlans()" style="display:block;margin-top:4px">Upgrade now</span>
+    </div>` : ''}
+  `;
+};
+
+const renderEligibility = async (c) => {
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  const {ok,data} = await request('/stats/eligibility');
+  if(!ok) {
+    c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Try again later.</div></div>`;
+    return;
+  }
+
+  const { eligible, requirements } = data.data;
+
+  const rows = requirements.map(r => {
+    const icon = r.met
+      ? `<div class="elig-icon met"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>`
+      : `<div class="elig-icon unmet"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;
+    const progress = (r.target !== undefined)
+      ? `<div class="elig-progress">${(r.current||0).toLocaleString()} / ${r.target.toLocaleString()}</div>`
+      : '';
+    return `<div class="elig-row">${icon}<div><div class="elig-text">${r.label}</div>${progress}</div></div>`;
+  }).join('');
+
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `
+    <div style="padding:20px 16px 8px">
+      <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px">${eligible ? "You're eligible! 🎉" : "Almost there"}</div>
+      <div style="font-size:14px;color:var(--text-secondary);line-height:1.5">
+        ${eligible
+          ? "You meet MeriSocial's requirements for Creator Revenue Sharing. Payouts are reviewed monthly and sent to your linked MeritWise wallet."
+          : "Here's what's needed to unlock Creator Revenue Sharing. MeriSocial's bar is lower than other platforms — keep posting and growing your premium audience."}
+      </div>
+    </div>
+    ${rows}
+    <div style="font-size:11px;color:var(--text-tertiary);padding:16px;text-align:center;line-height:1.6">
+      MeriSocial reviews eligibility monthly. Requirements may be adjusted as the platform grows.
+    </div>
+  `;
+};
+
+let csCurrentRange = '7d';
+
+const renderCreatorAnalytics = async (c, range) => {
+  csCurrentRange = range || csCurrentRange || '7d';
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  const {ok,data} = await request(`/stats/overview?range=${csCurrentRange}`);
+  if(!ok) {
+    c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Try again later.</div></div>`;
+    return;
+  }
+
+  const { days, postsByDay, repliesByDay, followsOverTime, totals } = data.data;
+
+  const RANGES = [['7d','7D'],['2w','2W'],['4w','4W'],['3m','3M']];
+  const rangePills = RANGES.map(([key,label]) =>
+    `<button class="range-pill${csCurrentRange===key?' active':''}" onclick="renderCreatorAnalytics($('tab-content'),'${key}')">${label}</button>`
+  ).join('');
+
+  // Posts/Replies bar chart
+  const maxBar = Math.max(1, ...days.map(d => Math.max(postsByDay[d]||0, repliesByDay[d]||0)));
+  const barChart = days.map(d => {
+    const p = postsByDay[d]||0, r = repliesByDay[d]||0;
+    const label = new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="bar-chart-col">
+      <div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">
+        <div class="bar-chart-bar" style="background:var(--accent);height:${(p/maxBar)*100}%;flex:1"></div>
+        <div class="bar-chart-bar" style="background:var(--green);height:${(r/maxBar)*100}%;flex:1"></div>
+      </div>
+      <div class="bar-chart-label">${label}</div>
+    </div>`;
+  }).join('');
+
+  // Follows over time
+  const maxFollow = Math.max(1, ...followsOverTime.map(f => Math.max(f.newFollows, f.unfollows)));
+  const followChart = followsOverTime.map(f => {
+    const label = new Date(f.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="bar-chart-col">
+      <div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">
+        <div class="bar-chart-bar" style="background:var(--accent);height:${(f.newFollows/maxFollow)*100}%;flex:1"></div>
+        <div class="bar-chart-bar" style="background:var(--red);height:${(f.unfollows/maxFollow)*100}%;flex:1"></div>
+      </div>
+      <div class="bar-chart-label">${label}</div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `
+    <div class="range-pills">${rangePills}</div>
+    <div class="ov-grid">
+      <div class="ov-card"><div class="ov-label">Impressions</div><div class="ov-value">${totals.impressions.toLocaleString()}</div></div>
+      <div class="ov-card"><div class="ov-label">Engagement rate</div><div class="ov-value">${totals.engagementRate}%</div></div>
+      <div class="ov-card"><div class="ov-label">Engagements</div><div class="ov-value">${totals.engagements.toLocaleString()}</div></div>
+      <div class="ov-card"><div class="ov-label">Followers</div><div class="ov-value">${totals.followersCount.toLocaleString()}</div></div>
+      <div class="ov-card"><div class="ov-label">Likes</div><div class="ov-value">${totals.likes.toLocaleString()}</div></div>
+      <div class="ov-card"><div class="ov-label">Replies</div><div class="ov-value">${totals.replies.toLocaleString()}</div></div>
+    </div>
+    <div class="cs-section-title">Posts &amp; replies</div>
+    <div style="display:flex;gap:14px;padding:0 16px 8px;font-size:12px;color:var(--text-secondary)">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:inline-block"></span>Posts</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span>Replies</span>
+    </div>
+    <div class="bar-chart">${barChart}</div>
+    <div class="cs-section-title">Follows over time</div>
+    <div style="display:flex;gap:14px;padding:0 16px 8px;font-size:12px;color:var(--text-secondary)">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:inline-block"></span>New follows</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--red);display:inline-block"></span>Unfollows</span>
+    </div>
+    <div class="bar-chart" style="margin-bottom:24px">${followChart}</div>
+  `;
 };
 
 // ─── LEADERBOARD ─────────────────────────────────────────────────
