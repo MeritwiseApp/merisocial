@@ -1640,21 +1640,25 @@ const openPostDetail = async (postId) => {
 
   html += `<div id="reply-banner-${post.postId}"></div>`;
 
-  const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
-  const myAvatarHtml = currentUser?.avatarUrl
-    ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
-    : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
-  html += `<div class="comment-input-row">
-    ${myAvatarHtml}
-    <input class="comment-input" id="comment-input-${post.postId}" type="text" placeholder="Add a comment..." maxlength="300"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${post.postId}')}"/>
-    <button class="comment-send-btn" onclick="sendComment('${post.postId}')">
-      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
-  </div>`;
-  if(!isPremium) {
-    html += `<div style="padding:6px 16px 10px;font-size:11px;color:var(--text-tertiary)">Free accounts: 8 comments/day. <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade</span> for unlimited.</div>`;
+  if(isPremium) {
+    const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
+    const myAvatarHtml = currentUser?.avatarUrl
+      ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
+    html += `<div class="comment-input-row">
+      ${myAvatarHtml}
+      <input class="comment-input" id="comment-input-${post.postId}" type="text" placeholder="Add a comment..." maxlength="300"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${post.postId}')}"/>
+      <button class="comment-send-btn" onclick="sendComment('${post.postId}')">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>`;
+  } else {
+    html += `<div style="padding:10px 16px;font-size:13px;color:var(--text-secondary)">
+      <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</span> to comment.
+    </div>`;
   }
+
 
   section.innerHTML = (topLevel.length ? '' : `<div style="padding:16px;font-size:13px;color:var(--text-tertiary);text-align:center">No comments yet. Be the first to reply.</div>`) + html;
 
@@ -2108,6 +2112,7 @@ const renderCommunity = async (c) => {
       </div>
     </div>` : ''}
 
+    ${isPremium ? `
     <div class="compose-box">
       <div style="display:flex;gap:10px;align-items:flex-start">
         ${currentUser?.avatarUrl
@@ -2117,7 +2122,6 @@ const renderCommunity = async (c) => {
           <textarea class="compose-textarea" id="compose-body" placeholder="Share a win, tip, or update with the community..." maxlength="500" oninput="updateCharCount(this)"></textarea>
           <img id="compose-preview-white" style="display:none;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);max-height:260px;object-fit:cover"/>
           <input type="file" id="compose-image-file-white" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewImageWhite(this)"/>
-          ${!isPremium ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">Free accounts can post up to 2 times per day. <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade</span> for unlimited posting.</div>` : ''}
           <div class="compose-footer">
             <div style="display:flex;align-items:center;gap:10px">
               <button onclick="$('compose-image-file-white').click()" style="background:none;border:none;cursor:pointer;color:var(--accent);padding:4px;display:flex;align-items:center" title="Add image">
@@ -2134,7 +2138,7 @@ const renderCommunity = async (c) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>` : ''}
 
     <div class="feed-tabs" id="community-filter-tabs">
       ${['all','milestone','win','tip','question'].map(t =>
@@ -2560,20 +2564,23 @@ const toggleComments = async (postId) => {
 
   html += `<div id="reply-banner-${postId}"></div>`;
 
-  const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
-  const myAvatarHtml = currentUser?.avatarUrl
-    ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
-    : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
-  html += `<div class="comment-input-row">
-    ${myAvatarHtml}
-    <input class="comment-input" id="comment-input-${postId}" type="text" placeholder="Add a comment..." maxlength="300"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${postId}')}"/>
-    <button class="comment-send-btn" onclick="sendComment('${postId}')">
-      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
-  </div>`;
-  if(!isPremium) {
-    html += `<div style="padding:6px 16px 10px;font-size:11px;color:var(--text-tertiary)">Free accounts: 8 comments/day. <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade</span> for unlimited.</div>`;
+  if(isPremium) {
+    const myInitials = (currentUser?.firstName||'?')[0].toUpperCase();
+    const myAvatarHtml = currentUser?.avatarUrl
+      ? `<div class="post-avatar" style="width:28px;height:28px;font-size:11px;overflow:hidden;padding:0"><img src="${API.replace('/api','')}${currentUser.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="post-avatar" style="width:28px;height:28px;font-size:11px">${myInitials}</div>`;
+    html += `<div class="comment-input-row">
+      ${myAvatarHtml}
+      <input class="comment-input" id="comment-input-${postId}" type="text" placeholder="Add a comment..." maxlength="300"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment('${postId}')}"/>
+      <button class="comment-send-btn" onclick="sendComment('${postId}')">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>`;
+  } else {
+    html += `<div style="padding:10px 16px;font-size:13px;color:var(--text-secondary)">
+      <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade to Premium</span> to comment.
+    </div>`;
   }
 
   section.innerHTML = (topLevel.length ? '' : `<div style="padding:10px 16px;font-size:13px;color:var(--text-tertiary)">No comments yet.</div>`) + html;
