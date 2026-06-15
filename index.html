@@ -1942,7 +1942,7 @@ const renderHandles = async c => {
           <div class="handle-platform">${h.platform.charAt(0).toUpperCase()+h.platform.slice(1)}</div>
           ${h.rejectionReason?`<div class="text-xs text-secondary mt4">${h.rejectionReason}</div>`:''}
         </div>
-        ${h.status==='approved'?STATUS_BADGE['approved']:`<button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteHandle('${h.handleId}')">Remove</button>`}
+        ${h.status==='approved'?`<span style="font-size:11px;color:var(--text-tertiary)">Active</span>`:`<button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteHandle('${h.handleId}')">Remove</button>`}
       </div>`;
     });
   }
