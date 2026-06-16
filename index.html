@@ -788,6 +788,23 @@
     .bar-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;display:none;z-index:10;pointer-events:none}
     .bar-chart-col:hover .bar-tooltip{display:block}
     .empty-chart-note{font-size:12px;color:var(--text-tertiary);text-align:center;padding:8px 0 4px}
+    .cs-tabbar{display:flex;border-bottom:1px solid var(--border);background:var(--white);overflow-x:auto}
+    .cs-tab{flex-shrink:0;padding:13px 16px;font-size:14px;font-weight:500;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);white-space:nowrap}
+    .cs-tab.active{color:var(--text);font-weight:700;border-bottom-color:var(--accent)}
+    .cs-page-title{font-size:21px;font-weight:700;color:var(--text);padding:16px 16px 4px;letter-spacing:-.3px}
+    .metric-select-row{display:flex;gap:8px;padding:10px 16px 4px}
+    .metric-select{position:relative;flex:1}
+    .metric-select-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--white);border:1px solid var(--border-dark);border-radius:10px;padding:9px 12px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+    .metric-select-btn .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;margin-right:6px}
+    .metric-dd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1px solid var(--border-dark);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:50;max-height:280px;overflow-y:auto;display:none}
+    .metric-dd.open{display:block}
+    .metric-dd-item{padding:11px 14px;font-size:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+    .metric-dd-item:hover{background:var(--bg)}
+    .metric-dd-item.selected{font-weight:700}
+    .program-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--white)}
+    .program-row svg{width:20px;height:20px;stroke:var(--text);flex-shrink:0}
+    .program-status{font-size:12px;font-weight:600;color:var(--text-tertiary);background:var(--bg);padding:4px 10px;border-radius:var(--radius-pill);flex-shrink:0}
+    .program-status.eligible{color:var(--green);background:#e6f9f3}
     .elig-row{display:flex;align-items:flex-start;gap:12px;padding:16px;border-bottom:1px solid var(--border);background:var(--white)}
     .elig-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
     .elig-icon.met{background:#e6f9f3;color:var(--green)}
@@ -2746,14 +2763,13 @@ const deleteMyComment = async (postId, commentId) => {
   }
 };
 
-// ─── CREATOR STUDIO ────────────────────────────────
-const csBackButton = (onClick) => `
+const csBackButton = (onClick, title) => `
   <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--white)">
     <button onclick="${onClick}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-    <span style="font-size:16px;font-weight:700" id="cs-header-title">Creator Studio</span>
+    <span style="font-size:16px;font-weight:700">${title||'Creator Studio'}</span>
   </div>`;
 
-const renderCreatorStudio = (c) => {
+const renderCreatorStudio = async (c) => {
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
 
   const isPremium = currentUser?.isPremium ||
@@ -2761,12 +2777,23 @@ const renderCreatorStudio = (c) => {
      currentUser?.subscriptionExpiry &&
      new Date(currentUser.subscriptionExpiry) > new Date());
 
-  c.innerHTML = `
-    ${csBackButton("renderProfile($('tab-content'),'me')")}
-    <div class="cs-section-title">Programs</div>
-    <div class="cs-row" onclick="renderEligibility($('tab-content'))">
+  c.innerHTML = csBackButton("renderProfile($('tab-content'),'me')") + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  const {ok,data} = isPremium ? await request('/stats/eligibility') : {ok:false,data:null};
+  const revenueEligible = ok && data.data.eligible;
+
+  c.innerHTML = csBackButton("renderProfile($('tab-content'),'me')") + `
+    <div class="cs-section-title" style="padding-top:14px">Programs</div>
+    <div class="program-row" onclick="renderEligibility($('tab-content'))" style="cursor:pointer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>
-      <div><div class="cs-label">Revenue Sharing</div><div class="cs-sub">Earn from your posts</div></div>
+      <div style="flex:1"><div class="cs-label">Revenue Sharing</div><div class="cs-sub">Earn from your posts</div></div>
+      <span class="program-status${revenueEligible?' eligible':''}">${revenueEligible?'Eligible':'Ineligible'}</span>
+      <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="program-row" onclick="toast('Subscriptions program is coming soon.','')" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M17 7l2 2 4-4"/></svg>
+      <div style="flex:1"><div class="cs-label">Subscriptions</div><div class="cs-sub">Let fans pay to follow you</div></div>
+      <span class="program-status">Coming soon</span>
       <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
     <div class="cs-section-title">Tools</div>
@@ -2775,11 +2802,37 @@ const renderCreatorStudio = (c) => {
       <div><div class="cs-label">Analytics</div><div class="cs-sub">Impressions, engagement, growth</div></div>
       <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
+    <div class="cs-row" onclick="renderInspiration($('tab-content'))">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 5L19 8.5 13.5 11 12 16l-1.5-5L5 8.5 10.5 6z"/></svg>
+      <div><div class="cs-label">Inspiration</div><div class="cs-sub">Your top posts by engagement</div></div>
+      <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="cs-section-title">Support</div>
+    <div class="cs-row" onclick="openTerms()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div><div class="cs-label">Contact support</div></div>
+      <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
     ${!isPremium ? `
     <div style="background:#e8f5fd;border:1px solid #b3d9f7;border-radius:12px;padding:14px 16px;margin:16px;font-size:13px;color:var(--text-secondary);line-height:1.5">
       <strong style="color:var(--text)">Unlock the full creator toolkit.</strong> Premium members get verification, payout eligibility, and detailed analytics.
       <span class="link" onclick="showScreen('screen-subscribe');loadPlans()" style="display:block;margin-top:4px">Upgrade now</span>
     </div>` : ''}
+  `;
+};
+
+const renderInspiration = async (c) => {
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Inspiration') + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+
+  const {ok,data} = await request('/community/feed?page=1&limit=100');
+  const myPosts = ok ? (data.data?.posts||[]).filter(p=>p.userId===currentUser?.userId) : [];
+  myPosts.sort((a,b) => ((b.reactionCount||0)+(b.commentCount||0)+(b.viewCount||0)) - ((a.reactionCount||0)+(a.commentCount||0)+(a.viewCount||0)));
+  const top = myPosts.slice(0,10);
+
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Inspiration') + `
+    <div class="cs-page-title" style="font-size:18px">Top posts by engagement</div>
+    <div style="padding:0 16px 12px;font-size:13px;color:var(--text-secondary)">Ranked by likes, replies, and views combined</div>
+    ${top.length ? top.map(p=>buildPostHTML(p)).join('') : `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">Share something to see it ranked here.</div></div>`}
   `;
 };
 
@@ -2804,13 +2857,12 @@ const renderEligibility = async (c) => {
     return `<div class="elig-row">${icon}<div><div class="elig-text">${r.label}</div>${progress}</div></div>`;
   }).join('');
 
-  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", eligible ? "You're eligible" : 'Check back later') + `
     <div style="padding:20px 16px 8px">
-      <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px">${eligible ? "You're eligible! 🎉" : "Almost there"}</div>
       <div style="font-size:14px;color:var(--text-secondary);line-height:1.5">
         ${eligible
           ? "You meet MeriSocial's requirements for Creator Revenue Sharing. Payouts are reviewed monthly and sent to your linked MeritWise wallet."
-          : "Here's what's needed to unlock Creator Revenue Sharing. MeriSocial's bar is lower than other platforms — keep posting and growing your premium audience."}
+          : "Unfortunately, you're not yet eligible for Creator Revenue Sharing. You'll need to meet the requirements below to participate."}
       </div>
     </div>
     ${rows}
@@ -2821,8 +2873,41 @@ const renderEligibility = async (c) => {
 };
 
 let csCurrentRange = '7d';
+let csCurrentMetricA = 'impressions';
+let csCurrentTab = 'overview';
+
+const METRIC_DEFS = {
+  impressions:    { label: 'Impressions',    color: '#1d9bf0' },
+  engagementRate: { label: 'Engagement rate', color: '#00ba7c' },
+  engagements:    { label: 'Engagements',    color: '#f4212e' },
+  likes:          { label: 'Likes',          color: '#f4212e' },
+  replies:        { label: 'Replies',        color: '#1d9bf0' },
+  posts:          { label: 'Posts',          color: '#1d9bf0' },
+  newFollowers:   { label: 'New follows',    color: '#00ba7c' }
+};
 
 const ovIcon = (svgInner, bg, fg) => `<div class="ov-icon" style="background:${bg};color:${fg}">${svgInner}</div>`;
+
+const buildSingleMetricChart = (labels, series, color) => {
+  const max = Math.max(1, ...series);
+  const hasAnyData = series.some(v=>v>0);
+  const cols = labels.map((label, i) => {
+    const v = series[i] || 0;
+    const h = max > 0 ? Math.max(v>0?6:0, (v/max)*100) : 0;
+    return `<div class="bar-chart-col">
+      <div class="bar-tooltip">${label}<br>${v.toLocaleString()}</div>
+      <div class="bar-chart-bars">
+        <div class="bar-chart-bar" style="background:${color};height:${h}%"></div>
+      </div>
+      <div class="bar-chart-label">${label}</div>
+    </div>`;
+  }).join('');
+  return { html: `<div class="bar-chart">
+      <div class="bar-chart-gridline" style="bottom:0"></div>
+      <div class="bar-chart-gridline" style="bottom:50%;opacity:.6"></div>
+      ${cols}
+    </div>`, hasAnyData };
+};
 
 const buildBarChart = (labels, seriesA, seriesB, colorA, colorB) => {
   const max = Math.max(1, ...seriesA, ...seriesB);
@@ -2853,17 +2938,77 @@ const fmtDelta = (val) => {
   return `<span class="ov-delta flat">No change</span>`;
 };
 
+let _csOverviewData = null;
+
+const toggleMetricDropdown = () => {
+  $('metric-dd-1')?.classList.toggle('open');
+};
+
+const selectMetric = (key) => {
+  csCurrentMetricA = key;
+  $('metric-dd-1')?.classList.remove('open');
+  renderMainChart();
+};
+
+const renderMainChart = () => {
+  if (!_csOverviewData) return;
+  const { days, postsByDay, repliesByDay, impressionsByDay, totals } = _csOverviewData;
+  const dayLabels = days.map(d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+
+  let series;
+  if (csCurrentMetricA === 'impressions') series = days.map(d => impressionsByDay[d]||0);
+  else if (csCurrentMetricA === 'posts')   series = days.map(d => postsByDay[d]||0);
+  else if (csCurrentMetricA === 'replies') series = days.map(d => repliesByDay[d]||0);
+  else series = days.map(d => (postsByDay[d]||0) + (repliesByDay[d]||0));
+
+  const def = METRIC_DEFS[csCurrentMetricA];
+  const chart = buildSingleMetricChart(dayLabels, series, def.color);
+
+  const holder = $('main-chart-holder');
+  if (holder) {
+    holder.innerHTML = `
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:${def.color}"></span>${def.label}</span>
+      </div>
+      ${chart.html}
+      ${!chart.hasAnyData ? `<div class="empty-chart-note">No data in this period yet</div>` : ''}
+    `;
+  }
+
+  const btn = $('metric-select-btn-1');
+  if (btn) btn.innerHTML = `<span style="display:flex;align-items:center"><span class="dot" style="background:${def.color}"></span>${def.label}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+  const dd = $('metric-dd-1');
+  if (dd) dd.innerHTML = Object.entries(METRIC_DEFS).filter(([k])=>['impressions','posts','replies'].includes(k)).map(([key,d]) =>
+    `<div class="metric-dd-item${csCurrentMetricA===key?' selected':''}" onclick="selectMetric('${key}')">${d.label}${csCurrentMetricA===key?'<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><polyline points=\"20 6 9 17 4 12\"/></svg>':''}</div>`
+  ).join('');
+};
+
+const switchCsTab = (tab) => {
+  csCurrentTab = tab;
+  document.querySelectorAll('.cs-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const body = $('cs-tab-body');
+  if (!body) return;
+  if (tab === 'overview') {
+    body.style.display = 'block';
+  } else {
+    body.innerHTML = `<div class="empty"><div class="empty-title">Coming soon</div><div class="empty-body">${tab.charAt(0).toUpperCase()+tab.slice(1)} analytics are on the way.</div></div>`;
+    body.style.display = 'block';
+  }
+};
+
 const renderCreatorAnalytics = async (c, range) => {
   csCurrentRange = range || csCurrentRange || '7d';
-  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Analytics') + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
 
   const {ok,data} = await request(`/stats/overview?range=${csCurrentRange}`);
   if(!ok) {
-    c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Try again later.</div></div>`;
+    c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Analytics') + `<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Try again later.</div></div>`;
     return;
   }
 
-  const { days, postsByDay, repliesByDay, followsOverTime, totals } = data.data;
+  _csOverviewData = data.data;
+  const { days, postsByDay, repliesByDay, followsOverTime, totals, deltas } = data.data;
 
   const RANGES = [['7d','7D'],['2w','2W'],['4w','4W'],['3m','3M']];
   const rangePills = RANGES.map(([key,label]) =>
@@ -2879,74 +3024,109 @@ const renderCreatorAnalytics = async (c, range) => {
   const postsChart  = buildBarChart(dayLabels, postsArr, repliesArr, '#1d9bf0', '#00ba7c');
   const followChart = buildBarChart(dayLabels, newFArr, unfollowArr, '#1d9bf0', '#f4212e');
 
-  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `
-    <div class="range-pills">${rangePills}</div>
-    <div class="ov-grid">
-      <div class="ov-card featured">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
-        </div>
-        <div class="ov-label">Impressions</div>
-        <div class="ov-value">${totals.impressions.toLocaleString()}</div>
-      </div>
-      <div class="ov-card">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', '#e6f9f3', 'var(--green)')}
-        </div>
-        <div class="ov-label">Engagement rate</div>
-        <div class="ov-value">${totals.engagementRate}%</div>
-      </div>
-      <div class="ov-card">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', '#fef2f2', 'var(--red)')}
-        </div>
-        <div class="ov-label">Engagements</div>
-        <div class="ov-value">${totals.engagements.toLocaleString()}</div>
-      </div>
-      <div class="ov-card">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', '#fffde6', '#92620a')}
-        </div>
-        <div class="ov-label">Followers</div>
-        <div class="ov-value">${totals.followersCount.toLocaleString()}</div>
-      </div>
-      <div class="ov-card">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>', '#fef2f2', 'var(--red)')}
-        </div>
-        <div class="ov-label">Likes</div>
-        <div class="ov-value">${totals.likes.toLocaleString()}</div>
-      </div>
-      <div class="ov-card">
-        <div class="ov-card-top">
-          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
-        </div>
-        <div class="ov-label">Replies</div>
-        <div class="ov-value">${totals.replies.toLocaleString()}</div>
-      </div>
+  c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Analytics') + `
+    <div class="cs-tabbar">
+      <button class="cs-tab active" data-tab="overview" onclick="switchCsTab('overview')">Overview</button>
+      <button class="cs-tab" data-tab="audience" onclick="switchCsTab('audience')">Audience</button>
+      <button class="cs-tab" data-tab="content" onclick="switchCsTab('content')">Content</button>
     </div>
+    <div id="cs-tab-body">
+      <div class="cs-page-title">Account overview</div>
+      <div class="range-pills">${rangePills}</div>
 
-    <div class="cs-section-title">Posts &amp; replies</div>
-    <div class="chart-card">
-      <div class="chart-legend">
-        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>Posts</span>
-        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#00ba7c"></span>Replies</span>
+      <div class="cs-section-title" style="padding-top:14px">Trend</div>
+      <div class="metric-select-row">
+        <div class="metric-select">
+          <button class="metric-select-btn" id="metric-select-btn-1" onclick="toggleMetricDropdown()"></button>
+          <div class="metric-dd" id="metric-dd-1"></div>
+        </div>
       </div>
-      ${postsChart.html}
-      ${!postsChart.hasAnyData ? `<div class="empty-chart-note">No posts or replies in this period yet</div>` : ''}
-    </div>
+      <div class="chart-card" id="main-chart-holder" style="margin-top:8px"></div>
 
-    <div class="cs-section-title">Follows over time</div>
-    <div class="chart-card" style="margin-bottom:28px">
-      <div class="chart-legend">
-        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>New follows</span>
-        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#f4212e"></span>Unfollows</span>
+      <div class="cs-section-title">Key metrics</div>
+      <div class="ov-grid">
+        <div class="ov-card featured">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+          </div>
+          <div class="ov-label">Impressions</div>
+          <div class="ov-value">${totals.impressions.toLocaleString()}</div>
+          ${fmtDelta(deltas.impressions)}
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', '#e6f9f3', 'var(--green)')}
+          </div>
+          <div class="ov-label">Engagement rate</div>
+          <div class="ov-value">${totals.engagementRate}%</div>
+          ${fmtDelta(deltas.engagementRate)}
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', '#fef2f2', 'var(--red)')}
+          </div>
+          <div class="ov-label">Engagements</div>
+          <div class="ov-value">${totals.engagements.toLocaleString()}</div>
+          ${fmtDelta(deltas.engagements)}
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', '#fffde6', '#92620a')}
+          </div>
+          <div class="ov-label">Followers</div>
+          <div class="ov-value">${totals.followersCount.toLocaleString()}</div>
+          ${fmtDelta(deltas.newFollowers)}
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>', '#fef2f2', 'var(--red)')}
+          </div>
+          <div class="ov-label">Likes</div>
+          <div class="ov-value">${totals.likes.toLocaleString()}</div>
+          ${fmtDelta(deltas.likes)}
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-top">
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+          </div>
+          <div class="ov-label">Replies</div>
+          <div class="ov-value">${totals.replies.toLocaleString()}</div>
+          ${fmtDelta(deltas.replies)}
+        </div>
       </div>
-      ${followChart.html}
-      ${!followChart.hasAnyData ? `<div class="empty-chart-note">No follower activity in this period yet</div>` : ''}
+
+      <div class="cs-section-title">Posts &amp; replies</div>
+      <div class="chart-card">
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>Posts</span>
+          <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#00ba7c"></span>Replies</span>
+        </div>
+        ${postsChart.html}
+        ${!postsChart.hasAnyData ? `<div class="empty-chart-note">No posts or replies in this period yet</div>` : ''}
+      </div>
+
+      <div class="cs-section-title">Follows over time</div>
+      <div class="chart-card" style="margin-bottom:28px">
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>New follows</span>
+          <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#f4212e"></span>Unfollows</span>
+        </div>
+        ${followChart.html}
+        ${!followChart.hasAnyData ? `<div class="empty-chart-note">No follower activity in this period yet</div>` : ''}
+      </div>
     </div>
   `;
+
+  renderMainChart();
 };
+
+document.addEventListener('click', (e) => {
+  const dd = $('metric-dd-1');
+  const btn = $('metric-select-btn-1');
+  if (dd && dd.classList.contains('open') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+    dd.classList.remove('open');
+  }
+});
 
 // ─── LEADERBOARD ─────────────────────────────────────────────────
 const renderLeaderboard = async (c) => {
