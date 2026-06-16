@@ -757,21 +757,37 @@
     .cs-row .cs-label{flex:1;font-size:15px;font-weight:600;color:var(--text)}
     .cs-row .cs-sub{font-size:12px;color:var(--text-secondary);margin-top:1px}
     .cs-chevron{width:16px;height:16px;stroke:var(--text-tertiary);flex-shrink:0}
-    .cs-section-title{font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;padding:16px 16px 8px}
-    .range-pills{display:flex;gap:8px;padding:12px 16px;overflow-x:auto}
-    .range-pill{flex-shrink:0;padding:6px 16px;border-radius:var(--radius-pill);border:1px solid var(--border-dark);background:var(--white);font-family:var(--font);font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+    .cs-section-title{font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;padding:20px 16px 10px}
+    .range-pills{display:flex;gap:6px;padding:14px 16px 4px}
+    .range-pill{flex:1;text-align:center;padding:7px 0;border-radius:var(--radius-pill);border:1px solid var(--border-dark);background:var(--white);font-family:var(--font);font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all .15s}
     .range-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
-    .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px}
-    .ov-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px}
-    .ov-card .ov-label{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
-    .ov-card .ov-value{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px}
-    .ov-card .ov-delta{font-size:12px;font-weight:600;margin-top:2px}
-    .ov-delta.up{color:var(--green)}
-    .ov-delta.down{color:var(--red)}
-    .bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:16px;background:var(--white);border:1px solid var(--border);border-radius:12px;margin:0 16px}
-    .bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
-    .bar-chart-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .3s}
-    .bar-chart-label{font-size:10px;color:var(--text-tertiary)}
+    .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 16px 8px}
+    .ov-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 14px 12px;position:relative;overflow:hidden}
+    .ov-card.featured{background:linear-gradient(135deg,var(--accent-light),var(--white));border-color:var(--accent)}
+    .ov-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .ov-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .ov-icon svg{width:14px;height:14px}
+    .ov-card .ov-label{font-size:12px;color:var(--text-secondary);font-weight:500}
+    .ov-card .ov-value{font-size:25px;font-weight:700;color:var(--text);letter-spacing:-.6px;line-height:1.1}
+    .ov-card .ov-delta{font-size:11.5px;font-weight:700;margin-top:5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:6px}
+    .ov-delta.up{color:var(--green);background:#e6f9f3}
+    .ov-delta.down{color:var(--red);background:#fef2f2}
+    .ov-delta.flat{color:var(--text-tertiary);background:var(--bg)}
+    .ov-delta svg{width:10px;height:10px}
+    .chart-card{background:var(--white);border:1px solid var(--border);border-radius:14px;margin:0 16px 16px;padding:16px 14px 10px;overflow:hidden}
+    .chart-legend{display:flex;gap:16px;margin-bottom:14px;padding-left:2px}
+    .chart-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);font-weight:500}
+    .chart-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;position:relative}
+    .bar-chart-gridline{position:absolute;left:0;right:0;height:1px;background:var(--border);z-index:0}
+    .bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative;z-index:1;cursor:pointer}
+    .bar-chart-bars{display:flex;gap:3px;align-items:flex-end;width:100%;height:100%}
+    .bar-chart-bar{flex:1;border-radius:4px 4px 1px 1px;min-height:3px;transition:opacity .15s}
+    .bar-chart-col:hover .bar-chart-bar{opacity:.75}
+    .bar-chart-label{font-size:10.5px;color:var(--text-tertiary);font-weight:500}
+    .bar-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;display:none;z-index:10;pointer-events:none}
+    .bar-chart-col:hover .bar-tooltip{display:block}
+    .empty-chart-note{font-size:12px;color:var(--text-tertiary);text-align:center;padding:8px 0 4px}
     .elig-row{display:flex;align-items:flex-start;gap:12px;padding:16px;border-bottom:1px solid var(--border);background:var(--white)}
     .elig-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
     .elig-icon.met{background:#e6f9f3;color:var(--green)}
@@ -2806,6 +2822,37 @@ const renderEligibility = async (c) => {
 
 let csCurrentRange = '7d';
 
+const ovIcon = (svgInner, bg, fg) => `<div class="ov-icon" style="background:${bg};color:${fg}">${svgInner}</div>`;
+
+const buildBarChart = (labels, seriesA, seriesB, colorA, colorB) => {
+  const max = Math.max(1, ...seriesA, ...seriesB);
+  const hasAnyData = seriesA.some(v=>v>0) || seriesB.some(v=>v>0);
+  const cols = labels.map((label, i) => {
+    const a = seriesA[i] || 0, b = seriesB[i] || 0;
+    const aH = max > 0 ? Math.max(a>0?6:0, (a/max)*100) : 0;
+    const bH = max > 0 ? Math.max(b>0?6:0, (b/max)*100) : 0;
+    return `<div class="bar-chart-col">
+      <div class="bar-tooltip">${label}<br>${a.toLocaleString()} / ${b.toLocaleString()}</div>
+      <div class="bar-chart-bars">
+        <div class="bar-chart-bar" style="background:${colorA};height:${aH}%"></div>
+        <div class="bar-chart-bar" style="background:${colorB};height:${bH}%"></div>
+      </div>
+      <div class="bar-chart-label">${label}</div>
+    </div>`;
+  }).join('');
+  return { html: `<div class="bar-chart">
+      <div class="bar-chart-gridline" style="bottom:0"></div>
+      <div class="bar-chart-gridline" style="bottom:50%;opacity:.6"></div>
+      ${cols}
+    </div>`, hasAnyData };
+};
+
+const fmtDelta = (val) => {
+  if (val > 0) return `<span class="ov-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>${val}%</span>`;
+  if (val < 0) return `<span class="ov-delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>${Math.abs(val)}%</span>`;
+  return `<span class="ov-delta flat">No change</span>`;
+};
+
 const renderCreatorAnalytics = async (c, range) => {
   csCurrentRange = range || csCurrentRange || '7d';
   c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
@@ -2823,55 +2870,81 @@ const renderCreatorAnalytics = async (c, range) => {
     `<button class="range-pill${csCurrentRange===key?' active':''}" onclick="renderCreatorAnalytics($('tab-content'),'${key}')">${label}</button>`
   ).join('');
 
-  // Posts/Replies bar chart
-  const maxBar = Math.max(1, ...days.map(d => Math.max(postsByDay[d]||0, repliesByDay[d]||0)));
-  const barChart = days.map(d => {
-    const p = postsByDay[d]||0, r = repliesByDay[d]||0;
-    const label = new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    return `<div class="bar-chart-col">
-      <div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">
-        <div class="bar-chart-bar" style="background:var(--accent);height:${(p/maxBar)*100}%;flex:1"></div>
-        <div class="bar-chart-bar" style="background:var(--green);height:${(r/maxBar)*100}%;flex:1"></div>
-      </div>
-      <div class="bar-chart-label">${label}</div>
-    </div>`;
-  }).join('');
+  const dayLabels = days.map(d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const postsArr   = days.map(d => postsByDay[d]||0);
+  const repliesArr = days.map(d => repliesByDay[d]||0);
+  const newFArr     = followsOverTime.map(f => f.newFollows);
+  const unfollowArr = followsOverTime.map(f => f.unfollows);
 
-  // Follows over time
-  const maxFollow = Math.max(1, ...followsOverTime.map(f => Math.max(f.newFollows, f.unfollows)));
-  const followChart = followsOverTime.map(f => {
-    const label = new Date(f.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    return `<div class="bar-chart-col">
-      <div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">
-        <div class="bar-chart-bar" style="background:var(--accent);height:${(f.newFollows/maxFollow)*100}%;flex:1"></div>
-        <div class="bar-chart-bar" style="background:var(--red);height:${(f.unfollows/maxFollow)*100}%;flex:1"></div>
-      </div>
-      <div class="bar-chart-label">${label}</div>
-    </div>`;
-  }).join('');
+  const postsChart  = buildBarChart(dayLabels, postsArr, repliesArr, '#1d9bf0', '#00ba7c');
+  const followChart = buildBarChart(dayLabels, newFArr, unfollowArr, '#1d9bf0', '#f4212e');
 
   c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))") + `
     <div class="range-pills">${rangePills}</div>
     <div class="ov-grid">
-      <div class="ov-card"><div class="ov-label">Impressions</div><div class="ov-value">${totals.impressions.toLocaleString()}</div></div>
-      <div class="ov-card"><div class="ov-label">Engagement rate</div><div class="ov-value">${totals.engagementRate}%</div></div>
-      <div class="ov-card"><div class="ov-label">Engagements</div><div class="ov-value">${totals.engagements.toLocaleString()}</div></div>
-      <div class="ov-card"><div class="ov-label">Followers</div><div class="ov-value">${totals.followersCount.toLocaleString()}</div></div>
-      <div class="ov-card"><div class="ov-label">Likes</div><div class="ov-value">${totals.likes.toLocaleString()}</div></div>
-      <div class="ov-card"><div class="ov-label">Replies</div><div class="ov-value">${totals.replies.toLocaleString()}</div></div>
+      <div class="ov-card featured">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+        </div>
+        <div class="ov-label">Impressions</div>
+        <div class="ov-value">${totals.impressions.toLocaleString()}</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', '#e6f9f3', 'var(--green)')}
+        </div>
+        <div class="ov-label">Engagement rate</div>
+        <div class="ov-value">${totals.engagementRate}%</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', '#fef2f2', 'var(--red)')}
+        </div>
+        <div class="ov-label">Engagements</div>
+        <div class="ov-value">${totals.engagements.toLocaleString()}</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', '#fffde6', '#92620a')}
+        </div>
+        <div class="ov-label">Followers</div>
+        <div class="ov-value">${totals.followersCount.toLocaleString()}</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>', '#fef2f2', 'var(--red)')}
+        </div>
+        <div class="ov-label">Likes</div>
+        <div class="ov-value">${totals.likes.toLocaleString()}</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top">
+          ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+        </div>
+        <div class="ov-label">Replies</div>
+        <div class="ov-value">${totals.replies.toLocaleString()}</div>
+      </div>
     </div>
+
     <div class="cs-section-title">Posts &amp; replies</div>
-    <div style="display:flex;gap:14px;padding:0 16px 8px;font-size:12px;color:var(--text-secondary)">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:inline-block"></span>Posts</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span>Replies</span>
+    <div class="chart-card">
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>Posts</span>
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#00ba7c"></span>Replies</span>
+      </div>
+      ${postsChart.html}
+      ${!postsChart.hasAnyData ? `<div class="empty-chart-note">No posts or replies in this period yet</div>` : ''}
     </div>
-    <div class="bar-chart">${barChart}</div>
+
     <div class="cs-section-title">Follows over time</div>
-    <div style="display:flex;gap:14px;padding:0 16px 8px;font-size:12px;color:var(--text-secondary)">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:inline-block"></span>New follows</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:var(--red);display:inline-block"></span>Unfollows</span>
+    <div class="chart-card" style="margin-bottom:28px">
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#1d9bf0"></span>New follows</span>
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#f4212e"></span>Unfollows</span>
+      </div>
+      ${followChart.html}
+      ${!followChart.hasAnyData ? `<div class="empty-chart-note">No follower activity in this period yet</div>` : ''}
     </div>
-    <div class="bar-chart" style="margin-bottom:24px">${followChart}</div>
   `;
 };
 
