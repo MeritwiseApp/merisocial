@@ -1274,6 +1274,29 @@
   </div>
 </div>
 
+<!-- PROMOTE POST MODAL -->
+<div class="modal-center" id="modal-promote">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-box-head">
+      <button onclick="closeModal('modal-promote')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:20px;line-height:1;padding:0">x</button>
+      <h3>Promote post</h3>
+      <div style="width:20px"></div>
+    </div>
+    <div class="modal-box-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">Promoted posts get priority placement in the community feed alongside sponsored content, reaching more members.</p>
+      <div class="field">
+        <label>Duration</label>
+        <select id="promote-days">
+          <option value="1">1 day — &#8358;2,000</option>
+          <option value="3" selected>3 days — &#8358;5,000</option>
+          <option value="7">7 days — &#8358;10,000</option>
+        </select>
+      </div>
+      <button class="btn btn-accent" id="btn-confirm-promote" onclick="confirmPromote()">Continue to payment</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADVERTISE SCREEN -->
 <div class="screen" id="screen-advertise" style="background:var(--white)">
   <div class="app-root">
@@ -1390,7 +1413,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     else toast(vd.message || 'Payment verification failed.', 'error');
     showScreen('screen-landing');
   }
-  if (ref && !params.get('ad_ref')) {
+  if (ref && params.get('promote_ref')) {
+    window.history.replaceState({}, '', window.location.pathname);
+    const vr = await fetch(`${API}/community/posts/promote/verify/${ref}`, { method:'POST', headers: token ? {'Authorization':`Bearer ${token}`} : {} });
+    const vd = await vr.json();
+    if (vr.ok) toast('Your post is now promoted!', 'success');
+    else toast(vd.message || 'Payment verification failed.', 'error');
+  }
+  if (ref && !params.get('ad_ref') && !params.get('promote_ref')) {
     window.history.replaceState({}, '', window.location.pathname);
     if (token) {
       toast('Verifying payment...', '');
@@ -1559,6 +1589,30 @@ const doCheckout = async () => {
   if(ok&&data.data?.authorization_url) window.location.href=data.data.authorization_url;
   else toast(data.message||'Payment initiation failed.','error');
 };
+
+// ─── PROMOTE OWN POST ──────────────────────────────
+let promoteTargetPostId = null;
+const openPromoteModal = (postId) => {
+  promoteTargetPostId = postId;
+  openModal('modal-promote');
+};
+
+const confirmPromote = async () => {
+  if (!promoteTargetPostId) return;
+  const days = $('promote-days').value;
+  setBtn('btn-confirm-promote', '', true);
+  const {ok,data} = await request(`/community/posts/${promoteTargetPostId}/promote/initiate`, {
+    method: 'POST',
+    body: JSON.stringify({ days, callbackUrl: 'https://social.meritwise.app/?promote_ref=true' })
+  });
+  setBtn('btn-confirm-promote', 'Continue to payment', false);
+  if (ok && data.data?.authorization_url) {
+    window.location.href = data.data.authorization_url;
+  } else {
+    toast(data.message || 'Could not start payment.', 'error');
+  }
+};
+
 
 // ─── ADVERTISE ────────────────────────────────────
 const RATE_PER_DAY_DISPLAY = 5000;
@@ -2467,9 +2521,14 @@ const buildPostHTML = (post) => {
           </div>
         </div>
         ${post.userId === currentUser?.userId
-          ? `<button class="post-action-btn" onclick="deleteMyPost('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
-               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-             </button>`
+          ? `<div style="display:flex;gap:6px;flex-shrink:0">
+               <button class="post-action-btn" onclick="openPromoteModal('${post.postId}')" style="padding:4px 8px;color:var(--accent)" title="Promote this post">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+               </button>
+               <button class="post-action-btn" onclick="deleteMyPost('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+               </button>
+             </div>`
           : ''}
       </div>
       ${typeTag}
