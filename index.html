@@ -684,6 +684,34 @@
     .sponsored-tag{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:5px}
     .sponsored-cta{display:inline-block;background:var(--text);color:#fff;border-radius:var(--radius-pill);font-size:13px;font-weight:700;padding:8px 18px;margin-top:8px;text-decoration:none}
 
+    /* PROMOTE FULL-PAGE MODULE */
+    .promo-hero{padding:24px 16px 8px}
+    .promo-hero-icon{width:52px;height:52px;background:var(--accent-light);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .promo-hero-icon svg{width:26px;height:26px;stroke:var(--accent)}
+    .promo-hero h1{font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:6px}
+    .promo-hero p{font-size:14px;color:var(--text-secondary);line-height:1.55}
+    .promo-step-label{font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;padding:20px 16px 10px}
+    .tier-card{display:flex;align-items:center;gap:14px;padding:16px;border:1.5px solid var(--border);border-radius:14px;margin:0 16px 10px;cursor:pointer;transition:border-color .15s,background .15s}
+    .tier-card.selected{border-color:var(--accent);background:var(--accent-light)}
+    .tier-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border-dark);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+    .tier-radio.on{border-color:var(--accent)}
+    .tier-radio.on::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--accent)}
+    .tier-info{flex:1}
+    .tier-days{font-size:15px;font-weight:700;color:var(--text)}
+    .tier-est{font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .tier-price{font-size:16px;font-weight:700;color:var(--text);text-align:right;white-space:nowrap}
+    .preview-frame{margin:0 16px 10px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--white)}
+    .preview-frame-label{background:var(--bg);padding:8px 14px;font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+    .promo-summary-row{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px}
+    .promo-summary-row .k{color:var(--text-secondary)}
+    .promo-summary-row .v{font-weight:600;color:var(--text)}
+    .promo-summary-total{display:flex;justify-content:space-between;padding:16px;font-size:17px;font-weight:700}
+    .promo-type-toggle{display:flex;gap:8px;padding:0 16px 16px}
+    .promo-type-btn{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);text-align:center;cursor:pointer;font-family:var(--font)}
+    .promo-type-btn.active{border-color:var(--accent);background:var(--accent-light)}
+    .promo-type-btn .ti{font-size:14px;font-weight:700;color:var(--text)}
+    .promo-type-btn .ts{font-size:12px;color:var(--text-secondary);margin-top:2px}
+
     /* LEADERBOARD */
     .lb-row{
       display:flex;align-items:center;gap:12px;
@@ -865,7 +893,7 @@
     <p class="landing-legal">
       By continuing you agree to our <span class="link" onclick="openTerms()">Terms and Community Rules</span>
     </p>
-    <p class="landing-legal"><span class="link" onclick="showScreen('screen-advertise')">Advertise on MeriSocial</span></p>
+    <p class="landing-legal"><span class="link" onclick="showScreen('screen-promote-landing')">Promote a post or advertise on MeriSocial</span></p>
   </div>
 </div>
 
@@ -1274,65 +1302,20 @@
   </div>
 </div>
 
-<!-- PROMOTE POST MODAL -->
-<div class="modal-center" id="modal-promote">
-  <div class="modal-box" style="max-width:380px">
-    <div class="modal-box-head">
-      <button onclick="closeModal('modal-promote')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:20px;line-height:1;padding:0">x</button>
-      <h3>Promote post</h3>
-      <div style="width:20px"></div>
-    </div>
-    <div class="modal-box-body">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">Promoted posts get priority placement in the community feed alongside sponsored content, reaching more members.</p>
-      <div class="field">
-        <label>Duration</label>
-        <select id="promote-days">
-          <option value="1">1 day — &#8358;2,000</option>
-          <option value="3" selected>3 days — &#8358;5,000</option>
-          <option value="7">7 days — &#8358;10,000</option>
-        </select>
-      </div>
-      <button class="btn btn-accent" id="btn-confirm-promote" onclick="confirmPromote()">Continue to payment</button>
-    </div>
-  </div>
-</div>
 
-<!-- ADVERTISE SCREEN -->
-<div class="screen" id="screen-advertise" style="background:var(--white)">
+<!-- ════════════════════════════════
+     PROMOTE / ADVERTISE — full page
+════════════════════════════════ -->
+<div class="screen" id="screen-promote-landing" style="background:var(--white)">
   <div class="app-root">
     <div class="topbar">
-      <button class="btn-ghost btn-sm" onclick="showScreen('screen-landing')" style="padding:6px 10px">
+      <button class="btn-ghost btn-sm" onclick="closePromoteFlow()" style="padding:6px 10px">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
       </button>
-      <span style="font-size:16px;font-weight:700;color:var(--text)">Advertise on MeriSocial</span>
+      <span style="font-size:16px;font-weight:700;color:var(--text)" id="promote-header-title">Promote on MeriSocial</span>
       <div style="width:40px"></div>
     </div>
-    <div class="page">
-      <div style="padding:20px 16px 8px">
-        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px">Reach engaged Nigerian creators and their audiences. Your sponsored post appears natively in the community feed.</div>
-      </div>
-      <div class="field" style="padding:0 16px"><label>Business / brand name</label><input id="ad-name" type="text" placeholder="Your business name"/></div>
-      <div class="field" style="padding:0 16px"><label>Contact email</label><input id="ad-email" type="email" placeholder="you@business.com"/></div>
-      <div class="field" style="padding:0 16px"><label>Ad text <span style="font-weight:400;color:var(--text-tertiary)">(500 chars)</span></label><textarea id="ad-body" maxlength="500" placeholder="Describe what you're promoting..."></textarea></div>
-      <div class="field" style="padding:0 16px">
-        <label>Image (optional)</label>
-        <input type="file" id="ad-image-file" accept="image/jpeg,image/png,image/webp"/>
-      </div>
-      <div class="field" style="padding:0 16px"><label>Link URL (optional)</label><input id="ad-link" type="text" placeholder="https://yourbusiness.com"/></div>
-      <div class="field" style="padding:0 16px"><label>Button text</label><input id="ad-cta" type="text" placeholder="Learn more" value="Learn more"/></div>
-      <div class="field" style="padding:0 16px">
-        <label>Duration (days)</label>
-        <select id="ad-duration" onchange="updateAdPrice()">
-          <option value="3">3 days — &#8358;15,000</option>
-          <option value="7" selected>7 days — &#8358;35,000</option>
-          <option value="14">14 days — &#8358;70,000</option>
-          <option value="30">30 days — &#8358;150,000</option>
-        </select>
-      </div>
-      <div class="px16 mt16 mb24">
-        <button class="btn btn-accent" id="btn-submit-ad" onclick="submitAd()">Continue to payment</button>
-      </div>
-    </div>
+    <div class="page" id="promote-page-body"></div>
   </div>
 </div>
 
@@ -1590,64 +1573,222 @@ const doCheckout = async () => {
   else toast(data.message||'Payment initiation failed.','error');
 };
 
-// ─── PROMOTE OWN POST ──────────────────────────────
-let promoteTargetPostId = null;
-const openPromoteModal = (postId) => {
-  promoteTargetPostId = postId;
-  openModal('modal-promote');
+// ─── PROMOTE / ADVERTISE (unified full-page flow) ──
+const PROMOTE_TIERS = [
+  { days: 1,  price: 3000,  label: '1 day' },
+  { days: 3,  price: 8000,  label: '3 days' },
+  { days: 7,  price: 18000, label: '1 week' },
+  { days: 14, price: 32000, label: '2 weeks' },
+  { days: 30, price: 60000, label: '1 month' },
+];
+let promoteTierIndex   = 1;
+let promoteOwnPostId   = null;   // set when promoting an existing post
+let promoteOwnPostData = null;   // the post object, for preview
+let promoteStep        = 'tier'; // 'tier' -> 'details' (ad only) -> 'review'
+let adDraft             = { advertiserName:'', advertiserEmail:'', body:'', linkUrl:'', ctaLabel:'Learn more', imageFile:null, imagePreviewUrl:null };
+
+const closePromoteFlow = () => {
+  promoteOwnPostId = null; promoteOwnPostData = null; promoteStep = 'tier';
+  if (currentUser) { showScreen('screen-home'); gotoTab('home'); }
+  else showScreen('screen-landing');
 };
 
-const confirmPromote = async () => {
-  if (!promoteTargetPostId) return;
-  const days = $('promote-days').value;
-  setBtn('btn-confirm-promote', '', true);
-  const {ok,data} = await request(`/community/posts/${promoteTargetPostId}/promote/initiate`, {
-    method: 'POST',
-    body: JSON.stringify({ days, callbackUrl: 'https://social.meritwise.app/?promote_ref=true' })
-  });
-  setBtn('btn-confirm-promote', 'Continue to payment', false);
-  if (ok && data.data?.authorization_url) {
-    window.location.href = data.data.authorization_url;
-  } else {
-    toast(data.message || 'Could not start payment.', 'error');
+const openPromoteForPost = (postId) => {
+  const cardEl = $(`post-${postId}`);
+  promoteOwnPostId = postId;
+  promoteOwnPostData = {
+    body: cardEl?.querySelector('.post-body')?.textContent || '',
+    avatarUrl: currentUser?.avatarUrl || null,
+    fullName: currentUser?.fullName || '',
+  };
+  promoteStep = 'tier';
+  promoteTierIndex = 1;
+  $('promote-header-title').textContent = 'Promote your post';
+  showScreen('screen-promote-landing');
+  renderPromoteFlow();
+};
+
+const renderPromoteFlow = () => {
+  const body = $('promote-page-body');
+  if (!body) return;
+
+  if (promoteStep === 'tier') return renderPromoteTierStep(body);
+  if (promoteStep === 'details') return renderPromoteDetailsStep(body);
+  if (promoteStep === 'review') return renderPromoteReviewStep(body);
+};
+
+const previewCardHTML = () => {
+  if (promoteOwnPostId && promoteOwnPostData) {
+    const initials = (promoteOwnPostData.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `
+      <div style="padding:14px 16px">
+        <div class="sponsored-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Promoted &middot; ${promoteOwnPostData.fullName}</div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          ${avatarOrInitials(promoteOwnPostData.avatarUrl, initials, 'post-avatar')}
+          <div style="font-size:14px;color:var(--text);line-height:1.5">${escapeHtml(promoteOwnPostData.body)}</div>
+        </div>
+      </div>`;
   }
+  const imgHtml = adDraft.imagePreviewUrl ? `<img src="${adDraft.imagePreviewUrl}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin:8px 0"/>` : '';
+  return `
+    <div style="padding:14px 16px">
+      <div class="sponsored-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Sponsored &middot; ${adDraft.advertiserName||'Your business'}</div>
+      <div style="font-size:14px;color:var(--text);line-height:1.5">${escapeHtml(adDraft.body||'Your ad text will appear here...')}</div>
+      ${imgHtml}
+      ${adDraft.linkUrl ? `<div class="sponsored-cta">${adDraft.ctaLabel||'Learn more'}</div>` : ''}
+    </div>`;
 };
 
+const renderPromoteTierStep = (body) => {
+  const isOwnPost = !!promoteOwnPostId;
+  body.innerHTML = `
+    <div class="promo-hero">
+      <div class="promo-hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <h1>${isOwnPost ? 'Promote your post' : 'Advertise on MeriSocial'}</h1>
+      <p>${isOwnPost ? 'Get your post in front of more members with priority placement in the community feed.' : 'Reach engaged Nigerian creators with a native sponsored post in the community feed.'}</p>
+    </div>
 
-// ─── ADVERTISE ────────────────────────────────────
-const RATE_PER_DAY_DISPLAY = 5000;
-const updateAdPrice = () => {}; // prices are hardcoded in option labels; placeholder for future dynamic pricing
+    <div class="promo-step-label">Preview</div>
+    <div class="preview-frame">
+      <div class="preview-frame-label">How it will appear in the feed</div>
+      ${previewCardHTML()}
+    </div>
 
-const submitAd = async () => {
-  const advertiserName  = $('ad-name').value.trim();
-  const advertiserEmail = $('ad-email').value.trim();
-  const body            = $('ad-body').value.trim();
-  const linkUrl          = $('ad-link').value.trim();
-  const ctaLabel         = $('ad-cta').value.trim() || 'Learn more';
-  const durationDays      = $('ad-duration').value;
-  const imageFile        = $('ad-image-file')?.files[0];
+    <div class="promo-step-label">Choose duration</div>
+    ${PROMOTE_TIERS.map((t,i)=>`
+      <div class="tier-card${promoteTierIndex===i?' selected':''}" onclick="selectPromoteTier(${i})">
+        <div class="tier-radio${promoteTierIndex===i?' on':''}"></div>
+        <div class="tier-info">
+          <div class="tier-days">${t.label}</div>
+          <div class="tier-est">${Math.round(t.days*150).toLocaleString()}&ndash;${Math.round(t.days*400).toLocaleString()} estimated impressions</div>
+        </div>
+        <div class="tier-price">&#8358;${t.price.toLocaleString()}</div>
+      </div>
+    `).join('')}
 
-  if (!advertiserName || !advertiserEmail || !body) return toast('Please fill in all required fields.', 'error');
+    <div style="padding:8px 16px 28px">
+      <button class="btn btn-accent" onclick="advancePromoteStep()">Continue</button>
+    </div>
+  `;
+};
 
-  setBtn('btn-submit-ad', '', true);
+const selectPromoteTier = (i) => { promoteTierIndex = i; renderPromoteFlow(); };
 
+const advancePromoteStep = () => {
+  if (promoteOwnPostId) { promoteStep = 'review'; }
+  else { promoteStep = 'details'; }
+  renderPromoteFlow();
+};
+
+const renderPromoteDetailsStep = (body) => {
+  body.innerHTML = `
+    <div class="promo-step-label" style="padding-top:20px">Your business</div>
+    <div style="padding:0 16px">
+      <div class="field"><label>Business / brand name</label><input id="ad-name" type="text" placeholder="Your business name" value="${adDraft.advertiserName}" oninput="adDraft.advertiserName=this.value;syncPromotePreview()"/></div>
+      <div class="field"><label>Contact email</label><input id="ad-email" type="email" placeholder="you@business.com" value="${adDraft.advertiserEmail}" oninput="adDraft.advertiserEmail=this.value"/></div>
+      <div class="field"><label>Ad text <span style="font-weight:400;color:var(--text-tertiary)">(500 chars)</span></label><textarea id="ad-body" maxlength="500" placeholder="Describe what you're promoting..." oninput="adDraft.body=this.value;syncPromotePreview()">${adDraft.body}</textarea></div>
+      <div class="field">
+        <label>Image (optional)</label>
+        <input type="file" id="ad-image-file" accept="image/jpeg,image/png,image/webp" onchange="handleAdImageChange(this)"/>
+      </div>
+      <div class="field"><label>Link URL (optional)</label><input id="ad-link" type="text" placeholder="https://yourbusiness.com" value="${adDraft.linkUrl}" oninput="adDraft.linkUrl=this.value;syncPromotePreview()"/></div>
+      <div class="field"><label>Button text</label><input id="ad-cta" type="text" value="${adDraft.ctaLabel}" oninput="adDraft.ctaLabel=this.value;syncPromotePreview()"/></div>
+    </div>
+
+    <div class="promo-step-label">Preview</div>
+    <div class="preview-frame" id="promo-preview-frame">
+      <div class="preview-frame-label">How it will appear in the feed</div>
+      ${previewCardHTML()}
+    </div>
+
+    <div style="padding:8px 16px 28px;display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="promoteStep='tier';renderPromoteFlow()">Back</button>
+      <button class="btn btn-accent" style="flex:2" id="btn-promote-details-next" onclick="validateAdDetailsAndReview()">Continue</button>
+    </div>
+  `;
+};
+
+const handleAdImageChange = (input) => {
+  const file = input.files[0]; if(!file) return;
+  adDraft.imageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => { adDraft.imagePreviewUrl = e.target.result; syncPromotePreview(); };
+  reader.readAsDataURL(file);
+};
+
+const syncPromotePreview = () => {
+  const frame = $('promo-preview-frame');
+  if (!frame) return;
+  frame.innerHTML = `<div class="preview-frame-label">How it will appear in the feed</div>${previewCardHTML()}`;
+};
+
+const validateAdDetailsAndReview = () => {
+  if (!adDraft.advertiserName.trim() || !adDraft.advertiserEmail.trim() || !adDraft.body.trim()) {
+    return toast('Business name, email, and ad text are required.', 'error');
+  }
+  promoteStep = 'review';
+  renderPromoteFlow();
+};
+
+const renderPromoteReviewStep = (body) => {
+  const tier = PROMOTE_TIERS[promoteTierIndex];
+  const isOwnPost = !!promoteOwnPostId;
+
+  body.innerHTML = `
+    <div class="promo-step-label" style="padding-top:20px">Review &amp; confirm</div>
+    <div class="preview-frame">
+      <div class="preview-frame-label">Final preview</div>
+      ${previewCardHTML()}
+    </div>
+
+    <div class="preview-frame">
+      <div class="promo-summary-row"><span class="k">${isOwnPost?'Promoting':'Advertiser'}</span><span class="v">${isOwnPost?'Your post':adDraft.advertiserName}</span></div>
+      <div class="promo-summary-row"><span class="k">Duration</span><span class="v">${tier.label}</span></div>
+      <div class="promo-summary-row"><span class="k">Placement</span><span class="v">Community feed</span></div>
+      <div class="promo-summary-total"><span>Total</span><span>&#8358;${tier.price.toLocaleString()}</span></div>
+    </div>
+
+    <div style="padding:8px 16px 28px;display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="promoteStep=${isOwnPost?"'tier'":"'details'"};renderPromoteFlow()">Back</button>
+      <button class="btn btn-accent" style="flex:2" id="btn-promote-pay" onclick="payForPromotion()">Pay &amp; go live</button>
+    </div>
+    <p style="font-size:11px;color:var(--text-tertiary);text-align:center;padding:0 16px 24px">Payments processed securely by Paystack.</p>
+  `;
+};
+
+const payForPromotion = async () => {
+  const tier = PROMOTE_TIERS[promoteTierIndex];
+  setBtn('btn-promote-pay', '', true);
+
+  if (promoteOwnPostId) {
+    const {ok,data} = await request(`/community/posts/${promoteOwnPostId}/promote/initiate`, {
+      method: 'POST',
+      body: JSON.stringify({ days: tier.days, callbackUrl: 'https://social.meritwise.app/?promote_ref=true' })
+    });
+    setBtn('btn-promote-pay', 'Pay & go live', false);
+    if (ok && data.data?.authorization_url) window.location.href = data.data.authorization_url;
+    else toast(data.message || 'Could not start payment.', 'error');
+    return;
+  }
+
+  // Fresh ad submission
   let ok, data;
   try {
-    if (imageFile) {
+    if (adDraft.imageFile) {
       const fd = new FormData();
-      fd.append('advertiserName', advertiserName);
-      fd.append('advertiserEmail', advertiserEmail);
-      fd.append('body', body);
-      fd.append('linkUrl', linkUrl);
-      fd.append('ctaLabel', ctaLabel);
-      fd.append('durationDays', durationDays);
-      fd.append('image', imageFile);
+      fd.append('advertiserName', adDraft.advertiserName);
+      fd.append('advertiserEmail', adDraft.advertiserEmail);
+      fd.append('body', adDraft.body);
+      fd.append('linkUrl', adDraft.linkUrl);
+      fd.append('ctaLabel', adDraft.ctaLabel);
+      fd.append('durationDays', tier.days);
+      fd.append('image', adDraft.imageFile);
       const res = await fetch(`${API}/sponsored/submit`, { method:'POST', body:fd });
       data = await res.json(); ok = res.ok;
     } else {
       const r = await fetch(`${API}/sponsored/submit`, {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({advertiserName,advertiserEmail,body,linkUrl,ctaLabel,durationDays})
+        body: JSON.stringify({advertiserName:adDraft.advertiserName, advertiserEmail:adDraft.advertiserEmail, body:adDraft.body, linkUrl:adDraft.linkUrl, ctaLabel:adDraft.ctaLabel, durationDays:tier.days})
       });
       data = await r.json(); ok = r.ok;
     }
@@ -1655,21 +1796,17 @@ const submitAd = async () => {
     ok = false; data = { message: 'Network error. Please try again.' };
   }
 
-  if (!ok) { setBtn('btn-submit-ad','Continue to payment',false); return toast(data.message||'Could not submit ad.','error'); }
+  if (!ok) { setBtn('btn-promote-pay','Pay & go live',false); return toast(data.message||'Could not submit ad.','error'); }
 
-  // Initiate Paystack payment
   const payRes = await fetch(`${API}/sponsored/${data.data.adId}/initiate-payment`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ callbackUrl: 'https://social.meritwise.app/?ad_ref=true' })
   });
   const payData = await payRes.json();
-  setBtn('btn-submit-ad','Continue to payment',false);
+  setBtn('btn-promote-pay','Pay & go live',false);
 
-  if (payRes.ok && payData.data?.authorization_url) {
-    window.location.href = payData.data.authorization_url;
-  } else {
-    toast(payData.message || 'Could not start payment.', 'error');
-  }
+  if (payRes.ok && payData.data?.authorization_url) window.location.href = payData.data.authorization_url;
+  else toast(payData.message || 'Could not start payment.', 'error');
 };
 
 // ─── ACTIVATE ────────────────────────────────────
@@ -2521,13 +2658,25 @@ const buildPostHTML = (post) => {
           </div>
         </div>
         ${post.userId === currentUser?.userId
-          ? `<div style="display:flex;gap:6px;flex-shrink:0">
-               <button class="post-action-btn" onclick="openPromoteModal('${post.postId}')" style="padding:4px 8px;color:var(--accent)" title="Promote this post">
-                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          ? `<div style="position:relative">
+               <button class="post-action-btn" onclick="togglePostMenu('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
+                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:16px;height:16px"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                </button>
-               <button class="post-action-btn" onclick="deleteMyPost('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
-                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-               </button>
+               <div class="post-menu" id="post-menu-${post.postId}" style="display:none;position:absolute;top:100%;right:0;background:var(--white);border:1px solid var(--border-dark);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:170px;overflow:hidden">
+                 <button onclick="togglePinPost('${post.postId}',${!!post.isPinned})" style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text);text-align:left">
+                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-7L19 7H5l1.4 3z"/></svg>
+                   ${post.isPinned?'Unpin from profile':'Pin to profile'}
+                 </button>
+                 <button onclick="openPromoteForPost('${post.postId}')" style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text);text-align:left">
+                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                   Promote post
+                 </button>
+                 <div style="height:1px;background:var(--border)"></div>
+                 <button onclick="deleteMyPost('${post.postId}')" style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--red);text-align:left">
+                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                   Delete post
+                 </button>
+               </div>
              </div>`
           : ''}
       </div>
@@ -2663,6 +2812,28 @@ const submitPost = async () => {
   } else {
     toast(data.message || 'Could not post. Try again.', 'error');
   }
+};
+
+const togglePostMenu = (postId) => {
+  document.querySelectorAll('.post-menu').forEach(m => { if(m.id !== `post-menu-${postId}`) m.style.display='none'; });
+  const menu = $(`post-menu-${postId}`);
+  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.post-menu') && !e.target.closest('[onclick^="togglePostMenu"]')) {
+    document.querySelectorAll('.post-menu').forEach(m => m.style.display='none');
+  }
+});
+
+const togglePinPost = async (postId, currentlyPinned) => {
+  const {ok,data} = await request(`/community/posts/${postId}/pin`, {method:'POST'});
+  if (!ok) return toast(data.message||'Failed.','error');
+  toast(data.data.isPinned ? 'Post pinned to your profile.' : 'Post unpinned.', 'success');
+  // Re-render current view to reflect pin state
+  if ($('tab-content')?.querySelector(`#post-${postId}`)) {
+    if (currentPage === undefined) {} // no-op guard
+  }
+  loadFeedPosts(true);
 };
 
 const deleteMyPost = async (postId) => {
