@@ -761,12 +761,13 @@
     .range-pills{display:flex;gap:6px;padding:14px 16px 4px}
     .range-pill{flex:1;text-align:center;padding:7px 0;border-radius:var(--radius-pill);border:1px solid var(--border-dark);background:var(--white);font-family:var(--font);font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all .15s}
     .range-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
-    .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 16px 8px}
-    .ov-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 14px 12px;position:relative;overflow:hidden}
-    .ov-card.featured{background:linear-gradient(135deg,var(--accent-light),var(--white));border-color:var(--accent)}
+    .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 16px 12px;background:var(--white)}
+    .ov-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 14px 12px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s}
+    .ov-card.featured{border-color:var(--accent);border-width:1.5px}
     .ov-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .ov-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .ov-icon svg{width:14px;height:14px}
+    .ov-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .ov-icon svg{width:15px;height:15px}
+    .ov-card-chevron{width:16px;height:16px;stroke:var(--text-tertiary);flex-shrink:0}
     .ov-card .ov-label{font-size:12px;color:var(--text-secondary);font-weight:500}
     .ov-card .ov-value{font-size:25px;font-weight:700;color:var(--text);letter-spacing:-.6px;line-height:1.1}
     .ov-card .ov-delta{font-size:11.5px;font-weight:700;margin-top:5px;display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:6px}
@@ -778,11 +779,11 @@
     .chart-legend{display:flex;gap:16px;margin-bottom:14px;padding-left:2px}
     .chart-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);font-weight:500}
     .chart-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;position:relative}
+    .bar-chart{display:flex;align-items:flex-end;gap:10px;height:140px;position:relative;padding:0 2px}
     .bar-chart-gridline{position:absolute;left:0;right:0;height:1px;background:var(--border);z-index:0}
-    .bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative;z-index:1;cursor:pointer}
-    .bar-chart-bars{display:flex;gap:3px;align-items:flex-end;width:100%;height:100%}
-    .bar-chart-bar{flex:1;border-radius:4px 4px 1px 1px;min-height:3px;transition:opacity .15s}
+    .bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;position:relative;z-index:1;cursor:pointer;max-width:46px}
+    .bar-chart-bars{display:flex;gap:2px;align-items:flex-end;width:100%;height:100%;justify-content:center}
+    .bar-chart-bar{width:9px;flex:none;border-radius:2px 2px 1px 1px;min-height:3px;transition:opacity .15s}
     .bar-chart-col:hover .bar-chart-bar{opacity:.75}
     .bar-chart-label{font-size:10.5px;color:var(--text-tertiary);font-weight:500}
     .bar-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;display:none;z-index:10;pointer-events:none}
@@ -2886,7 +2887,7 @@ const METRIC_DEFS = {
   newFollowers:   { label: 'New follows',    color: '#00ba7c' }
 };
 
-const ovIcon = (svgInner, bg, fg) => `<div class="ov-icon" style="background:${bg};color:${fg}">${svgInner}</div>`;
+const ovIcon = (svgInner, fg) => `<div class="ov-icon" style="background:${fg}14;color:${fg}">${svgInner}</div>`;
 
 const buildSingleMetricChart = (labels, series, color) => {
   const max = Math.max(1, ...series);
@@ -3045,49 +3046,55 @@ const renderCreatorAnalytics = async (c, range) => {
 
       <div class="cs-section-title">Key metrics</div>
       <div class="ov-grid">
-        <div class="ov-card featured">
+        <div class="ov-card featured" onclick="selectMetric('impressions')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', '#1d9bf0')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Impressions</div>
           <div class="ov-value">${totals.impressions.toLocaleString()}</div>
           ${fmtDelta(deltas.impressions)}
         </div>
-        <div class="ov-card">
+        <div class="ov-card" onclick="toast('Engagement rate = engagements ÷ impressions','')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', '#e6f9f3', 'var(--green)')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', '#00ba7c')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Engagement rate</div>
           <div class="ov-value">${totals.engagementRate}%</div>
           ${fmtDelta(deltas.engagementRate)}
         </div>
-        <div class="ov-card">
+        <div class="ov-card" onclick="toast('Likes + replies on your posts this period','')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', '#fef2f2', 'var(--red)')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', '#f4212e')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Engagements</div>
           <div class="ov-value">${totals.engagements.toLocaleString()}</div>
           ${fmtDelta(deltas.engagements)}
         </div>
-        <div class="ov-card">
+        <div class="ov-card" onclick="selectMetric('newFollowers')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', '#fffde6', '#92620a')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', '#f59e0b')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Followers</div>
           <div class="ov-value">${totals.followersCount.toLocaleString()}</div>
           ${fmtDelta(deltas.newFollowers)}
         </div>
-        <div class="ov-card">
+        <div class="ov-card" onclick="toast('Total reactions on your posts this period','')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>', '#fef2f2', 'var(--red)')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>', '#f4212e')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Likes</div>
           <div class="ov-value">${totals.likes.toLocaleString()}</div>
           ${fmtDelta(deltas.likes)}
         </div>
-        <div class="ov-card">
+        <div class="ov-card" onclick="selectMetric('replies')">
           <div class="ov-card-top">
-            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', 'rgba(29,155,240,.12)', 'var(--accent)')}
+            ${ovIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', '#1d9bf0')}
+            <svg class="ov-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
           <div class="ov-label">Replies</div>
           <div class="ov-value">${totals.replies.toLocaleString()}</div>
