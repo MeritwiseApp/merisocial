@@ -343,6 +343,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
     Revenue
   </button>
+  <button class="nav-item" id="nav-payouts" onclick="go('payouts')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>
+    Creator Payouts
+  </button>
+  <button class="nav-item" id="nav-ads" onclick="go('ads')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    Sponsored Ads
+    <span class="nav-badge" id="badge-ads">0</span>
+  </button>
 
   <div class="nav-section">Community</div>
   <button class="nav-item" id="nav-community" onclick="go('community')">
@@ -545,7 +554,8 @@ const go = page => {
     dashboard:'Dashboard', analytics:'Analytics', users:'Members',
     engagement:'Engagement', strikes:'Strikes', handles:'Handles',
     drip:'Drip Control', subscriptions:'Subscriptions',
-    revenue:'Revenue', logs:'System Logs', settings:'Settings', community: 'Feed Moderation'
+    revenue:'Revenue', logs:'System Logs', settings:'Settings', community: 'Feed Moderation',
+    payouts: 'Creator Payouts', ads: 'Sponsored Ads'
   }[page] || page;
   const body = $('page-body');
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px"><div class="spinner"></div></div>';
@@ -562,6 +572,8 @@ const go = page => {
     logs: renderLogs,
     settings:   renderSettings,
     community:  renderCommunityAdmin,
+    payouts:    renderPayouts,
+    ads:        renderAds,
   };
   (render[page] || (()=> body.innerHTML=`<div class="empty-state"><b>${page}</b><p>Coming soon.</p></div>`))();
 };
@@ -617,13 +629,19 @@ const adminLogout = async () => {
 
 const loadBadges = async () => {
   const {ok,data} = await req('/admin/dashboard');
-  if(!ok) return;
-  const d = data.data?.kpis||{};
-  const sb = d.activeStrikes||0;
-  const hb = d.pendingHandles||0;
-  $('badge-strikes').textContent = sb>0?sb:'0';
-  $('badge-handles').textContent = hb>0?hb:'0';
-  if(sb>0||hb>0) $('notif-dot').classList.remove('hidden');
+  if(ok) {
+    const d = data.data?.kpis||{};
+    const sb = d.activeStrikes||0;
+    const hb = d.pendingHandles||0;
+    $('badge-strikes').textContent = sb>0?sb:'0';
+    $('badge-handles').textContent = hb>0?hb:'0';
+    if(sb>0||hb>0) $('notif-dot').classList.remove('hidden');
+  }
+  const {ok:aok,data:adata} = await req('/sponsored/admin/all');
+  if(aok) {
+    const pendingAds = (adata.data||[]).filter(a=>a.status==='pending_payment').length;
+    $('badge-ads').textContent = pendingAds>0?pendingAds:'0';
+  }
 };
 
 // ═══════════════════
@@ -1382,6 +1400,195 @@ const renderRevenue = async () => {
     </div>
   `;
 };
+
+// ═══════════════════
+// CREATOR PAYOUTS
+// ═══════════════════
+let payoutBatchesData = [];
+
+const renderPayouts = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/payouts/admin');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>${data.message||'Failed to load.'}</p></div>`; return; }
+  payoutBatchesData = data.data||[];
+
+  const statusBadge = s => s==='completed'?'badge-green':s==='finalized'?'badge-blue':'badge-yellow';
+
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Generate monthly batch</span></div>
+        <div class="card-body" style="padding:16px">
+          <div class="field">
+            <label>Month</label>
+            <input type="month" id="payout-month" value="${new Date().toISOString().slice(0,7)}"/>
+          </div>
+          <div class="field">
+            <label>Pool amount (₦)</label>
+            <input type="number" id="payout-pool" placeholder="e.g. 50000" min="1000"/>
+          </div>
+          <button class="btn btn-accent" style="width:100%" id="btn-gen-payout" onclick="generatePayoutBatch()">Generate batch</button>
+          <div style="font-size:12px;color:var(--text-3);margin-top:10px;line-height:1.5">Eligible creators (Premium, 50+ premium followers, 50,000+ impressions in the period, zero strikes) split the pool proportionally by engagement score.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">How payouts work</span></div>
+        <div class="card-body" style="padding:16px;font-size:13px;color:var(--text-2);line-height:1.7">
+          <p style="margin-bottom:8px">1. Generate a batch for the month — eligible creators are auto-detected and scored by engagement (impressions, likes, comments).</p>
+          <p style="margin-bottom:8px">2. Finalize the batch once you're satisfied with the split.</p>
+          <p>3. Pay each creator manually via your existing payment method, then mark each record as paid below.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Payout batches</span>
+        <span style="font-size:12px;color:var(--text-3)">${payoutBatchesData.length} batch${payoutBatchesData.length!==1?'es':''}</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Month</th><th>Pool</th><th>Creators</th><th>Status</th><th>Created</th><th></th></tr></thead>
+          <tbody>
+            ${payoutBatchesData.length?payoutBatchesData.map(b=>`<tr>
+              <td style="font-weight:600">${new Date(b.month+'-01').toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</td>
+              <td>${fmtMoney(b.poolAmount)}</td>
+              <td>${b.records?.length||0}</td>
+              <td><span class="badge ${statusBadge(b.status)}">${b.status}</span></td>
+              <td class="muted">${b.createdAt?new Date(b.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+              <td><button class="btn btn-outline btn-sm" onclick="viewPayoutBatch('${b.batchId}')">View</button></td>
+            </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state"><p>No payout batches yet.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
+const generatePayoutBatch = async () => {
+  const month = $('payout-month').value;
+  const poolAmount = parseInt($('payout-pool').value);
+  if (!month || !poolAmount || poolAmount < 1000) return toast('Enter a valid month and pool amount.','error');
+  setLoading('btn-gen-payout', true);
+  const {ok,data} = await req('/payouts/admin/generate', {method:'POST', body: JSON.stringify({month, poolAmount})});
+  setLoading('btn-gen-payout', false, 'Generate batch');
+  if (!ok) return toast(data.message||'Failed.','error');
+  if (!data.data) return toast(data.message||'No eligible creators found for this period.','');
+  toast('Batch generated.','success');
+  renderPayouts();
+};
+
+const viewPayoutBatch = async (batchId) => {
+  const {ok,data} = await req(`/payouts/admin/${batchId}`);
+  if(!ok) return toast(data.message||'Failed.','error');
+  const batch = data.data;
+
+  $('modal-user-title').textContent = `${new Date(batch.month+'-01').toLocaleDateString('en-NG',{month:'long',year:'numeric'})} payout batch`;
+  $('modal-user-body').innerHTML = `
+    <div style="display:flex;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:11px;color:var(--text-3)">POOL</div>
+        <div style="font-weight:700;font-size:16px">${fmtMoney(batch.poolAmount)}</div>
+      </div>
+      <div style="flex:1;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:11px;color:var(--text-3)">STATUS</div>
+        <div style="font-weight:700;font-size:16px;text-transform:capitalize">${batch.status}</div>
+      </div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Creator</th><th>Score</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${(batch.records||[]).map(r=>`<tr>
+          <td style="font-size:13px">${r.fullName}</td>
+          <td>${fmt(r.engagementScore)}</td>
+          <td style="font-weight:600">${fmtMoney(r.shareAmount)}</td>
+          <td><span class="badge ${r.status==='paid'?'badge-green':'badge-yellow'}">${r.status}</span></td>
+          <td>${r.status!=='paid'?`<button class="btn btn-success btn-sm" onclick="markPayoutPaid('${batch.batchId}','${r.userId}')">Mark paid</button>`:''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+  $('modal-user-foot').innerHTML = batch.status==='draft'
+    ? `<button class="btn btn-primary" onclick="finalizePayoutBatch('${batch.batchId}')">Finalize batch</button>`
+    : '';
+  openModal('modal-user');
+};
+
+const finalizePayoutBatch = async (batchId) => {
+  const {ok,data} = await req(`/payouts/admin/${batchId}/finalize`,{method:'PATCH'});
+  toast(ok?'Batch finalized.':data.message||'Failed.', ok?'success':'error');
+  if(ok){ closeModal('modal-user'); renderPayouts(); }
+};
+
+const markPayoutPaid = async (batchId, userId) => {
+  if(!confirm('Confirm you have sent payment to this creator?')) return;
+  const {ok,data} = await req(`/payouts/admin/${batchId}/records/${userId}/mark-paid`,{method:'PATCH'});
+  toast(ok?'Marked as paid.':data.message||'Failed.', ok?'success':'error');
+  if(ok) viewPayoutBatch(batchId);
+};
+
+// ═══════════════════
+// SPONSORED ADS
+// ═══════════════════
+let adsData = [];
+
+const renderAds = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/sponsored/admin/all');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>${data.message||'Failed to load.'}</p></div>`; return; }
+  adsData = data.data||[];
+
+  const statusBadge = s => s==='active'?'badge-green':s==='pending_payment'?'badge-yellow':s==='expired'?'badge-grey':'badge-red';
+  const totalRevenue = adsData.filter(a=>['active','expired'].includes(a.status)).reduce((s,a)=>s+(a.priceNaira||0),0);
+  const activeCount = adsData.filter(a=>a.status==='active').length;
+
+  body.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Ad revenue</div>
+        <div class="metric-value">${fmtMoney(totalRevenue)}</div>
+        <div class="metric-sub">All paid sponsored posts</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Active now</div>
+        <div class="metric-value metric-up">${fmt(activeCount)}</div>
+        <div class="metric-sub">Currently live in feed</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total submissions</div>
+        <div class="metric-value">${fmt(adsData.length)}</div>
+        <div class="metric-sub">All time</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Sponsored post submissions</span>
+        <span style="font-size:12px;color:var(--text-3)">${adsData.length} total</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Advertiser</th><th>Ad copy</th><th>Duration</th><th>Price</th><th>Impressions</th><th>Clicks</th><th>Status</th><th>Submitted</th></tr></thead>
+          <tbody>
+            ${adsData.length?adsData.map(a=>`<tr>
+              <td>
+                <div style="font-weight:500;font-size:13px">${a.advertiserName}</div>
+                <div style="font-size:11px;color:var(--text-3)">${a.advertiserEmail}</div>
+              </td>
+              <td style="max-width:220px;font-size:12px;color:var(--text-2)">${(a.body||'').slice(0,70)}${(a.body||'').length>70?'...':''}</td>
+              <td>${a.durationDays} day${a.durationDays!==1?'s':''}</td>
+              <td style="font-weight:600">${fmtMoney(a.priceNaira)}</td>
+              <td>${fmt(a.impressions)}</td>
+              <td>${fmt(a.clicks)}</td>
+              <td><span class="badge ${statusBadge(a.status)}">${a.status.replace(/_/g,' ')}</span></td>
+              <td class="muted">${a.createdAt?new Date(a.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+            </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><p>No sponsored ad submissions yet.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
+
 
 // ═══════════════════
 // LOGS
