@@ -893,7 +893,6 @@
     <p class="landing-legal">
       By continuing you agree to our <span class="link" onclick="openTerms()">Terms and Community Rules</span>
     </p>
-    <p class="landing-legal"><span class="link" onclick="showScreen('screen-promote-landing')">Promote a post or advertise on MeriSocial</span></p>
   </div>
 </div>
 
@@ -1168,6 +1167,10 @@
         <button onclick="closeDrawer();showScreen('screen-activate')" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           Enter Access Code
+        </button>
+        <button onclick="closeDrawer();openPromoteForPost(null)" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Promote / Advertise
         </button>
         <button onclick="closeDrawer();openTerms()" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1594,10 +1597,23 @@ const closePromoteFlow = () => {
 };
 
 const openPromoteForPost = (postId) => {
+  if (!postId) {
+    // null postId = fresh advertiser submission flow
+    promoteOwnPostId = null;
+    promoteOwnPostData = null;
+    promoteStep = 'tier';
+    promoteTierIndex = 1;
+    $('promote-header-title').textContent = 'Advertise on MeriSocial';
+    showScreen('screen-promote-landing');
+    renderPromoteFlow();
+    return;
+  }
   const cardEl = $(`post-${postId}`);
+  const imgEl = cardEl?.querySelector('.post-body + img, img');
   promoteOwnPostId = postId;
   promoteOwnPostData = {
     body: cardEl?.querySelector('.post-body')?.textContent || '',
+    imageUrl: imgEl?.getAttribute('src') || null,
     avatarUrl: currentUser?.avatarUrl || null,
     fullName: currentUser?.fullName || '',
   };
@@ -1620,12 +1636,16 @@ const renderPromoteFlow = () => {
 const previewCardHTML = () => {
   if (promoteOwnPostId && promoteOwnPostData) {
     const initials = (promoteOwnPostData.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const imgHtmlOwn = promoteOwnPostData.imageUrl ? `<img src="${promoteOwnPostData.imageUrl}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:8px"/>` : '';
     return `
       <div style="padding:14px 16px">
         <div class="sponsored-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Promoted &middot; ${promoteOwnPostData.fullName}</div>
         <div style="display:flex;gap:10px;align-items:flex-start">
           ${avatarOrInitials(promoteOwnPostData.avatarUrl, initials, 'post-avatar')}
-          <div style="font-size:14px;color:var(--text);line-height:1.5">${escapeHtml(promoteOwnPostData.body)}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;color:var(--text);line-height:1.5">${escapeHtml(promoteOwnPostData.body)}</div>
+            ${imgHtmlOwn}
+          </div>
         </div>
       </div>`;
   }
@@ -2631,6 +2651,7 @@ const buildPostHTML = (post) => {
   const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span><br>` : '';
   const pinTag   = post.isPinned ? `<span class="pinned-tag">Pinned</span>` : '';
+  const promotedTag = (post.isPromoted && !post.isPinned) ? `<div class="sponsored-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Promoted</div>` : '';
 
   // Reaction chips
   const reactionCounts = {};
@@ -2649,6 +2670,7 @@ const buildPostHTML = (post) => {
   return `
     <div class="post-card" id="post-${post.postId}" data-post-id="${post.postId}">
       ${pinTag}
+      ${promotedTag}
       <div class="post-header">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
           ${avatarOrInitials(post.avatarUrl, initials, 'post-avatar')}
