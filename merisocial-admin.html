@@ -352,6 +352,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     Sponsored Ads
     <span class="nav-badge" id="badge-ads">0</span>
   </button>
+  <button class="nav-item" id="nav-promotions" onclick="go('promotions')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-7L19 7H5l1.4 3z"/></svg>
+    Post Promotions
+  </button>
 
   <div class="nav-section">Community</div>
   <button class="nav-item" id="nav-community" onclick="go('community')">
@@ -555,7 +559,7 @@ const go = page => {
     engagement:'Engagement', strikes:'Strikes', handles:'Handles',
     drip:'Drip Control', subscriptions:'Subscriptions',
     revenue:'Revenue', logs:'System Logs', settings:'Settings', community: 'Feed Moderation',
-    payouts: 'Creator Payouts', ads: 'Sponsored Ads'
+    payouts: 'Creator Payouts', ads: 'Sponsored Ads', promotions: 'Post Promotions'
   }[page] || page;
   const body = $('page-body');
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px"><div class="spinner"></div></div>';
@@ -574,6 +578,7 @@ const go = page => {
     community:  renderCommunityAdmin,
     payouts:    renderPayouts,
     ads:        renderAds,
+    promotions: renderPromotions,
   };
   (render[page] || (()=> body.innerHTML=`<div class="empty-state"><b>${page}</b><p>Coming soon.</p></div>`))();
 };
@@ -1525,6 +1530,45 @@ const markPayoutPaid = async (batchId, userId) => {
   const {ok,data} = await req(`/payouts/admin/${batchId}/records/${userId}/mark-paid`,{method:'PATCH'});
   toast(ok?'Marked as paid.':data.message||'Failed.', ok?'success':'error');
   if(ok) viewPayoutBatch(batchId);
+};
+
+// ═══════════════════
+// POST PROMOTIONS
+// ═══════════════════
+const renderPromotions = async () => {
+  const body = $('page-body');
+  const {ok,data} = await req('/admin/promotions');
+  if(!ok){ body.innerHTML=`<div class="empty-state"><p>${data.message||'Failed to load.'}</p></div>`; return; }
+  const promos = data.data||[];
+
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">User post promotions</span>
+        <span style="font-size:12px;color:var(--text-3)">${promos.length} total</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl">
+          <thead><tr><th>Author</th><th>Post</th><th>Active?</th><th>Expires</th><th>Views</th><th>Likes</th><th>Comments</th><th>Submitted</th></tr></thead>
+          <tbody>
+            ${promos.length?promos.map(p=>{
+              const isLive = p.isPromoted && new Date(p.promotedUntil) > new Date();
+              return `<tr>
+                <td style="font-weight:500;font-size:13px">${p.fullName||'—'}</td>
+                <td style="max-width:240px;font-size:12px;color:var(--text-2)">${(p.body||'').slice(0,80)}${(p.body||'').length>80?'...':''}</td>
+                <td><span class="badge ${isLive?'badge-green':'badge-grey'}">${isLive?'Live':'Expired'}</span></td>
+                <td class="muted">${p.promotedUntil?new Date(p.promotedUntil).toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}):'—'}</td>
+                <td>${fmt(p.viewCount)}</td>
+                <td>${fmt(p.reactionCount)}</td>
+                <td>${fmt(p.commentCount)}</td>
+                <td class="muted">${p.createdAt?new Date(p.createdAt).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+              </tr>`;
+            }).join(''):`<tr><td colspan="8"><div class="empty-state"><p>No post promotions yet.</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 };
 
 // ═══════════════════
