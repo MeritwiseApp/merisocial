@@ -573,7 +573,9 @@
     }
     .post-author{font-size:14px;font-weight:700;color:var(--text)}
     .post-time{font-size:12px;color:var(--text-3)}
-    .post-body{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;word-break:break-word}
+    .post-body{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:4px;word-break:break-word}
+    .post-body.truncated{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
+    .post-show-more{font-size:14px;color:var(--accent);font-weight:500;cursor:pointer;margin-bottom:8px;display:inline-block}
     .post-type-tag{
       display:inline-block;font-size:11px;font-weight:600;
       color:var(--accent);margin-bottom:6px;text-transform:capitalize;
@@ -677,9 +679,8 @@
       appearance:none;
     }
     .pinned-tag{
-      font-size:11px;font-weight:600;color:var(--text-3);
-      text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;
-      display:block;
+      font-size:11px;font-weight:600;color:var(--text-tertiary);
+      margin-bottom:4px;display:flex;align-items:center;gap:4px;
     }
     .sponsored-tag{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:5px}
     .sponsored-cta{display:inline-block;background:var(--text);color:#fff;border-radius:var(--radius-pill);font-size:13px;font-weight:700;padding:8px 18px;margin-top:8px;text-decoration:none}
@@ -2627,12 +2628,18 @@ const loadFeedPosts = async (reset = false) => {
     return;
   }
 
+  let adInjected = false;
   posts.forEach((post, idx) => {
     container.insertAdjacentHTML('beforeend', buildPostHTML(post));
-    // Inject a sponsored post every 6 posts, only on first page load
-    if (reset && (idx+1) % 6 === 0) {
+    // Inject one sponsored post after the 5th post, only once per reset
+    if (reset && !adInjected && idx === 4) {
+      adInjected = true;
       request('/sponsored/active').then(({ok,data})=>{
-        if (ok && data.data) container.insertAdjacentHTML('beforeend', buildAdHTML(data.data));
+        if (ok && data.data) {
+          const refEl = container.children[5];
+          if (refEl) refEl.insertAdjacentHTML('afterend', buildAdHTML(data.data));
+          else container.insertAdjacentHTML('beforeend', buildAdHTML(data.data));
+        }
       }).catch(()=>{});
     }
   });
@@ -2647,10 +2654,10 @@ const loadMorePosts = async () => {
   await loadFeedPosts(false);
 };
 
-const buildPostHTML = (post) => {
+const buildPostHTML = (post, context='feed') => {
   const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span><br>` : '';
-  const pinTag   = post.isPinned ? `<span class="pinned-tag">Pinned</span>` : '';
+  const pinTag   = (post.isPinned && context==='profile') ? `<span class="pinned-tag">Pinned</span>` : '';
   const promotedTag = (post.isPromoted && !post.isPinned) ? `<div class="sponsored-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Promoted</div>` : '';
 
   // Reaction chips
@@ -2675,8 +2682,13 @@ const buildPostHTML = (post) => {
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
           ${avatarOrInitials(post.avatarUrl, initials, 'post-avatar')}
           <div>
-            <div class="post-author">${post.fullName}${getCheckForPost(post)}</div>
-            <div class="post-time">${timeAgo(post.createdAt)}</div>
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+              <span class="post-author">${post.fullName}</span>${getCheckForPost(post)}
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${post.username ? `<span style="font-size:12px;color:var(--text-secondary)">@${post.username}</span><span class="post-time">·</span>` : ''}
+              <span class="post-time">${timeAgo(post.createdAt)}</span>
+            </div>
           </div>
         </div>
         ${post.userId === currentUser?.userId
@@ -2703,7 +2715,14 @@ const buildPostHTML = (post) => {
           : ''}
       </div>
       ${typeTag}
-      <div class="post-body" onclick="openPostDetail('${post.postId}')" style="cursor:pointer">${linkifyMentions(escapeHtml(post.body))}</div>
+      ${(()=>{
+        const content = linkifyMentions(escapeHtml(post.body));
+        const isLong = post.body.length > 280;
+        return isLong
+          ? `<div class="post-body truncated" id="pbody-${post.postId}">${content}</div>
+             <span class="post-show-more" id="pmore-${post.postId}" onclick="event.stopPropagation();expandPost('${post.postId}')">Show more</span>`
+          : `<div class="post-body" onclick="openPostDetail('${post.postId}')" style="cursor:pointer">${content}</div>`;
+      })()}
       ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" onclick="openPostDetail('${post.postId}')" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:300px;object-fit:cover;cursor:pointer" loading="lazy"/>` : ''}
       ${chips}
       <div class="post-actions">
@@ -2736,17 +2755,37 @@ const buildPostHTML = (post) => {
   `;
 };
 
-const buildAdHTML = (ad) => `
-  <div class="post-card" data-ad-id="${ad.adId}">
-    <div class="sponsored-tag">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-      Sponsored &middot; ${ad.advertiserName}
+const buildAdHTML = (ad) => {
+  if (!ad) return '';
+  const initials = (ad.advertiserName||'Ad').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const avatarHtml = `<div class="post-avatar" style="background:var(--accent-light);color:var(--accent)">${initials}</div>`;
+  return `
+  <div class="post-card" data-ad-id="${ad.adId}" style="background:var(--white)">
+    <div class="post-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        ${avatarHtml}
+        <div>
+          <div class="post-author">${escapeHtml(ad.advertiserName||'Sponsored')}</div>
+          <div class="post-time" style="color:var(--text-tertiary)">Sponsored</div>
+        </div>
+      </div>
+      <span style="font-size:12px;font-weight:600;color:var(--text-tertiary);background:var(--bg);border:1px solid var(--border-dark);border-radius:4px;padding:2px 7px">Ad</span>
     </div>
     <div class="post-body">${escapeHtml(ad.body)}</div>
-    ${ad.imageUrl ? `<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:4px;border:1px solid var(--border);max-height:300px;object-fit:cover"/>` : ''}
-    ${ad.linkUrl ? `<a href="${ad.linkUrl}" target="_blank" class="sponsored-cta" onclick="request('/sponsored/${ad.adId}/click',{method:'POST'}).catch(()=>{})">${ad.ctaLabel||'Learn more'}</a>` : ''}
+    ${ad.imageUrl ? `<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:10px;margin:4px 0 8px;border:1px solid var(--border);max-height:320px;object-fit:cover" onclick="if('${ad.linkUrl}')window.open('${ad.linkUrl}','_blank')"/>` : ''}
+    ${ad.linkUrl ? `
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px">
+      <div style="padding:10px 12px;background:var(--bg);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${ad.linkUrl.replace(/https?:\/\//,'').slice(0,40)}</span>
+        <a href="${ad.linkUrl}" target="_blank" onclick="request('/sponsored/${ad.adId}/click',{method:'POST'}).catch(()=>{})" style="flex-shrink:0;background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:700;padding:6px 16px;text-decoration:none;margin-left:10px">${ad.ctaLabel||'Learn more'}</a>
+      </div>
+    </div>` : ''}
+    <div class="post-actions" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px">
+      <span style="font-size:12px;color:var(--text-tertiary);padding:6px 0">Tap to learn more about this promotion</span>
+    </div>
   </div>
-`;
+  `;
+};
 
 const escapeHtml = (text) => {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2858,6 +2897,16 @@ const togglePinPost = async (postId, currentlyPinned) => {
   loadFeedPosts(true);
 };
 
+const expandPost = (postId) => {
+  const body = $(`pbody-${postId}`);
+  const btn  = $(`pmore-${postId}`);
+  if (!body || !btn) return;
+  body.classList.remove('truncated');
+  body.style.cursor = 'pointer';
+  body.onclick = () => openPostDetail(postId);
+  btn.remove();
+};
+
 const deleteMyPost = async (postId) => {
   if (!confirm('Delete this post?')) return;
   const { ok, data } = await request(`/community/posts/${postId}`, { method: 'DELETE' });
@@ -2920,7 +2969,10 @@ let replyTarget = {}; // postId -> {commentId, fullName}
 
 const buildCommentHTML = (c, postId, isReply, repliesHtml = '', replyCount = 0, topId = null) => {
   const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const replyTag = (isReply && c.replyToFullName) ? `<div class="comment-reply-tag">Replying to @${c.replyToFullName.replace(/\s+/g,'')}</div>` : '';
+  const replyHandle = c.replyToUsername || (c.replyToFullName||'').toLowerCase().replace(/\s+/g,'_');
+  const replyTag = isReply && (c.replyToUserId || c.replyToFullName)
+    ? `<div class="comment-reply-tag"><span class="link" onclick="event.stopPropagation();viewProfile('${c.replyToUserId||''}')">@${replyHandle}</span></div>`
+    : '';
 
   const reactionDisplay = c.myReaction
     ? `<span style="display:inline-flex;width:13px;height:13px">${REACTION_ICONS[c.myReaction]||''}</span>`
@@ -2936,7 +2988,7 @@ const buildCommentHTML = (c, postId, isReply, repliesHtml = '', replyCount = 0, 
   const effectiveTopId = isReply ? (topId || c.parentCommentId) : c.commentId;
 
   return `<div class="comment-item${isReply?' is-reply':''}" id="comment-${c.commentId}">
-      ${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}
+      <div onclick="viewProfile('${c.userId}')" style="cursor:pointer;flex-shrink:0">${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}</div>
       <div style="flex:1;min-width:0">
         ${replyTag}
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -3799,7 +3851,7 @@ const renderProfile = async (c, identifier) => {
       <button class="profile-tab active" onclick="this.classList.add('active')">Posts</button>
     </div>
     <div id="profile-content">
-      ${posts.length ? posts.map(p=>buildPostHTML(p)).join('') : `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">${isOwnProfile?'Share your first post in Community.':'This creator has not posted yet.'}</div></div>`}
+      ${posts.length ? posts.map(p=>buildPostHTML(p,'profile')).join('') : `<div class="empty"><div class="empty-title">No posts yet</div><div class="empty-body">${isOwnProfile?'Share your first post in Community.':'This creator has not posted yet.'}</div></div>`}
     </div>
   `;
 
