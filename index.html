@@ -629,33 +629,10 @@
       background:transparent;
     }
     /* Vertical thread line from parent avatar down */
-    .comment-thread-wrap{
-      position:relative;
-      padding-bottom:0;
-    }
-    .comment-thread-wrap::before{
-      content:'';
-      position:absolute;
-      left:32px; /* center of 32px avatar + 16px left padding */
-      top:44px;  /* below avatar */
-      bottom:20px;
-      width:2px;
-      background:var(--border-dark);
-      border-radius:1px;
-    }
+    .comment-thread-wrap{position:relative}
+    .comment-thread-wrap::before{display:none}
     .comment-thread-wrap.no-replies::before{display:none}
-    /* Curved connector for replies */
-    .reply-connector{
-      position:absolute;
-      left:18px;
-      top:0;
-      width:20px;
-      height:20px;
-      border-left:2px solid var(--border-dark);
-      border-bottom:2px solid var(--border-dark);
-      border-bottom-left-radius:10px;
-      pointer-events:none;
-    }
+    .reply-connector{display:none}
     /* Comment bubble */
     .comment-bubble{
       background:var(--bg);
@@ -2132,14 +2109,24 @@ const openPostDetail = async (postId) => {
   // Fetch an active ad to inject into comments
   let detailInlineAd = null;
   let detailInlineIsPromoted = false;
-  try {
-    const [adR, promR] = await Promise.all([
-      request('/sponsored/active'),
-      request('/community/promoted/random')
-    ]);
-    if (promR.ok && promR.data.data) { detailInlineAd = promR.data.data; detailInlineIsPromoted = true; }
-    else if (adR.ok && adR.data.data) { detailInlineAd = adR.data.data; }
-  } catch(e) {}
+  // Only inject if there are enough comments to warrant it
+  if (comments.length >= 5) {
+    try {
+      const adR = await request('/sponsored/active');
+      if (adR.ok && adR.data.data) {
+        detailInlineAd = adR.data.data;
+        detailInlineIsPromoted = false;
+      }
+      // Only use promoted post as fallback when no paid ad exists
+      if (!detailInlineAd) {
+        const promR = await request('/community/promoted/random');
+        if (promR.ok && promR.data.data) {
+          detailInlineAd = promR.data.data;
+          detailInlineIsPromoted = true;
+        }
+      }
+    } catch(e) {}
+  }
 
   let html = '';
   topLevel.forEach((cm, idx) => {
@@ -2149,9 +2136,7 @@ const openPostDetail = async (postId) => {
     html += buildCommentHTML(cm, post.postId, false, repliesHtml, replies.length);
     if (detailInlineAd && (idx + 1) % 5 === 0) html += buildInlineAdHTML(detailInlineAd, detailInlineIsPromoted);
   });
-  if (detailInlineAd && topLevel.length > 0 && topLevel.length < 5) {
-    html += buildInlineAdHTML(detailInlineAd, detailInlineIsPromoted);
-  }
+  // Never inject when fewer than 5 top-level comments
 
   const isPremium = currentUser?.isPremium ||
     (currentUser?.subscriptionStatus === 'active' &&
@@ -3230,11 +3215,7 @@ const toggleComments = async (postId) => {
   activeCommentPostId = postId;
   section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
 
-  const [commentsRes, adRes, promotedRes] = await Promise.all([
-    request(`/community/posts/${postId}/comments`),
-    request('/sponsored/active'),
-    request('/community/promoted/random')
-  ]);
+  const commentsRes = await request(`/community/posts/${postId}/comments`);
 
   if (!commentsRes.ok) {
     section.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--text-3)">Could not load comments.</div>`;
@@ -3242,11 +3223,27 @@ const toggleComments = async (postId) => {
   }
 
   const comments = commentsRes.data.data || [];
-  const inlineAd  = adRes.ok && adRes.data.data ? adRes.data.data : null;
-  const inlinePromoted = promotedRes.ok && promotedRes.data.data ? promotedRes.data.data : null;
-  // Alternate: show promoted post if available, otherwise sponsored ad
-  const inlineContent = inlinePromoted || inlineAd;
-  const isInlinePromotedPost = !!inlinePromoted;
+
+  // Only fetch and inject inline content when there are enough comments
+  let inlineContent = null;
+  let isInlinePromotedPost = false;
+  if (comments.length >= 5) {
+    const [adRes, promotedRes] = await Promise.all([
+      request('/sponsored/active'),
+      request('/community/promoted/random')
+    ]);
+    // Prefer sponsored ads over promoted posts in comment threads
+    // Promoted posts should mainly surface in the feed, not interrupt conversations
+    if (adRes.ok && adRes.data.data) {
+      inlineContent = adRes.data.data;
+      isInlinePromotedPost = false;
+    }
+    // Only use a promoted post as fallback if NO sponsored ad exists at all
+    if (!inlineContent && promotedRes.ok && promotedRes.data.data) {
+      inlineContent = promotedRes.data.data;
+      isInlinePromotedPost = true;
+    }
+  }
   const commentMap = {};
   comments.forEach(c => commentMap[c.commentId] = c);
   const getTopAncestor = (c) => {
@@ -3272,9 +3269,7 @@ const toggleComments = async (postId) => {
       html += buildInlineAdHTML(inlineContent, isInlinePromotedPost);
     }
   });
-  if (inlineContent && topLevel.length > 0 && topLevel.length < 5) {
-    html += buildInlineAdHTML(inlineContent, isInlinePromotedPost);
-  }
+  // Never inject when fewer than 5 top-level comments
 
   const isPremium = currentUser?.isPremium ||
     (currentUser?.subscriptionStatus === 'active' &&
@@ -3528,7 +3523,7 @@ const renderEarnings = async (c) => {
         <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">To withdraw, open the Meritwise app</div>
       </div>` : `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);font-size:12px;color:rgba(255,255,255,.6)">
-        MeritWise wallet will appear here once payouts are credited.
+        Meritwise wallet will appear here once payouts are credited.
       </div>`}
     </div>
     <div class="cs-section-title" style="padding-top:0">Payout history</div>
