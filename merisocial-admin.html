@@ -1447,6 +1447,18 @@ const renderPayouts = async () => {
     </div>
 
     <div class="card">
+      <div class="card-header"><span class="card-title">Test wallet credit</span><span style="font-size:12px;color:var(--text-3)">Admin only — bypasses eligibility</span></div>
+      <div class="card-body" style="padding:16px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="field" style="flex:1;margin:0"><label>MeriSocial User ID</label><input id="test-credit-uid" placeholder="USR-xxxx or userId"/></div>
+          <div class="field" style="flex:1;margin:0"><label>Amount (₦)</label><input type="number" id="test-credit-amount" placeholder="e.g. 5000" min="1"/></div>
+        </div>
+        <button class="btn btn-accent" style="margin-top:10px;width:100%" id="btn-test-credit" onclick="runTestCredit()">Send test credit to wallet</button>
+        <div id="test-credit-result" style="margin-top:8px;font-size:13px;color:var(--text-2)"></div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-header">
         <span class="card-title">Payout batches</span>
         <span style="font-size:12px;color:var(--text-3)">${payoutBatchesData.length} batch${payoutBatchesData.length!==1?'es':''}</span>
@@ -1468,6 +1480,20 @@ const renderPayouts = async () => {
       </div>
     </div>
   `;
+};
+
+const runTestCredit = async () => {
+  const userId = $('test-credit-uid')?.value.trim();
+  const amount = parseFloat($('test-credit-amount')?.value);
+  const result = $('test-credit-result');
+  if (!userId || !amount || amount <= 0) { toast('Enter user ID and amount.', 'error'); return; }
+  setLoading('btn-test-credit', true);
+  const {ok, data} = await req('/payouts/admin/test-credit', {method:'POST', body: JSON.stringify({userId, amount})});
+  setLoading('btn-test-credit', false, 'Send test credit to wallet');
+  if (result) result.innerHTML = ok
+    ? `<span style="color:var(--green)">✓ ${data.message}</span>`
+    : `<span style="color:var(--red)">✗ ${data.message} ${data.error||''}</span>`;
+  toast(ok ? data.message : data.message||'Failed.', ok?'success':'error');
 };
 
 const generatePayoutBatch = async () => {
