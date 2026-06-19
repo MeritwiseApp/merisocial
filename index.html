@@ -748,7 +748,7 @@
     /* FEED TABS */
     .feed-tabs{
       display:flex;border-bottom:1px solid var(--border);
-      background:var(--bg);position:sticky;top:53px;z-index:10;
+      background:var(--bg);position:sticky;top:0;z-index:10;
     }
     .feed-tab{
       flex:1;text-align:center;padding:12px 4px;
@@ -1909,6 +1909,7 @@ const doActivate = async () => {
 const restoreTopbar = () => {
   const topbar = $('main-topbar');
   if(!topbar) return;
+  // FAB visibility is controlled by gotoTab — don't restore here
   topbar.innerHTML = `
     <button id="topbar-avatar-btn" onclick="openDrawer()" style="width:34px;height:34px;border-radius:50%;border:2px solid var(--border-dark);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);overflow:hidden;flex-shrink:0;padding:0">
       <span id="topbar-avatar-initials">${(currentUser?.firstName||'?')[0].toUpperCase()}</span>
@@ -1943,6 +1944,8 @@ const initApp = () => {
   updateTopbarAvatar();
   refreshNotificationBadge();
   refreshMessageBadge();
+  const fab = $('fab-compose');
+  if (fab) fab.style.display = 'flex';
   gotoTab('home');
 };
 
@@ -2003,6 +2006,8 @@ const openPostDetail = async (postId) => {
   const c = $('tab-content');
   if(!c) return;
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const fab = $('fab-compose');
+  if (fab) fab.style.display = 'none';
 
   // Hide topbar brand, show back button
   const topbar = $('main-topbar');
@@ -2042,7 +2047,7 @@ const openPostDetail = async (postId) => {
       </div>
       ${typeTag}
       <div class="post-body" style="font-size:18px;line-height:1.5;margin-top:${typeTag?'8px':'0'}">${linkifyMentions(escapeHtml(post.body))}</div>
-      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:12px;margin:10px 0;border:1px solid var(--border);max-height:420px;object-fit:cover"/>` : ''}
+      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" style="width:100%;border-radius:0;margin:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);max-height:520px;object-fit:cover;display:block"/>` : ''}
       <div style="font-size:13px;color:var(--text-tertiary);padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
         ${fullTimestamp} &middot; <strong style="color:var(--text-secondary)">${(post.viewCount||0).toLocaleString()}</strong> views
       </div>
@@ -2082,13 +2087,24 @@ const openPostDetail = async (postId) => {
     (repliesByTop[topId] = repliesByTop[topId] || []).push(cm);
   });
 
+  // Fetch an active ad to inject into comments
+  let detailInlineAd = null;
+  try {
+    const adR = await request('/sponsored/active');
+    if (adR.ok && adR.data.data) detailInlineAd = adR.data.data;
+  } catch(e) {}
+
   let html = '';
-  topLevel.forEach(cm => {
+  topLevel.forEach((cm, idx) => {
     const replies = (repliesByTop[cm.commentId] || []).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
     let repliesHtml = '';
     replies.forEach(r => { repliesHtml += buildCommentHTML(r, post.postId, true, '', 0, cm.commentId); });
     html += buildCommentHTML(cm, post.postId, false, repliesHtml, replies.length);
+    if (detailInlineAd && (idx + 1) % 5 === 0) html += buildInlineAdHTML(detailInlineAd);
   });
+  if (detailInlineAd && topLevel.length > 0 && topLevel.length < 5) {
+    html += buildInlineAdHTML(detailInlineAd);
+  }
 
   const isPremium = currentUser?.isPremium ||
     (currentUser?.subscriptionStatus === 'active' &&
@@ -2563,12 +2579,9 @@ const renderCommunity = async (c) => {
 
   c.innerHTML = `
     ${!isPremium ? `
-    <div style="background:#e8f5fd;border:1px solid #b3d9f7;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:flex-start;gap:10px">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>
-      <div style="flex:1;font-size:13px;color:var(--text-secondary);line-height:1.5">
-        <strong style="color:var(--text)">You are on the free plan.</strong> You can read posts and react to them. Upgrade to Premium to post, comment, join creator drops, and unlock growth analytics.
-        <span class="link" onclick="showScreen('screen-subscribe');loadPlans()" style="display:block;margin-top:4px">Upgrade now</span>
-      </div>
+    <div style="background:#e8f5fd;border-bottom:1px solid #b3d9f7;padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-size:13px;color:var(--text-secondary);line-height:1.4;flex:1"><strong style="color:var(--text)">Free plan.</strong> Upgrade to post, comment, and join drops. <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade</span></span>
     </div>` : ''}
 
 
@@ -2691,7 +2704,7 @@ const buildPostHTML = (post, context='feed') => {
   const initials = (post.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const typeTag  = post.postType !== 'general' ? `<span class="post-type-tag">${TYPE_LABELS[post.postType] || post.postType}</span><br>` : '';
   const pinTag   = (post.isPinned && context==='profile') ? `<span class="pinned-tag">Pinned</span>` : '';
-  const promotedTag = (post.isPromoted && !post.isPinned) ? `<div class="sponsored-tag" style="font-size:11px;font-weight:700;color:var(--text-tertiary);letter-spacing:.4px;margin-bottom:4px">PROMOTED</div>` : '';
+  const promotedTag = (post.isPromoted && !post.isPinned) ? `<div style="font-size:11px;font-weight:600;color:var(--text-tertiary);margin-bottom:4px">Promoted</div>` : '';;
 
   // Reaction chips
   const reactionCounts = {};
@@ -2756,7 +2769,7 @@ const buildPostHTML = (post, context='feed') => {
              <span class="post-show-more" id="pmore-${post.postId}" onclick="event.stopPropagation();expandPost('${post.postId}')">Show more</span>`
           : `<div class="post-body" onclick="openPostDetail('${post.postId}')" style="cursor:pointer">${content}</div>`;
       })()}
-      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" onclick="openPostDetail('${post.postId}')" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:420px;object-fit:contain;background:var(--bg);cursor:pointer" loading="lazy"/>` : ''}
+      ${post.imageUrl ? `<img src="${API.replace('/api','')}${post.imageUrl}" onclick="openPostDetail('${post.postId}')" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);max-height:500px;object-fit:cover;cursor:pointer;display:block" loading="lazy"/>` : ''}
       ${chips}
       <div class="post-actions">
         <span class="post-action-btn" style="cursor:default;color:var(--text-3)" id="view-count-${post.postId}">
@@ -2799,10 +2812,10 @@ const buildAdHTML = (ad) => {
         ${avatarHtml}
         <div>
           <div class="post-author">${escapeHtml(ad.advertiserName||'Sponsored')}</div>
-          <div class="post-time" style="color:var(--text-tertiary)">Sponsored</div>
+          <div class="post-time">Sponsored</div>
         </div>
       </div>
-      <span style="font-size:12px;font-weight:600;color:var(--text-tertiary);background:var(--bg);border:1px solid var(--border-dark);border-radius:4px;padding:2px 7px">Ad</span>
+      <span style="font-size:12px;font-weight:600;color:var(--text-tertiary)">Ad</span>
     </div>
     <div class="post-body">${escapeHtml(ad.body)}</div>
     ${ad.imageUrl ? `<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:10px;margin:4px 0 8px;border:1px solid var(--border);max-height:320px;object-fit:cover" onclick="if('${ad.linkUrl}')window.open('${ad.linkUrl}','_blank')"/>` : ''}
@@ -3082,9 +3095,7 @@ const toggleReplies = (commentId) => {
 const buildInlineAdHTML = (ad) => {
   if (!ad) return '';
   return `<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)">
-    <div style="font-size:10px;font-weight:700;color:var(--text-tertiary);letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:4px">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>SPONSORED
-    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);margin-bottom:6px">Sponsored</div>
     <div style="font-size:13px;color:var(--text);line-height:1.4;margin-bottom:6px">${escapeHtml((ad.body||'').slice(0,120))}${(ad.body||'').length>120?'...':''}</div>
     ${ad.imageUrl?`<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px"/>`:''}
     ${ad.linkUrl?`<a href="${ad.linkUrl}" target="_blank" onclick="request('/sponsored/${ad.adId}/click',{method:'POST'}).catch(()=>{})" style="display:inline-block;background:var(--accent);color:#fff;border-radius:var(--radius-pill);font-size:12px;font-weight:700;padding:5px 14px;text-decoration:none">${ad.ctaLabel||'Learn more'}</a>`:''}
@@ -3098,8 +3109,12 @@ const toggleComments = async (postId) => {
   if (isOpen) {
     section.style.display = 'none';
     activeCommentPostId = null;
+    const fab = $('fab-compose');
+    if (fab) fab.style.display = 'flex';
     return;
   }
+  const fab = $('fab-compose');
+  if (fab) fab.style.display = 'none';
   section.style.display = 'block';
   activeCommentPostId = postId;
   section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
