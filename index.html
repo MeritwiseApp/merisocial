@@ -631,29 +631,29 @@
     /* Vertical thread line from parent avatar down */
     .comment-thread-wrap{
       position:relative;
-      padding-bottom:2px;
+      padding-bottom:0;
     }
     .comment-thread-wrap::before{
       content:'';
       position:absolute;
-      left:30px;
-      top:40px;
-      bottom:0;
+      left:32px; /* center of 32px avatar + 16px left padding */
+      top:44px;  /* below avatar */
+      bottom:20px;
       width:2px;
-      background:var(--border);
+      background:var(--border-dark);
       border-radius:1px;
     }
     .comment-thread-wrap.no-replies::before{display:none}
     /* Curved connector for replies */
     .reply-connector{
       position:absolute;
-      left:22px;
-      top:-10px;
-      width:22px;
-      height:22px;
-      border-left:2px solid var(--border);
-      border-bottom:2px solid var(--border);
-      border-bottom-left-radius:8px;
+      left:18px;
+      top:0;
+      width:20px;
+      height:20px;
+      border-left:2px solid var(--border-dark);
+      border-bottom:2px solid var(--border-dark);
+      border-bottom-left-radius:10px;
       pointer-events:none;
     }
     /* Comment bubble */
@@ -2131,9 +2131,14 @@ const openPostDetail = async (postId) => {
 
   // Fetch an active ad to inject into comments
   let detailInlineAd = null;
+  let detailInlineIsPromoted = false;
   try {
-    const adR = await request('/sponsored/active');
-    if (adR.ok && adR.data.data) detailInlineAd = adR.data.data;
+    const [adR, promR] = await Promise.all([
+      request('/sponsored/active'),
+      request('/community/promoted/random')
+    ]);
+    if (promR.ok && promR.data.data) { detailInlineAd = promR.data.data; detailInlineIsPromoted = true; }
+    else if (adR.ok && adR.data.data) { detailInlineAd = adR.data.data; }
   } catch(e) {}
 
   let html = '';
@@ -2142,10 +2147,10 @@ const openPostDetail = async (postId) => {
     let repliesHtml = '';
     replies.forEach(r => { repliesHtml += buildCommentHTML(r, post.postId, true, '', 0, cm.commentId); });
     html += buildCommentHTML(cm, post.postId, false, repliesHtml, replies.length);
-    if (detailInlineAd && (idx + 1) % 5 === 0) html += buildInlineAdHTML(detailInlineAd);
+    if (detailInlineAd && (idx + 1) % 5 === 0) html += buildInlineAdHTML(detailInlineAd, detailInlineIsPromoted);
   });
   if (detailInlineAd && topLevel.length > 0 && topLevel.length < 5) {
-    html += buildInlineAdHTML(detailInlineAd);
+    html += buildInlineAdHTML(detailInlineAd, detailInlineIsPromoted);
   }
 
   const isPremium = currentUser?.isPremium ||
@@ -2767,21 +2772,21 @@ const buildPostHTML = (post, context='feed') => {
       ${pinTag}
       ${promotedTag}
       <div class="post-header">
-        <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="viewProfile('${post.userId}')">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0" onclick="viewProfile('${post.userId}')">
           ${avatarOrInitials(post.avatarUrl, initials, 'post-avatar')}
-          <div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:4px">
               <span class="post-author">${post.fullName}</span>${getCheckForPost(post)}
-              ${(post.userId !== currentUser?.userId && !post.isFollowing)
-                ? `<button id="feed-follow-${post.userId}" onclick="feedQuickFollow('${post.userId}')" style="margin-left:6px;background:none;border:1px solid var(--border-dark);border-radius:var(--radius-pill);font-family:var(--font);font-size:11px;font-weight:700;color:var(--text);padding:2px 10px;cursor:pointer;flex-shrink:0">Follow</button>`
-                : ''}
             </div>
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px">
               ${post.username ? `<span style="font-size:12px;color:var(--text-secondary)">@${post.username}</span><span class="post-time">·</span>` : ''}
               <span class="post-time">${timeAgo(post.createdAt)}</span>
             </div>
           </div>
         </div>
+        ${(post.userId !== currentUser?.userId && !post.isFollowing)
+          ? `<button id="feed-follow-${post.userId}" onclick="event.stopPropagation();feedQuickFollow('${post.userId}')" style="background:none;border:1.5px solid var(--border-dark);border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:700;color:var(--text);padding:5px 16px;cursor:pointer;flex-shrink:0">Follow</button>`
+          : ''}
         ${post.userId === currentUser?.userId
           ? `<div style="position:relative">
                <button class="post-action-btn" onclick="togglePostMenu('${post.postId}')" style="padding:4px 8px;color:var(--text-3)">
@@ -3092,12 +3097,7 @@ const buildCommentHTML = (c, postId, isReply, repliesHtml = '', replyCount = 0, 
     ? `<span class="link" onclick="event.stopPropagation();viewProfile('${c.replyToUserId||''}')" style="font-weight:700;color:var(--accent);margin-right:4px">@${replyHandle}</span>`
     : '';
 
-  const reactionBubble = c.reactionCount > 0
-    ? `<div style="position:absolute;bottom:-8px;right:10px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:1px 6px;display:flex;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--text-secondary)">
-         <svg viewBox="0 0 24 24" fill="var(--red)" stroke="none" width="11" height="11"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-         ${c.reactionCount}
-       </div>`
-    : '';
+  const reactionBubble = '';
 
   const repliesToggle = (!isReply && replyCount > 0)
     ? `<div class="view-replies-toggle" id="toggle-${c.commentId}" onclick="toggleReplies('${c.commentId}')">
@@ -3169,13 +3169,47 @@ const toggleReplies = (commentId) => {
   }
 };
 
-const buildInlineAdHTML = (ad) => {
+const buildInlineAdHTML = (ad, isPromotedPost) => {
   if (!ad) return '';
-  return `<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)">
-    <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);margin-bottom:6px">Sponsored</div>
-    <div style="font-size:13px;color:var(--text);line-height:1.4;margin-bottom:6px">${escapeHtml((ad.body||'').slice(0,120))}${(ad.body||'').length>120?'...':''}</div>
-    ${ad.imageUrl?`<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px"/>`:''}
-    ${ad.linkUrl?`<a href="${ad.linkUrl}" target="_blank" onclick="request('/sponsored/${ad.adId}/click',{method:'POST'}).catch(()=>{})" style="display:inline-block;background:var(--accent);color:#fff;border-radius:var(--radius-pill);font-size:12px;font-weight:700;padding:5px 14px;text-decoration:none">${ad.ctaLabel||'Learn more'}</a>`:''}
+  if (isPromotedPost) {
+    // Render as a mini post card
+    const initials = (ad.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `<div style="margin:8px 16px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--white)">
+      <div style="padding:10px 12px 6px">
+        <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);margin-bottom:6px;letter-spacing:.3px">Promoted</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;cursor:pointer" onclick="viewProfile('${ad.userId}')">
+          ${avatarOrInitials(ad.avatarUrl, initials, 'comment-avatar')}
+          <div>
+            <span style="font-size:13px;font-weight:700;color:var(--text)">${ad.fullName}</span>${getCheckForPost(ad)}
+            ${ad.username?`<div style="font-size:11px;color:var(--text-secondary)">@${ad.username}</div>`:''}
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;cursor:pointer" onclick="openPostDetail('${ad.postId}')">${escapeHtml((ad.body||'').slice(0,160))}${(ad.body||'').length>160?'<span style="color:var(--accent)"> ...more</span>':''}</div>
+        ${ad.imageUrl?`<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:8px;max-height:180px;object-fit:cover;margin-top:6px;cursor:pointer" onclick="openPostDetail('${ad.postId}')"/>`:''}
+      </div>
+      <div style="padding:6px 12px 8px;display:flex;gap:16px;border-top:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          ${(ad.viewCount||0).toLocaleString()}
+        </span>
+        <span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          ${(ad.reactionCount||0).toLocaleString()}
+        </span>
+      </div>
+    </div>`;
+  }
+  // Sponsored ad
+  return `<div style="margin:8px 16px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--white)">
+    <div style="padding:10px 12px">
+      <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);margin-bottom:6px;letter-spacing:.3px">Sponsored</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:6px">${escapeHtml((ad.body||'').slice(0,160))}${(ad.body||'').length>160?'...':''}</div>
+      ${ad.imageUrl?`<img src="${API.replace('/api','')}${ad.imageUrl}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px"/>`:''}
+      ${ad.linkUrl?`<div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--text-tertiary)">${ad.advertiserName||''}</span>
+        <a href="${ad.linkUrl}" target="_blank" onclick="request('/sponsored/${ad.adId}/click',{method:'POST'}).catch(()=>{})" style="background:var(--text);color:#fff;border-radius:var(--radius-pill);font-size:12px;font-weight:700;padding:5px 14px;text-decoration:none">${ad.ctaLabel||'Learn more'}</a>
+      </div>`:''}
+    </div>
   </div>`;
 };
 
@@ -3196,9 +3230,10 @@ const toggleComments = async (postId) => {
   activeCommentPostId = postId;
   section.innerHTML = `<div style="padding:12px;text-align:center"><div class="spinner" style="margin:0 auto;width:16px;height:16px"></div></div>`;
 
-  const [commentsRes, adRes] = await Promise.all([
+  const [commentsRes, adRes, promotedRes] = await Promise.all([
     request(`/community/posts/${postId}/comments`),
-    request('/sponsored/active')
+    request('/sponsored/active'),
+    request('/community/promoted/random')
   ]);
 
   if (!commentsRes.ok) {
@@ -3207,7 +3242,11 @@ const toggleComments = async (postId) => {
   }
 
   const comments = commentsRes.data.data || [];
-  const inlineAd  = adRes.ok ? adRes.data.data : null;
+  const inlineAd  = adRes.ok && adRes.data.data ? adRes.data.data : null;
+  const inlinePromoted = promotedRes.ok && promotedRes.data.data ? promotedRes.data.data : null;
+  // Alternate: show promoted post if available, otherwise sponsored ad
+  const inlineContent = inlinePromoted || inlineAd;
+  const isInlinePromotedPost = !!inlinePromoted;
   const commentMap = {};
   comments.forEach(c => commentMap[c.commentId] = c);
   const getTopAncestor = (c) => {
@@ -3229,13 +3268,12 @@ const toggleComments = async (postId) => {
     replies.forEach(r => { repliesHtml += buildCommentHTML(r, postId, true, '', 0, c.commentId); });
     html += buildCommentHTML(c, postId, false, repliesHtml, replies.length);
     // Inject inline ad after every 5th top-level comment
-    if (inlineAd && (idx + 1) % 5 === 0) {
-      html += buildInlineAdHTML(inlineAd);
+    if (inlineContent && (idx + 1) % 5 === 0) {
+      html += buildInlineAdHTML(inlineContent, isInlinePromotedPost);
     }
   });
-  // If fewer than 5 comments but there's an ad, inject it after all comments
-  if (inlineAd && topLevel.length > 0 && topLevel.length < 5) {
-    html += buildInlineAdHTML(inlineAd);
+  if (inlineContent && topLevel.length > 0 && topLevel.length < 5) {
+    html += buildInlineAdHTML(inlineContent, isInlinePromotedPost);
   }
 
   const isPremium = currentUser?.isPremium ||
