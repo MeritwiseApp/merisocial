@@ -3393,10 +3393,27 @@ const renderEarnings = async (c) => {
       </div>
     </div>`).join('') : `<div class="empty"><div class="empty-title">No payouts yet</div><div class="empty-body">Keep growing your premium audience — payouts are calculated monthly for eligible creators.</div></div>`;
 
+  // Also fetch live wallet balance from MeritWise
+  let walletBal = null;
+  try {
+    const wRes = await request('/stats/wallet-balance');
+    if (wRes.ok) walletBal = wRes.data.data;
+  } catch(e) {}
+
   c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Earnings') + `
     <div class="earn-total-card">
-      <div class="earn-total-label">Total earned</div>
+      <div class="earn-total-label">Total earned (all time)</div>
       <div class="earn-total-value">&#8358;${totalEarned.toLocaleString()}</div>
+      ${walletBal ? `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2)">
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:2px">MeritWise wallet balance</div>
+        <div style="font-size:22px;font-weight:700">&#8358;${(walletBal.available||0).toLocaleString()}</div>
+        ${(walletBal.locked||0)>0?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">&#8358;${walletBal.locked.toLocaleString()} locked</div>`:''}
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">To withdraw, open the MeritWise app</div>
+      </div>` : `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);font-size:12px;color:rgba(255,255,255,.6)">
+        MeritWise wallet will appear here once payouts are credited.
+      </div>`}
     </div>
     <div class="cs-section-title" style="padding-top:0">Payout history</div>
     ${rows}
