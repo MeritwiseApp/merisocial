@@ -3391,7 +3391,7 @@ const renderEarnings = async (c) => {
         <div class="earn-amount">&#8358;${h.shareAmount.toLocaleString()}</div>
         <div class="earn-status ${h.status}">${h.status==='paid'?'Paid':'Pending'}</div>
       </div>
-    </div>`).join('') : `<div class="empty"><div class="empty-title">No payouts yet</div><div class="empty-body">Keep growing your premium audience — payouts are calculated monthly for eligible creators.</div></div>`;
+    </div>`).join('') : `<div class="empty"><div class="empty-title">No payouts yet</div><div class="empty-body">Keep growing your premium audience, payouts are calculated monthly for eligible creators.</div></div>`;
 
   // Also fetch live wallet balance from MeritWise
   let walletBal = null;
