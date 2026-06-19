@@ -1896,6 +1896,25 @@ const payForPromotion = async () => {
   const tier = PROMOTE_TIERS[promoteTierIndex];
   setBtn('btn-promote-pay', '', true);
 
+  // Helper: authenticated FormData fetch
+  const authFetch = async (url, formData) => {
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+        credentials: 'include'
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, data };
+    } catch (err) {
+      return { ok: false, data: { message: 'Network error. Please try again.' } };
+    }
+  };
+
+  // Promoting own post — uses JSON, request() handles auth fine
   if (promoteOwnPostId) {
     const {ok,data} = await request(`/community/posts/${promoteOwnPostId}/promote/initiate`, {
       method: 'POST',
@@ -1907,49 +1926,45 @@ const payForPromotion = async () => {
     return;
   }
 
-  // Fresh ad submission
-  let ok, data;
-  try {
-    if (adDraft.imageFile) {
-      const fd = new FormData();
-      fd.append('advertiserName', adDraft.advertiserName);
-      fd.append('advertiserEmail', adDraft.advertiserEmail);
-      fd.append('body', adDraft.body);
-      fd.append('linkUrl', adDraft.linkUrl);
-      fd.append('ctaLabel', adDraft.ctaLabel);
-      fd.append('durationDays', tier.days);
-      if (adDraft.imageFile) fd.append('image', adDraft.imageFile);
-      if (adDraft.logoFile) fd.append('logo', adDraft.logoFile);
-      const res = await fetch(`${API}/sponsored/submit`, { method:'POST', body:fd });
-      data = await res.json(); ok = res.ok;
-    } else {
-      // Always use FormData so logo can be included even without a cover image
-      const fd2 = new FormData();
-      fd2.append('advertiserName', adDraft.advertiserName);
-      fd2.append('advertiserEmail', adDraft.advertiserEmail);
-      fd2.append('body', adDraft.body);
-      fd2.append('linkUrl', adDraft.linkUrl);
-      fd2.append('ctaLabel', adDraft.ctaLabel);
-      fd2.append('durationDays', tier.days);
-      if (adDraft.logoFile) fd2.append('logo', adDraft.logoFile);
-      const r = await fetch(`${API}/sponsored/submit`, { method:'POST', body:fd2 });
-      data = await r.json(); ok = r.ok;
-    }
-  } catch(err) {
-    ok = false; data = { message: 'Network error. Please try again.' };
+  // Fresh sponsored ad submission — always FormData (supports logo + cover image)
+  const fd = new FormData();
+  fd.append('advertiserName', adDraft.advertiserName);
+  fd.append('advertiserEmail', adDraft.advertiserEmail);
+  fd.append('body', adDraft.body);
+  fd.append('linkUrl', adDraft.linkUrl || '');
+  fd.append('ctaLabel', adDraft.ctaLabel || 'Learn more');
+  fd.append('durationDays', String(tier.days));
+  if (adDraft.imageFile) fd.append('image', adDraft.imageFile);
+  if (adDraft.logoFile) fd.append('logo', adDraft.logoFile);
+
+  const { ok: submitOk, data: submitData } = await authFetch(`${API}/sponsored/submit`, fd);
+
+  if (!submitOk) {
+    setBtn('btn-promote-pay', 'Pay & go live', false);
+    toast(submitData.message || 'Could not submit ad.', 'error');
+    return;
   }
 
-  if (!ok) { setBtn('btn-promote-pay','Pay & go live',false); return toast(data.message||'Could not submit ad.','error'); }
+  const adId = submitData.data?.adId;
+  if (!adId) {
+    setBtn('btn-promote-pay', 'Pay & go live', false);
+    toast('Ad submitted but no ID returned. Contact support.', 'error');
+    return;
+  }
 
-  const payRes = await fetch(`${API}/sponsored/${data.data.adId}/initiate-payment`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ callbackUrl: 'https://social.meritwise.app/?ad_ref=true' })
-  });
-  const payData = await payRes.json();
-  setBtn('btn-promote-pay','Pay & go live',false);
+  // Initiate Paystack payment — also needs auth
+  const payFd = new FormData();
+  payFd.append('callbackUrl', 'https://social.meritwise.app/?ad_ref=true');
 
-  if (payRes.ok && payData.data?.authorization_url) window.location.href = payData.data.authorization_url;
-  else toast(payData.message || 'Could not start payment.', 'error');
+  const { ok: payOk, data: payData } = await authFetch(`${API}/sponsored/${adId}/initiate-payment`, payFd);
+
+  setBtn('btn-promote-pay', 'Pay & go live', false);
+
+  if (payOk && payData.data?.authorization_url) {
+    window.location.href = payData.data.authorization_url;
+  } else {
+    toast(payData.message || 'Could not start payment.', 'error');
+  }
 };
 
 // ─── ACTIVATE ────────────────────────────────────
