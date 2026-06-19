@@ -620,41 +620,83 @@
     .comment-send-btn:hover{background:var(--accent-hover)}
     .comment-send-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5}
     .comment-item{
-      padding:10px 16px;border-bottom:1px solid var(--border);
+      padding:8px 16px 4px;
       display:flex;gap:10px;
+      position:relative;
     }
     .comment-item.is-reply{
-      padding-left:48px;border-bottom:none;
+      padding-left:56px;
+      background:transparent;
+    }
+    /* Vertical thread line from parent avatar down */
+    .comment-thread-wrap{
+      position:relative;
+      padding-bottom:2px;
+    }
+    .comment-thread-wrap::before{
+      content:'';
+      position:absolute;
+      left:30px;
+      top:40px;
+      bottom:0;
+      width:2px;
+      background:var(--border);
+      border-radius:1px;
+    }
+    .comment-thread-wrap.no-replies::before{display:none}
+    /* Curved connector for replies */
+    .reply-connector{
+      position:absolute;
+      left:22px;
+      top:-10px;
+      width:22px;
+      height:22px;
+      border-left:2px solid var(--border);
+      border-bottom:2px solid var(--border);
+      border-bottom-left-radius:8px;
+      pointer-events:none;
+    }
+    /* Comment bubble */
+    .comment-bubble{
       background:var(--bg);
+      border-radius:14px;
+      padding:8px 12px 6px;
+      flex:1;
+      min-width:0;
     }
     .comment-reply-tag{
-      font-size:12px;color:var(--accent);margin-bottom:2px;font-weight:500;
+      font-size:12px;color:var(--accent);margin-bottom:1px;font-weight:500;
     }
     .comment-actions{
-      display:flex;gap:14px;margin-top:4px;
+      display:flex;gap:14px;margin-top:5px;padding-left:2px;
     }
     .comment-action-btn{
       display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;
       color:var(--text-tertiary);font-family:var(--font);font-size:12px;font-weight:600;padding:2px 0;
     }
     .comment-action-btn.reacted{color:var(--accent)}
-    .comment-action-btn svg{width:14px;height:14px}
+    .comment-action-btn svg{width:13px;height:13px}
     .reply-banner{
       display:flex;align-items:center;justify-content:space-between;
       padding:8px 16px;background:var(--accent-light);font-size:12px;color:var(--accent);font-weight:600;
     }
     .reply-banner button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;line-height:1;padding:0}
-    .view-replies-toggle{font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;margin-top:6px;padding-left:2px}
-    .replies-wrap{margin-top:2px}
+    .view-replies-toggle{
+      font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;
+      margin:4px 0 2px 42px;display:flex;align-items:center;gap:4px;
+    }
+    .view-replies-toggle svg{width:13px;height:13px;stroke:var(--accent)}
+    .replies-wrap{margin-top:0;padding-top:2px}
     .comment-avatar{
-      width:28px;height:28px;border-radius:50%;
+      width:32px;height:32px;border-radius:50%;
       background:var(--surface2);
       display:flex;align-items:center;justify-content:center;
-      font-size:11px;font-weight:700;color:var(--text);flex-shrink:0;
+      font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;
+      margin-top:2px;
     }
-    .comment-body{font-size:13px;color:var(--text);line-height:1.5}
-    .comment-author{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
-    .comment-time{font-size:11px;color:var(--text-3)}
+    .comment-body{font-size:14px;color:var(--text);line-height:1.5}
+    .comment-author{font-size:13px;font-weight:700;color:var(--text)}
+    .comment-time{font-size:11px;color:var(--text-tertiary)}
     .compose-box{
       background:var(--surface);border-bottom:1px solid var(--border);
       padding:14px 16px;
@@ -2730,6 +2772,9 @@ const buildPostHTML = (post, context='feed') => {
           <div>
             <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
               <span class="post-author">${post.fullName}</span>${getCheckForPost(post)}
+              ${(post.userId !== currentUser?.userId && !post.isFollowing)
+                ? `<button id="feed-follow-${post.userId}" onclick="feedQuickFollow('${post.userId}')" style="margin-left:6px;background:none;border:1px solid var(--border-dark);border-radius:var(--radius-pill);font-family:var(--font);font-size:11px;font-weight:700;color:var(--text);padding:2px 10px;cursor:pointer;flex-shrink:0">Follow</button>`
+                : ''}
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               ${post.username ? `<span style="font-size:12px;color:var(--text-secondary)">@${post.username}</span><span class="post-time">·</span>` : ''}
@@ -3036,50 +3081,75 @@ let replyTarget = {}; // postId -> {commentId, fullName}
 const buildCommentHTML = (c, postId, isReply, repliesHtml = '', replyCount = 0, topId = null) => {
   const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const replyHandle = c.replyToUsername || (c.replyToFullName||'').toLowerCase().replace(/\s+/g,'_');
-  const replyTag = isReply && (c.replyToUserId || c.replyToFullName)
-    ? `<div class="comment-reply-tag"><span class="link" onclick="event.stopPropagation();viewProfile('${c.replyToUserId||''}')">@${replyHandle}</span></div>`
-    : '';
+  const effectiveTopId = isReply ? (topId || c.parentCommentId) : c.commentId;
 
   const reactionDisplay = c.myReaction
     ? `<span style="display:inline-flex;width:13px;height:13px">${REACTION_ICONS[c.myReaction]||''}</span>`
     : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
 
-  const repliesToggle = (!isReply && replyCount > 0)
-    ? `<div class="view-replies-toggle" id="toggle-${c.commentId}" onclick="toggleReplies('${c.commentId}')">View ${replyCount} repl${replyCount===1?'y':'ies'}</div>`
+  // The body text — if it's a reply, prepend the @mention inside the bubble
+  const mentionPrefix = isReply && (c.replyToUserId || c.replyToFullName)
+    ? `<span class="link" onclick="event.stopPropagation();viewProfile('${c.replyToUserId||''}')" style="font-weight:700;color:var(--accent);margin-right:4px">@${replyHandle}</span>`
     : '';
+
+  const reactionBubble = c.reactionCount > 0
+    ? `<div style="position:absolute;bottom:-8px;right:10px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:1px 6px;display:flex;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--text-secondary)">
+         <svg viewBox="0 0 24 24" fill="var(--red)" stroke="none" width="11" height="11"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+         ${c.reactionCount}
+       </div>`
+    : '';
+
+  const repliesToggle = (!isReply && replyCount > 0)
+    ? `<div class="view-replies-toggle" id="toggle-${c.commentId}" onclick="toggleReplies('${c.commentId}')">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+         View ${replyCount} repl${replyCount===1?'y':'ies'}
+       </div>`
+    : '';
+
   const repliesWrap = !isReply
     ? `<div class="replies-wrap" id="replies-${c.commentId}" style="display:none">${repliesHtml}</div>`
     : '';
 
-  const effectiveTopId = isReply ? (topId || c.parentCommentId) : c.commentId;
+  const deleteBtn = c.userId === currentUser?.userId
+    ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);padding:4px;flex-shrink:0;align-self:flex-start;margin-top:4px">
+         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+       </button>`
+    : '';
 
-  return `<div class="comment-item${isReply?' is-reply':''}" id="comment-${c.commentId}">
-      <div onclick="viewProfile('${c.userId}')" style="cursor:pointer;flex-shrink:0">${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}</div>
-      <div style="flex:1;min-width:0">
-        ${replyTag}
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span class="comment-author">${c.fullName}${c.isPremium?getCheckForPost(c):''}</span>
-          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+  // Wrap top-level comments in a thread container that draws the vertical line
+  const threadClass = !isReply ? `comment-thread-wrap${replyCount > 0 ? '' : ' no-replies'}` : '';
+  const connectorLine = isReply ? `<div class="reply-connector"></div>` : '';
+
+  const commentHTML = `<div class="comment-item${isReply?' is-reply':''}" id="comment-${c.commentId}" style="position:relative">
+    ${connectorLine}
+    <div onclick="viewProfile('${c.userId}')" style="cursor:pointer;flex-shrink:0">
+      ${avatarOrInitials(c.avatarUrl, initials, 'comment-avatar')}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="comment-bubble" style="position:relative">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+          <span class="comment-author" onclick="viewProfile('${c.userId}')" style="cursor:pointer">${c.fullName}</span>
+          ${c.isPremium?getCheckForPost(c):''}
         </div>
-        <div class="comment-body">${linkifyMentions(escapeHtml(c.body))}</div>
-        <div class="comment-actions">
-          <button class="comment-action-btn${c.myReaction?' reacted':''}" onclick="reactToComment('${postId}','${c.commentId}','heart')">
-            ${reactionDisplay} <span id="creact-count-${c.commentId}">${c.reactionCount||''}</span>
-          </button>
-          <button class="comment-action-btn" onclick="startReply('${postId}','${c.commentId}','${(c.fullName||'').replace(/'/g,"\\'")}','${effectiveTopId}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Reply
-          </button>
-        </div>
-        ${repliesToggle}
-        ${repliesWrap}
+        <div class="comment-body">${mentionPrefix}${linkifyMentions(escapeHtml(c.body))}</div>
+        ${reactionBubble}
       </div>
-      ${c.userId === currentUser?.userId
-        ? `<button onclick="deleteMyComment('${postId}','${c.commentId}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px 4px;align-self:flex-start">
-             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-           </button>`
-        : ''}
-    </div>`;
+      <div class="comment-actions">
+        <span class="comment-time" style="margin-right:4px">${timeAgo(c.createdAt)}</span>
+        <button class="comment-action-btn${c.myReaction?' reacted':''}" onclick="reactToComment('${postId}','${c.commentId}','heart')" id="creact-btn-${c.commentId}">
+          ${reactionDisplay} ${c.reactionCount > 0 ? `<span id="creact-count-${c.commentId}">${c.reactionCount}</span>` : `<span id="creact-count-${c.commentId}" style="display:none">0</span>`}
+        </button>
+        <button class="comment-action-btn" onclick="startReply('${postId}','${c.commentId}','${(c.fullName||'').replace(/'/g,"\\'")}','${effectiveTopId}')">Reply</button>
+      </div>
+      ${repliesToggle}
+    </div>
+    ${deleteBtn}
+  </div>`;
+
+  if (!isReply) {
+    return `<div class="${threadClass}">${commentHTML}${repliesWrap}</div>`;
+  }
+  return commentHTML;
 };
 
 const toggleReplies = (commentId) => {
@@ -3089,7 +3159,14 @@ const toggleReplies = (commentId) => {
   const isHidden = wrap.style.display === 'none';
   wrap.style.display = isHidden ? 'block' : 'none';
   const count = wrap.querySelectorAll('.comment-item').length;
-  toggle.textContent = isHidden ? 'Hide replies' : `View ${count} repl${count===1?'y':'ies'}`;
+  const threadWrap = toggle.closest('.comment-thread-wrap');
+  if (isHidden) {
+    toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="18 15 12 9 6 15"/></svg>Hide replies`;
+    if (threadWrap) threadWrap.classList.remove('no-replies');
+  } else {
+    toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="6 9 12 15 18 9"/></svg>View ${count} repl${count===1?'y':'ies'}`;
+    if (threadWrap) threadWrap.classList.add('no-replies');
+  }
 };
 
 const buildInlineAdHTML = (ad) => {
@@ -3274,17 +3351,18 @@ const sendComment = async (postId) => {
     }
     let toggle = $(`toggle-${topId}`);
     if(!toggle) {
-      const parentEl = $(`comment-${topId}`);
-      const actionsEl = parentEl?.querySelector('.comment-actions');
-      if(actionsEl) {
+      const parentBubble = $(`comment-${topId}`)?.querySelector('.comment-bubble');
+      if(parentBubble) {
         toggle = document.createElement('div');
         toggle.className = 'view-replies-toggle';
         toggle.id = `toggle-${topId}`;
         toggle.onclick = () => toggleReplies(topId);
-        actionsEl.insertAdjacentElement('afterend', toggle);
+        parentBubble.closest('.comment-item')?.querySelector('.comment-actions')?.insertAdjacentElement('afterend', toggle);
       }
     }
-    if(toggle) toggle.textContent = 'Hide replies';
+    if(toggle) toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="18 15 12 9 6 15"/></svg>Hide replies`;
+    const threadWrap = $(`comment-${topId}`)?.closest('.comment-thread-wrap');
+    if(threadWrap) threadWrap.classList.remove('no-replies');
     cancelReply(postId);
   } else {
     const inputRow = document.querySelector(`#comments-${postId} .comment-input-row`);
@@ -3846,6 +3924,20 @@ const doSearch = async (query) => {
     if(!ok) return;
     renderSuggestions(data.data||[]);
   }, 400);
+};
+
+const feedQuickFollow = async (userId) => {
+  const btn = $(`feed-follow-${userId}`);
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  const {ok, data} = await request(`/profile/follow/${userId}`, {method:'POST'});
+  if (ok && data.isFollowing) {
+    // Remove all Follow buttons for this user in the current feed
+    document.querySelectorAll(`[id="feed-follow-${userId}"]`).forEach(b => b.remove());
+    toast(`Following ${data.fullName || 'user'}.`, 'success');
+  } else if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Follow';
+  }
 };
 
 const quickFollow = async (userId) => {
