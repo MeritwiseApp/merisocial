@@ -3406,10 +3406,10 @@ const renderEarnings = async (c) => {
       <div class="earn-total-value">&#8358;${totalEarned.toLocaleString()}</div>
       ${walletBal ? `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2)">
-        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:2px">MeritWise wallet balance</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:2px">Meritwise wallet balance</div>
         <div style="font-size:22px;font-weight:700">&#8358;${(walletBal.available||0).toLocaleString()}</div>
         ${(walletBal.locked||0)>0?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">&#8358;${walletBal.locked.toLocaleString()} locked</div>`:''}
-        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">To withdraw, open the MeritWise app</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">To withdraw, open the Meritwise app</div>
       </div>` : `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);font-size:12px;color:rgba(255,255,255,.6)">
         MeritWise wallet will appear here once payouts are credited.
