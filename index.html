@@ -1939,60 +1939,69 @@ const renderBoostSheetUI = () => {
       </button>
     </div>
 
-    <div style="padding:14px 20px;font-size:15px;color:var(--text);line-height:1.5">
+    <div style="padding:14px 20px 0;font-size:15px;color:var(--text);line-height:1.5">
       Get up to <strong>3× more likes.</strong>
       <span class="link" onclick="openBoostDemo()" style="margin-left:6px;font-weight:600">Learn more</span>
     </div>
 
-    <div style="background:var(--bg);padding:16px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div style="padding:16px 20px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <span style="font-size:15px;color:var(--text-secondary)">Daily budget</span>
         <span style="font-size:17px;font-weight:700;color:var(--text)" id="boost-budget-display">₦5,000</span>
       </div>
-      ${buildXSlider('boost-budget-slider', 0, BUDGET_STEPS.length-1, 0, 'updateBoostDisplay()', 15)}
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-tertiary);margin-top:2px">
-        <span>₦${BUDGET_STEPS[0].toLocaleString()}</span>
-        <span>₦${BUDGET_STEPS[BUDGET_STEPS.length-1].toLocaleString()}</span>
+      <div style="position:relative;height:32px;display:flex;align-items:center;margin-bottom:20px">
+        <div id="boost-budget-track" style="position:absolute;left:0;right:0;height:32px;display:flex;align-items:center;pointer-events:none">
+          <div id="boost-budget-dots" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 1px"></div>
+        </div>
+        <input type="range" id="boost-budget-slider" min="0" max="${BUDGET_STEPS.length-1}" step="1" value="0"
+          oninput="updateBoostDisplay()"
+          style="-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;outline:none;cursor:pointer;position:relative;z-index:2;margin:0"/>
       </div>
-    </div>
 
-    <div style="background:var(--bg);padding:16px 20px;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <span style="font-size:15px;color:var(--text-secondary)">Duration</span>
         <span style="font-size:17px;font-weight:700;color:var(--text)" id="boost-duration-display">1 day</span>
       </div>
-      ${buildXSlider('boost-duration-slider', 0, DURATION_STEPS.length-1, 0, 'updateBoostDisplay()', 20)}
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-tertiary);margin-top:2px">
-        <span>1 day</span>
-        <span>30 days</span>
+      <div style="position:relative;height:32px;display:flex;align-items:center;margin-bottom:20px">
+        <div id="boost-duration-track" style="position:absolute;left:0;right:0;height:32px;display:flex;align-items:center;pointer-events:none">
+          <div id="boost-duration-dots" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 1px"></div>
+        </div>
+        <input type="range" id="boost-duration-slider" min="0" max="${DURATION_STEPS.length-1}" step="1" value="0"
+          oninput="updateBoostDisplay()"
+          style="-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;outline:none;cursor:pointer;position:relative;z-index:2;margin:0"/>
       </div>
-    </div>
 
-    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:15px;color:var(--text-secondary)">Est. daily reach</span>
-      <span style="font-size:15px;font-weight:700;color:var(--text)" id="boost-reach-range">5K – 12K people</span>
-    </div>
-
-    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:15px;color:var(--text-secondary)">Region</span>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:15px;font-weight:600;color:var(--text)">Nigeria</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--border)">
+        <span style="font-size:15px;color:var(--text-secondary)">Est. daily reach</span>
+        <span style="font-size:15px;font-weight:700;color:var(--text)"><span id="boost-reach-range">5K–12K</span> · <span id="boost-total-cost" style="color:var(--text-secondary);font-weight:400">₦5,000 total</span></span>
       </div>
     </div>
 
     <div style="padding:16px 20px 32px">
       <button id="btn-boost-pay" onclick="confirmBoostPayment()"
-        style="width:100%;background:#0f1419;color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:16px;font-weight:700;padding:16px;cursor:pointer">
+        style="width:100%;background:#0f1419;color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:16px;font-weight:700;padding:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
         Boost post
       </button>
-      <div style="font-size:12px;color:var(--text-tertiary);text-align:center;padding:10px 0 4px;line-height:1.5">
+      <div style="font-size:12px;color:var(--text-tertiary);text-align:center;padding:10px 0 0;line-height:1.5">
         By clicking Boost post, you agree to our <span class="link" onclick="closeBoostSheet();openTerms()">Terms &amp; Conditions</span>.
       </div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);text-align:center" id="boost-total-cost">Total: ₦5,000 · 1 day</div>
     </div>
   `;
   setTimeout(() => updateBoostDisplay(), 0);
+};
+
+const renderSliderDots = (dotsContainerId, value, max, totalDots) => {
+  const container = $(dotsContainerId);
+  if (!container) return;
+  const filledCount = Math.round((value / max) * totalDots);
+  container.innerHTML = Array.from({length: totalDots}, (_, i) => {
+    const isFilled = i < filledCount;
+    const isThumb  = i === filledCount - 1;
+    if (isThumb) {
+      return `<div style="width:3px;height:28px;border-radius:2px;background:#0f1419;flex-shrink:0"></div>`;
+    }
+    return `<div style="width:7px;height:7px;border-radius:50%;background:${isFilled?'#0f1419':'#cfd9de'};flex-shrink:0"></div>`;
+  }).join('');
 };
 
 const updateBoostDisplay = () => {
@@ -2002,23 +2011,18 @@ const updateBoostDisplay = () => {
   const days    = DURATION_STEPS[Math.min(durationIdx, DURATION_STEPS.length-1)];
   const total   = budget * days;
 
-  // Reach estimate: roughly budget ÷ 1 naira per person ± 40%
   const midReach = Math.round(budget * 1.2);
   const minReach = Math.round(midReach * 0.7);
   const maxReach = Math.round(midReach * 1.5);
-
   const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toString();
 
   if($('boost-budget-display'))   $('boost-budget-display').textContent   = `₦${budget.toLocaleString()}`;
   if($('boost-duration-display')) $('boost-duration-display').textContent = days === 1 ? '1 day' : `${days} days`;
-  if($('boost-reach-range'))      $('boost-reach-range').textContent      = `${fmt(minReach)} – ${fmt(maxReach)} people`;
-  if($('boost-total-cost'))       $('boost-total-cost').textContent       = `Total: ₦${total.toLocaleString()} · ${days} day${days!==1?'s':''}`;
+  if($('boost-reach-range'))      $('boost-reach-range').textContent      = `${fmt(minReach)}–${fmt(maxReach)}`;
+  if($('boost-total-cost'))       $('boost-total-cost').textContent       = `₦${total.toLocaleString()} total`;
 
-  // Update slider fill color (visual progress fill)
-  const bSlider = $('boost-budget-slider');
-  const dSlider = $('boost-duration-slider');
-  updateXSliderDots('boost-budget-slider', budgetIdx, BUDGET_STEPS.length-1, 15);
-  updateXSliderDots('boost-duration-slider', durationIdx, DURATION_STEPS.length-1, 20);
+  renderSliderDots('boost-budget-dots',   budgetIdx,   BUDGET_STEPS.length-1,   15);
+  renderSliderDots('boost-duration-dots', durationIdx, DURATION_STEPS.length-1, 20);
 };
 
 const confirmBoostPayment = async () => {
@@ -2029,7 +2033,8 @@ const confirmBoostPayment = async () => {
   const days   = DURATION_STEPS[Math.min(durationIdx, DURATION_STEPS.length-1)];
   const total  = budget * days;
 
-  setBtn('btn-boost-pay', '', true);
+  const btn = $('btn-boost-pay');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite"></div>'; }
   const {ok,data} = await request(`/community/posts/${boostPostId}/promote/initiate`, {
     method: 'POST',
     body: JSON.stringify({
@@ -2143,42 +2148,41 @@ const renderPromoteTierStep = (body) => {
       ${previewCardHTML()}
     </div>
 
-    <div style="padding:0 20px">
-      <div class="boost-section" style="padding-top:20px">
-        <div class="boost-label-row">
-          <span class="boost-label">Daily budget</span>
-          <span class="boost-value" id="promo-budget-display">&#8358;${budget.toLocaleString()}</span>
+    <div style="padding:16px 20px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:15px;color:var(--text-secondary)">Daily budget</span>
+        <span style="font-size:17px;font-weight:700;color:var(--text)" id="promo-budget-display">&#8358;${budget.toLocaleString()}</span>
+      </div>
+      <div style="position:relative;height:32px;display:flex;align-items:center;margin-bottom:20px">
+        <div style="position:absolute;left:0;right:0;height:32px;display:flex;align-items:center;pointer-events:none">
+          <div id="promo-budget-dots" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 1px"></div>
         </div>
-        <div class="boost-slider-wrap">
-          <input type="range" class="boost-slider" id="promo-budget-slider"
-            min="0" max="${PROMOTE_BUDGET_STEPS.length - 1}" step="1" value="${promoteBudgetIdx}"
-            oninput="updatePromoteDisplay()"/>
-        </div>
-        <div class="boost-range-labels"><span>&#8358;${PROMOTE_BUDGET_STEPS[0].toLocaleString()}</span><span>&#8358;${PROMOTE_BUDGET_STEPS[PROMOTE_BUDGET_STEPS.length-1].toLocaleString()}</span></div>
+        <input type="range" id="promo-budget-slider" min="0" max="${PROMOTE_BUDGET_STEPS.length-1}" step="1" value="${promoteBudgetIdx}"
+          oninput="updatePromoteDisplay()"
+          style="-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;outline:none;cursor:pointer;position:relative;z-index:2;margin:0"/>
       </div>
 
-      <div class="boost-section" style="padding-top:8px">
-        <div class="boost-label-row">
-          <span class="boost-label">Duration</span>
-          <span class="boost-value" id="promo-duration-display">${days === 1 ? '1 day' : `${days} days`}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:15px;color:var(--text-secondary)">Duration</span>
+        <span style="font-size:17px;font-weight:700;color:var(--text)" id="promo-duration-display">${days === 1 ? '1 day' : `${days} days`}</span>
+      </div>
+      <div style="position:relative;height:32px;display:flex;align-items:center;margin-bottom:20px">
+        <div style="position:absolute;left:0;right:0;height:32px;display:flex;align-items:center;pointer-events:none">
+          <div id="promo-duration-dots" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 1px"></div>
         </div>
-        <div class="boost-slider-wrap">
-          <input type="range" class="boost-slider" id="promo-duration-slider"
-            min="0" max="${PROMOTE_DURATION_STEPS.length - 1}" step="1" value="${promoteDurationIdx}"
-            oninput="updatePromoteDisplay()"/>
-        </div>
-        <div class="boost-range-labels"><span>1 day</span><span>30 days</span></div>
+        <input type="range" id="promo-duration-slider" min="0" max="${PROMOTE_DURATION_STEPS.length-1}" step="1" value="${promoteDurationIdx}"
+          oninput="updatePromoteDisplay()"
+          style="-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;outline:none;cursor:pointer;position:relative;z-index:2;margin:0"/>
       </div>
 
-      <div class="boost-reach" style="margin:16px 0 0">
-        <div class="boost-reach-label">Est. daily reach</div>
-        <div class="boost-reach-value" id="promo-reach-range">${fmt(minReach)} – ${fmt(maxReach)} people</div>
-        <div class="boost-reach-total" id="promo-total-cost">Total: &#8358;${total.toLocaleString()} · ${days} day${days!==1?'s':''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--border)">
+        <span style="font-size:15px;color:var(--text-secondary)">Est. daily reach</span>
+        <span style="font-size:15px;font-weight:700;color:var(--text)"><span id="promo-reach-range">${fmt(minReach)}–${fmt(maxReach)}</span> · <span id="promo-total-cost" style="color:var(--text-secondary);font-weight:400">&#8358;${total.toLocaleString()} total</span></span>
       </div>
     </div>
 
     <div style="padding:16px 16px 28px">
-      <button class="btn btn-accent" onclick="advancePromoteStep()">Continue</button>
+      <button class="btn btn-accent" onclick="advancePromoteStep()" style="border-radius:var(--radius-pill)">Continue</button>
     </div>
   `;
 
@@ -2200,20 +2204,11 @@ const updatePromoteDisplay = () => {
 
   if($('promo-budget-display'))   $('promo-budget-display').textContent   = `₦${budget.toLocaleString()}`;
   if($('promo-duration-display')) $('promo-duration-display').textContent = days === 1 ? '1 day' : `${days} days`;
-  if($('promo-reach-range'))      $('promo-reach-range').textContent      = `${fmt(minReach)} – ${fmt(maxReach)} people`;
-  if($('promo-total-cost'))       $('promo-total-cost').textContent       = `Total: ₦${total.toLocaleString()} · ${days} day${days!==1?'s':''}`;
+  if($('promo-reach-range'))      $('promo-reach-range').textContent      = `${fmt(minReach)}–${fmt(maxReach)}`;
+  if($('promo-total-cost'))       $('promo-total-cost').textContent       = `₦${total.toLocaleString()} total`;
 
-  // Update slider fill
-  const bSlider = $('promo-budget-slider');
-  const dSlider = $('promo-duration-slider');
-  if(bSlider) {
-    const bPct = (bi / (PROMOTE_BUDGET_STEPS.length - 1)) * 100;
-    bSlider.style.background = `linear-gradient(to right,#0f1419 ${bPct}%,var(--border-dark) ${bPct}%)`;
-  }
-  if(dSlider) {
-    const dPct = (di / (PROMOTE_DURATION_STEPS.length - 1)) * 100;
-    dSlider.style.background = `linear-gradient(to right,#0f1419 ${dPct}%,var(--border-dark) ${dPct}%)`;
-  }
+  renderSliderDots('promo-budget-dots',   bi, PROMOTE_BUDGET_STEPS.length-1,   15);
+  renderSliderDots('promo-duration-dots', di, PROMOTE_DURATION_STEPS.length-1, 20);
 };
 
 const advancePromoteStep = () => {
@@ -2450,6 +2445,10 @@ const gotoTab = tab => {
   const fab = $('fab-compose');
   if (fab) fab.style.display = tab === 'home' ? 'flex' : 'none';
   const c = $('tab-content');
+  // Show skeleton immediately so there's never a blank white page
+  if (tab === 'home' || tab === 'explore' || tab === 'drop' || tab === 'handles' || tab === 'notifications' || tab === 'messages') {
+    c.innerHTML = `<div style="padding:24px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
+  }
   if (tab === 'home')          renderCommunity(c);
   if (tab === 'explore')       renderExplore(c);
   if (tab === 'drop')          renderDrop(c);
