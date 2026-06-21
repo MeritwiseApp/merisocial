@@ -1527,10 +1527,11 @@ const viewPayoutBatch = async (batchId) => {
       </div>
     </div>
     <table class="tbl">
-      <thead><tr><th>Creator</th><th>Score</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Creator</th><th>Email</th><th>Score</th><th>Amount</th><th>Status</th><th></th></tr></thead>
       <tbody>
         ${(batch.records||[]).map(r=>`<tr>
-          <td style="font-size:13px">${r.fullName}</td>
+          <td style="font-size:13px;font-weight:500">${r.fullName}</td>
+          <td style="font-size:12px;color:var(--text-3)">${r.email||'—'}</td>
           <td>${fmt(r.engagementScore)}</td>
           <td style="font-weight:600">${fmtMoney(r.shareAmount)}</td>
           <td><span class="badge ${r.status==='paid'?'badge-green':'badge-yellow'}">${r.status}</span></td>
