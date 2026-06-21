@@ -1382,25 +1382,24 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════
-     TERMS MODAL
-════════════════════════════════ -->
-<!-- PROFILE EDIT MODAL -->
-<div class="modal-center" id="modal-edit-profile">
-  <div class="modal-box" style="max-width:500px">
-    <div class="modal-box-head">
-      <button onclick="closeModal('modal-edit-profile')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:20px;line-height:1;padding:0">x</button>
-      <h3>Edit profile</h3>
+<!-- PROFILE EDIT — full-page screen, X-style -->
+<div class="screen" id="screen-edit-profile">
+  <div class="app-root">
+    <div class="topbar">
+      <button class="btn-ghost btn-sm" onclick="closeEditProfile()" style="padding:6px 10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <span style="font-size:16px;font-weight:700;color:var(--text)">Edit profile</span>
       <button class="btn btn-primary btn-sm" id="btn-save-profile" onclick="saveProfile()">Save</button>
     </div>
-    <div class="modal-box-body" style="padding:0;max-height:75vh;overflow-y:auto">
+    <div class="page">
       <div style="position:relative">
-        <div id="edit-banner-preview" onclick="$('banner-file').click()" style="height:120px;background:var(--bg);width:100%;cursor:pointer;position:relative;background-size:cover;background-position:center">
+        <div id="edit-banner-preview" onclick="$('banner-file').click()" style="height:150px;background:var(--bg);width:100%;cursor:pointer;position:relative;background-size:cover;background-position:center">
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </div>
         </div>
-        <div id="edit-avatar-preview" onclick="$('avatar-file').click()" style="position:absolute;bottom:-32px;left:16px;width:72px;height:72px;border-radius:50%;border:3px solid var(--white);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--text);cursor:pointer;overflow:hidden">
+        <div id="edit-avatar-preview" onclick="$('avatar-file').click()" style="position:absolute;bottom:-36px;left:16px;width:84px;height:84px;border-radius:50%;border:4px solid var(--white);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--text);cursor:pointer;overflow:hidden">
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </div>
@@ -1408,7 +1407,7 @@
         <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this)"/>
         <input type="file" id="banner-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadBanner(this)"/>
       </div>
-      <div style="padding:44px 20px 20px">
+      <div style="padding:48px 20px 40px">
         <div id="avatar-upload-status" style="font-size:12px;color:var(--text-tertiary);margin-bottom:12px;min-height:14px"></div>
         <div class="field"><label>Name</label><input id="edit-fullname" type="text" disabled style="opacity:.6"/></div>
         <div class="field"><label>Username</label><input id="edit-username" type="text" placeholder="yourhandle"/></div>
@@ -4952,7 +4951,7 @@ const viewFollowing = async (userId) => {
 
 // ─── EDIT PROFILE ─────────────────────────────────
 const openEditProfile = async () => {
-  openModal('modal-edit-profile');
+  showScreen('screen-edit-profile');
   const status = $('avatar-upload-status');
   if(status) status.textContent = 'Loading your profile...';
 
@@ -4984,6 +4983,12 @@ const openEditProfile = async () => {
   }
 };
 
+const closeEditProfile = () => {
+  showScreen('screen-home');
+  renderProfile($('tab-content'),'me');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+};
+
 const saveProfile = async () => {
   const username    = $('edit-username').value.trim();
   const bio         = $('edit-bio').value.trim();
@@ -4996,7 +5001,7 @@ const saveProfile = async () => {
   setBtn('btn-save-profile','Save',false);
   if(ok){
     currentUser = {...currentUser, ...(data.data||{})};
-    closeModal('modal-edit-profile');
+    showScreen('screen-home');
     toast('Profile saved.','success');
     renderProfile($('tab-content'),'me');
     updateTopbarAvatar();
