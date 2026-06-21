@@ -1518,7 +1518,7 @@
       </div>
       <div class="boost-slider-wrap">
         <input type="range" class="boost-slider" id="boost-duration-slider"
-          min="0" max="7" step="1" value="0"
+          min="0" max="8" step="1" value="0"
           oninput="updateBoostDisplay()"/>
       </div>
       <div class="boost-range-labels"><span>1 day</span><span>30 days</span></div>
@@ -2056,10 +2056,8 @@ const renderPromoteTierStep = (body) => {
   const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toString();
 
   body.innerHTML = `
-    <div class="promo-hero">
-      <div class="promo-hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <h1>${isOwnPost ? 'Promote your post' : 'Advertise on MeriSocial'}</h1>
-      <p>${isOwnPost ? 'Get your post in front of more members with priority placement in the community feed.' : 'Reach engaged Nigerian creators with a native sponsored post in the community feed.'}</p>
+    <div class="promo-hero" style="padding-top:12px">
+      <p style="margin-bottom:0">${isOwnPost ? 'Get your post in front of more members with priority placement in the community feed.' : 'Reach engaged Nigerian creators with a native sponsored post in the community feed.'}</p>
     </div>
 
     <div class="promo-step-label">Preview</div>
