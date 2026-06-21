@@ -244,6 +244,15 @@
 
     /* Page content */
     .page{flex:1;overflow-y:auto;padding:0 0 68px}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .page-fade{animation:fadeIn .18s ease}
+    .ptr-indicator{
+      height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+      transition:height .2s ease;background:var(--white);border-bottom:1px solid var(--border);
+      font-size:13px;color:var(--text-secondary);gap:8px;
+    }
+    .ptr-indicator.visible{height:44px}
+    .ptr-spin{width:16px;height:16px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 
     /* ── CONTENT CARDS ───────────────────────────────── */
     .feed-item{
@@ -1336,6 +1345,10 @@
     </div>
 
     <!-- Tab content area -->
+    <div id="ptr-indicator" class="ptr-indicator">
+      <div class="ptr-spin"></div>
+      <span>Refreshing</span>
+    </div>
     <div class="page" id="tab-content"></div>
 
     <!-- Floating compose button -->
@@ -2445,10 +2458,9 @@ const gotoTab = tab => {
   const fab = $('fab-compose');
   if (fab) fab.style.display = tab === 'home' ? 'flex' : 'none';
   const c = $('tab-content');
-  // Show skeleton immediately so there's never a blank white page
-  if (tab === 'home' || tab === 'explore' || tab === 'drop' || tab === 'handles' || tab === 'notifications' || tab === 'messages') {
-    c.innerHTML = `<div style="padding:24px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
-  }
+  c.classList.remove('page-fade');
+  void c.offsetWidth; // trigger reflow
+  c.classList.add('page-fade');
   if (tab === 'home')          renderCommunity(c);
   if (tab === 'explore')       renderExplore(c);
   if (tab === 'drop')          renderDrop(c);
@@ -2474,6 +2486,35 @@ const initApp = () => {
       }
     });
   }
+
+  // Pull-to-refresh
+  let ptrStart = 0;
+  let ptrActive = false;
+  const ptrEl = $('ptr-indicator');
+
+  document.addEventListener('touchstart', e => {
+    if (page && page.scrollTop === 0) {
+      ptrStart = e.touches[0].clientY;
+      ptrActive = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!ptrActive || !ptrEl) return;
+    const diff = e.touches[0].clientY - ptrStart;
+    if (diff > 50) ptrEl.classList.add('visible');
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!ptrActive || !ptrEl) return;
+    ptrActive = false;
+    if (ptrEl.classList.contains('visible')) {
+      _feedCache = null;
+      await renderCommunity(page, true);
+      ptrEl.classList.remove('visible');
+    }
+  });
+
   gotoTab('home');
 };
 
@@ -2702,15 +2743,25 @@ const goToPost = async (postId) => {
   }
 };
 
+let _lastNotifCheck = parseInt(localStorage.getItem('ms_last_notif_check') || '0');
+let _notifCount = 0;
+
 const refreshNotificationBadge = async () => {
   const {ok,data} = await request('/community/feed?page=1&limit=50');
   if(!ok) return;
   const myPosts = (data.data?.posts||[]).filter(p=>p.userId===currentUser?.userId);
+  const since = Date.now() - 7 * 24 * 60 * 60 * 1000;
   let count = 0;
-  myPosts.forEach(p=>{ count += (p.reactionCount||0) + (p.commentCount||0); });
+  myPosts.forEach(p=>{
+    const postTime = new Date(p.createdAt).getTime();
+    if(postTime > since) {
+      count += (p.reactionCount||0) + (p.commentCount||0);
+    }
+  });
+  _notifCount = Math.max(0, count);
   const dot = $('notif-dot');
   if(!dot) return;
-  if(count > 0){ dot.textContent = count>99?'99+':count; dot.style.display='block'; }
+  if(_notifCount > 0){ dot.textContent = _notifCount>99?'99+':_notifCount; dot.style.display='block'; }
   else dot.style.display='none';
 };
 
@@ -2718,6 +2769,8 @@ const refreshNotificationBadge = async () => {
 const renderNotifications = async (c) => {
   const dot = $('notif-dot');
   if(dot) dot.style.display='none';
+  localStorage.setItem('ms_last_notif_check', String(Date.now()));
+  _lastNotifCheck = Date.now();
   c.innerHTML=`<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
 
   // Fetch recent activity: reactions and comments on your posts
@@ -3094,6 +3147,10 @@ let communityPage = 1;
 let communityFilter = 'all';
 let communityTab  = 'all';
 let activeCommentPostId = null;
+let _feedCache = null;
+let _feedCacheFilter = null;
+let _feedCacheTime = 0;
+const FEED_CACHE_TTL = 60000; // 1 minute
 
 const REACTION_ICONS = {
   fire:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>',
@@ -3117,21 +3174,36 @@ const timeAgo = (dateStr) => {
   return `${d}d`;
 };
 
+const shimmer = `linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%)`;
+const skeletonBlock = (w='100%',h='12px',radius='6px') =>
+  `<div style="height:${h};width:${w};background:${shimmer};background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:${radius}"></div>`;
+
 const skeletonPost = () => `
   <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--white)">
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
-      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
-      <div style="flex:1">
-        <div style="height:12px;width:40%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px;margin-bottom:6px"></div>
-        <div style="height:10px;width:25%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px"></div>
+      ${skeletonBlock('38px','38px','50%')}
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        ${skeletonBlock('42%','12px')}${skeletonBlock('26%','10px')}
       </div>
     </div>
-    <div style="height:12px;width:100%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px;margin-bottom:8px"></div>
-    <div style="height:12px;width:80%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px;margin-bottom:8px"></div>
-    <div style="height:12px;width:60%;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px"></div>
+    ${skeletonBlock('100%','13px')}<div style="margin-top:7px"></div>
+    ${skeletonBlock('82%','13px')}<div style="margin-top:7px"></div>
+    ${skeletonBlock('62%','13px')}
   </div>`;
 
-const renderCommunity = async (c) => {
+const skeletonProfile = () => `
+  <div style="background:var(--white)">
+    <div style="height:150px;background:${shimmer};background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
+    <div style="padding:56px 16px 20px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--border)">
+      ${skeletonBlock('45%','18px')}${skeletonBlock('30%','13px')}${skeletonBlock('60%','13px')}
+      <div style="display:flex;gap:20px;margin-top:8px">${skeletonBlock('60px','13px')}${skeletonBlock('70px','13px')}${skeletonBlock('70px','13px')}</div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+      ${[1,2,3].map(()=>skeletonPost()).join('')}
+    </div>
+  </div>`;
+
+const renderCommunity = async (c, forceRefresh = false) => {
   communityPage   = 1;
   communityFilter = 'all';
   const isPremium = currentUser?.isPremium ||
@@ -3146,6 +3218,7 @@ const renderCommunity = async (c) => {
       <span style="font-size:13px;color:var(--text-secondary);line-height:1.4;flex:1"><strong style="color:var(--text)">Free plan.</strong> Upgrade to post, comment, and join drops. <span class="link" onclick="showScreen('screen-subscribe');loadPlans()">Upgrade</span></span>
     </div>` : ''}
 
+    <div id="trending-strip"></div>
 
     <div class="feed-tabs" id="community-filter-tabs">
       ${['all','milestone','win','tip','question'].map(t =>
@@ -3157,7 +3230,43 @@ const renderCommunity = async (c) => {
     <div id="feed-load-more" style="display:none"></div>
   `;
 
-  await loadFeedPosts(true);
+  // Load trending posts in parallel with main feed
+  Promise.all([
+    loadFeedPosts(true, forceRefresh),
+    loadTrendingStrip()
+  ]);
+};
+
+const loadTrendingStrip = async () => {
+  const strip = $('trending-strip');
+  if (!strip) return;
+  const {ok,data} = await request('/community/trending');
+  if (!ok || !data.data?.length) return;
+  const posts = data.data;
+  strip.innerHTML = `
+    <div style="padding:12px 16px 0;border-bottom:1px solid var(--border);background:var(--white)">
+      <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Trending now</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none">
+        ${posts.map((p,i) => {
+          const initials = (p.fullName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const avatarHtml = p.avatarUrl
+            ? `<img src="${API.replace('/api','')}${p.avatarUrl}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+            : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+          return `<div onclick="openPostDetail('${p.postId}')" style="flex-shrink:0;width:160px;border:1px solid var(--border);border-radius:12px;padding:10px;cursor:pointer;background:var(--white)">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+              ${avatarHtml}
+              <span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.fullName.split(' ')[0]}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml((p.body||'').slice(0,80))}</div>
+            <div style="font-size:11px;color:var(--text-tertiary);margin-top:6px;display:flex;align-items:center;gap:8px">
+              <span>${(p.reactionCount||0)} likes</span>
+              <span>${(p.commentCount||0)} comments</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
 };
 
 const switchCommunityFilter = async (filter) => {
@@ -3166,7 +3275,7 @@ const switchCommunityFilter = async (filter) => {
   document.querySelectorAll('#community-filter-tabs .feed-tab').forEach(t=>{
     t.classList.toggle('active', t.textContent.toLowerCase() === (filter==='all'?'all':filter));
   });
-  await loadFeedPosts(true);
+  await loadFeedPosts(true, forceRefresh);
 };
 
 const updateCharCount = (el) => {
@@ -3208,12 +3317,30 @@ const observeNewPosts = () => {
   });
 };
 
-const loadFeedPosts = async (reset = false) => {
+const loadFeedPosts = async (reset = false, forceRefresh = false) => {
   const container = $('feed-posts');
   if (!container) return;
 
-  if (reset) {
-    container.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+  // Serve from cache on first load if available and fresh
+  const now = Date.now();
+  if (reset && !forceRefresh && _feedCache && _feedCacheFilter === communityFilter && (now - _feedCacheTime) < FEED_CACHE_TTL) {
+    container.innerHTML = '';
+    let adInjected = false;
+    _feedCache.forEach((post, idx) => {
+      container.insertAdjacentHTML('beforeend', buildPostHTML(post));
+      if (!adInjected && idx === 4) {
+        adInjected = true;
+        request('/sponsored/active').then(({ok,data})=>{
+          if (ok && data.data) {
+            const refEl = container.children[5];
+            if (refEl) refEl.insertAdjacentHTML('afterend', buildAdHTML(data.data));
+            else container.insertAdjacentHTML('beforeend', buildAdHTML(data.data));
+          }
+        }).catch(()=>{});
+      }
+    });
+    observeNewPosts();
+    return;
   }
 
   const url = `/community/feed?page=${communityPage}&limit=20${communityFilter !== 'all' ? '&type='+communityFilter : ''}`;
@@ -3226,6 +3353,12 @@ const loadFeedPosts = async (reset = false) => {
 
   const posts = data.data?.posts || [];
   const hasMore = data.data?.pagination?.hasMore;
+
+  if (reset && communityPage === 1) {
+    _feedCache = posts;
+    _feedCacheFilter = communityFilter;
+    _feedCacheTime = Date.now();
+  }
 
   if (reset) container.innerHTML = '';
 
@@ -3514,6 +3647,7 @@ const submitPost = async () => {
       $('compose-preview-white').src = '';
     }
     updateCharCount($('compose-body'));
+    _feedCache = null; // invalidate so next load fetches fresh
     closeComposeSheet();
     const container = $('feed-posts');
     if (container) container.insertAdjacentHTML('afterbegin', buildPostHTML(data.data));
@@ -4541,7 +4675,13 @@ const renderExplore = async (c) => {
       <input type="text" id="search-input" placeholder="Search creators..." oninput="doSearch(this.value)"/>
     </div>
     <div class="section-label">Who to follow</div>
-    <div id="suggestions-list"><div style="padding:24px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div></div>
+    <div id="suggestions-list">
+      ${[1,2,3,4].map(()=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        ${skeletonBlock('40px','40px','50%')}
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">${skeletonBlock('45%','13px')}${skeletonBlock('60%','11px')}</div>
+        ${skeletonBlock('64px','32px','20px')}
+      </div>`).join('')}
+    </div>
   `;
   const {ok,data} = await request('/profile/suggestions');
   renderSuggestions(ok ? (data.data||[]) : []);
@@ -4618,6 +4758,7 @@ const viewProfile = (userId) => {
 
 // ─── PROFILE TAB ──────────────────────────────────
 const renderProfile = async (c, identifier) => {
+  c.innerHTML = skeletonProfile();
   c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
   // Always use /me for own profile — the backend handles it correctly via req.user
   const resolvedId = identifier === 'me' ? 'me' : identifier;
@@ -4678,6 +4819,10 @@ const renderProfile = async (c, identifier) => {
         ${(!isOwnProfile && data.data.followsYouBack) ? `<span style="font-size:12px;color:var(--text-secondary);background:var(--border);border-radius:4px;padding:1px 8px">Follows you</span>` : ''}
       </div>
       ${user.profession?`<div style="display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border-radius:var(--radius-pill);padding:2px 10px;margin-bottom:8px">${user.profession}</div>`:''}
+      ${data.data.badges?.length ? `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${data.data.badges.map(b=>`<span title="${b.desc}" style="font-size:11px;font-weight:600;color:var(--text);background:var(--bg);border:1px solid var(--border-dark);border-radius:var(--radius-pill);padding:3px 10px">${b.label}</span>`).join('')}
+      </div>` : ''}
       ${user.bio?`<div class="profile-bio">${escapeHtml(user.bio)}</div>`:''}
       <div class="profile-meta-row">
         ${user.location?`<span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${user.location}</span>`:''}
