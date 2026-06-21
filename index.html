@@ -1841,18 +1841,13 @@ const doCheckout = async () => {
 };
 
 // ─── PROMOTE / ADVERTISE (unified full-page flow) ──
-const PROMOTE_TIERS = [
-  { days: 1,  price: 3000,  label: '1 day' },
-  { days: 3,  price: 8000,  label: '3 days' },
-  { days: 7,  price: 18000, label: '1 week' },
-  { days: 14, price: 32000, label: '2 weeks' },
-  { days: 30, price: 60000, label: '1 month' },
-];
-let promoteTierIndex   = 1;
+const PROMOTE_BUDGET_STEPS   = [3000,5000,8000,10000,15000,20000,30000,40000,60000,100000,150000];
+const PROMOTE_DURATION_STEPS = [1,2,3,5,7,10,14,21,30];
+let promoteBudgetIdx   = 0;
+let promoteDurationIdx = 0;
 let promoteOwnPostId   = null;   // set when promoting an existing post
 let promoteOwnPostData = null;   // the post object, for preview
 let promoteStep        = 'tier'; // 'tier' -> 'details' (ad only) -> 'review'
-//let adDraft             = { advertiserName:'', advertiserEmail:'', body:'', linkUrl:'', ctaLabel:'Learn more', imageFile:null, imagePreviewUrl:null };
 let adDraft = { advertiserName:'', advertiserEmail:'', body:'', linkUrl:'', ctaLabel:'Learn more', imageFile:null, imagePreviewUrl:null, logoFile:null, logoPreviewUrl:null };
 
 const closePromoteFlow = () => {
@@ -1864,7 +1859,7 @@ const closePromoteFlow = () => {
 
 // ─── BOOST / PROMOTE SHEET ─────────────────────────────
 const BUDGET_STEPS   = [5000,8000,10000,15000,20000,30000,40000,60000,100000,150000];
-const DURATION_STEPS = [1,2,3,5,7,10,14,21];
+const DURATION_STEPS = [1,2,3,5,7,10,14,21,30];
 let boostPostId = null;
 let _boostDemoInterval = null;
 
@@ -2052,6 +2047,14 @@ const previewCardHTML = () => {
 
 const renderPromoteTierStep = (body) => {
   const isOwnPost = !!promoteOwnPostId;
+  const budget   = PROMOTE_BUDGET_STEPS[promoteBudgetIdx];
+  const days     = PROMOTE_DURATION_STEPS[promoteDurationIdx];
+  const total    = budget * days;
+  const midReach = Math.round(budget * 1.2);
+  const minReach = Math.round(midReach * 0.7);
+  const maxReach = Math.round(midReach * 1.5);
+  const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toString();
+
   body.innerHTML = `
     <div class="promo-hero">
       <div class="promo-hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
@@ -2065,25 +2068,78 @@ const renderPromoteTierStep = (body) => {
       ${previewCardHTML()}
     </div>
 
-    <div class="promo-step-label">Choose duration</div>
-    ${PROMOTE_TIERS.map((t,i)=>`
-      <div class="tier-card${promoteTierIndex===i?' selected':''}" onclick="selectPromoteTier(${i})">
-        <div class="tier-radio${promoteTierIndex===i?' on':''}"></div>
-        <div class="tier-info">
-          <div class="tier-days">${t.label}</div>
-          <div class="tier-est">${Math.round(t.days*150).toLocaleString()}&ndash;${Math.round(t.days*400).toLocaleString()} estimated impressions</div>
+    <div style="padding:0 20px">
+      <div class="boost-section" style="padding-top:20px">
+        <div class="boost-label-row">
+          <span class="boost-label">Daily budget</span>
+          <span class="boost-value" id="promo-budget-display">&#8358;${budget.toLocaleString()}</span>
         </div>
-        <div class="tier-price">&#8358;${t.price.toLocaleString()}</div>
+        <div class="boost-slider-wrap">
+          <input type="range" class="boost-slider" id="promo-budget-slider"
+            min="0" max="${PROMOTE_BUDGET_STEPS.length - 1}" step="1" value="${promoteBudgetIdx}"
+            oninput="updatePromoteDisplay()"/>
+        </div>
+        <div class="boost-range-labels"><span>&#8358;${PROMOTE_BUDGET_STEPS[0].toLocaleString()}</span><span>&#8358;${PROMOTE_BUDGET_STEPS[PROMOTE_BUDGET_STEPS.length-1].toLocaleString()}</span></div>
       </div>
-    `).join('')}
 
-    <div style="padding:8px 16px 28px">
+      <div class="boost-section" style="padding-top:8px">
+        <div class="boost-label-row">
+          <span class="boost-label">Duration</span>
+          <span class="boost-value" id="promo-duration-display">${days === 1 ? '1 day' : `${days} days`}</span>
+        </div>
+        <div class="boost-slider-wrap">
+          <input type="range" class="boost-slider" id="promo-duration-slider"
+            min="0" max="${PROMOTE_DURATION_STEPS.length - 1}" step="1" value="${promoteDurationIdx}"
+            oninput="updatePromoteDisplay()"/>
+        </div>
+        <div class="boost-range-labels"><span>1 day</span><span>30 days</span></div>
+      </div>
+
+      <div class="boost-reach" style="margin:16px 0 0">
+        <div class="boost-reach-label">Est. daily reach</div>
+        <div class="boost-reach-value" id="promo-reach-range">${fmt(minReach)} – ${fmt(maxReach)} people</div>
+        <div class="boost-reach-total" id="promo-total-cost">Total: &#8358;${total.toLocaleString()} · ${days} day${days!==1?'s':''}</div>
+      </div>
+    </div>
+
+    <div style="padding:16px 16px 28px">
       <button class="btn btn-accent" onclick="advancePromoteStep()">Continue</button>
     </div>
   `;
+
+  updatePromoteDisplay();
 };
 
-const selectPromoteTier = (i) => { promoteTierIndex = i; renderPromoteFlow(); };
+const updatePromoteDisplay = () => {
+  const bi = parseInt($('promo-budget-slider')?.value || 0);
+  const di = parseInt($('promo-duration-slider')?.value || 0);
+  promoteBudgetIdx   = bi;
+  promoteDurationIdx = di;
+  const budget = PROMOTE_BUDGET_STEPS[Math.min(bi, PROMOTE_BUDGET_STEPS.length-1)];
+  const days   = PROMOTE_DURATION_STEPS[Math.min(di, PROMOTE_DURATION_STEPS.length-1)];
+  const total  = budget * days;
+  const midReach = Math.round(budget * 1.2);
+  const minReach = Math.round(midReach * 0.7);
+  const maxReach = Math.round(midReach * 1.5);
+  const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toString();
+
+  if($('promo-budget-display'))   $('promo-budget-display').textContent   = `₦${budget.toLocaleString()}`;
+  if($('promo-duration-display')) $('promo-duration-display').textContent = days === 1 ? '1 day' : `${days} days`;
+  if($('promo-reach-range'))      $('promo-reach-range').textContent      = `${fmt(minReach)} – ${fmt(maxReach)} people`;
+  if($('promo-total-cost'))       $('promo-total-cost').textContent       = `Total: ₦${total.toLocaleString()} · ${days} day${days!==1?'s':''}`;
+
+  // Update slider fill
+  const bSlider = $('promo-budget-slider');
+  const dSlider = $('promo-duration-slider');
+  if(bSlider) {
+    const bPct = (bi / (PROMOTE_BUDGET_STEPS.length - 1)) * 100;
+    bSlider.style.background = `linear-gradient(to right,#0f1419 ${bPct}%,var(--border-dark) ${bPct}%)`;
+  }
+  if(dSlider) {
+    const dPct = (di / (PROMOTE_DURATION_STEPS.length - 1)) * 100;
+    dSlider.style.background = `linear-gradient(to right,#0f1419 ${dPct}%,var(--border-dark) ${dPct}%)`;
+  }
+};
 
 const advancePromoteStep = () => {
   if (promoteOwnPostId) { promoteStep = 'review'; }
@@ -2167,8 +2223,10 @@ const validateAdDetailsAndReview = () => {
 };
 
 const renderPromoteReviewStep = (body) => {
-  const tier = PROMOTE_TIERS[promoteTierIndex];
   const isOwnPost = !!promoteOwnPostId;
+  const budget = PROMOTE_BUDGET_STEPS[Math.min(promoteBudgetIdx, PROMOTE_BUDGET_STEPS.length-1)];
+  const days   = PROMOTE_DURATION_STEPS[Math.min(promoteDurationIdx, PROMOTE_DURATION_STEPS.length-1)];
+  const total  = budget * days;
 
   body.innerHTML = `
     <div class="promo-step-label" style="padding-top:20px">Review &amp; confirm</div>
@@ -2179,9 +2237,10 @@ const renderPromoteReviewStep = (body) => {
 
     <div class="preview-frame">
       <div class="promo-summary-row"><span class="k">${isOwnPost?'Promoting':'Advertiser'}</span><span class="v">${isOwnPost?'Your post':adDraft.advertiserName}</span></div>
-      <div class="promo-summary-row"><span class="k">Duration</span><span class="v">${tier.label}</span></div>
+      <div class="promo-summary-row"><span class="k">Daily budget</span><span class="v">&#8358;${budget.toLocaleString()}</span></div>
+      <div class="promo-summary-row"><span class="k">Duration</span><span class="v">${days} day${days!==1?'s':''}</span></div>
       <div class="promo-summary-row"><span class="k">Placement</span><span class="v">Community feed</span></div>
-      <div class="promo-summary-total"><span>Total</span><span>&#8358;${tier.price.toLocaleString()}</span></div>
+      <div class="promo-summary-total"><span>Total</span><span>&#8358;${total.toLocaleString()}</span></div>
     </div>
 
     <div style="padding:8px 16px 28px;display:flex;gap:10px">
@@ -2193,7 +2252,9 @@ const renderPromoteReviewStep = (body) => {
 };
 
 const payForPromotion = async () => {
-  const tier = PROMOTE_TIERS[promoteTierIndex];
+  const budget = PROMOTE_BUDGET_STEPS[Math.min(promoteBudgetIdx, PROMOTE_BUDGET_STEPS.length-1)];
+  const days   = PROMOTE_DURATION_STEPS[Math.min(promoteDurationIdx, PROMOTE_DURATION_STEPS.length-1)];
+  const total  = budget * days;
   setBtn('btn-promote-pay', '', true);
 
   // Helper: authenticated FormData fetch
@@ -2218,7 +2279,7 @@ const payForPromotion = async () => {
   if (promoteOwnPostId) {
     const {ok,data} = await request(`/community/posts/${promoteOwnPostId}/promote/initiate`, {
       method: 'POST',
-      body: JSON.stringify({ days: tier.days, callbackUrl: 'https://social.meritwise.app/?promote_ref=true' })
+      body: JSON.stringify({ days, dailyBudget: budget, totalAmount: total, callbackUrl: 'https://social.meritwise.app/?promote_ref=true' })
     });
     setBtn('btn-promote-pay', 'Pay & go live', false);
     if (ok && data.data?.authorization_url) window.location.href = data.data.authorization_url;
@@ -2233,7 +2294,9 @@ const payForPromotion = async () => {
   fd.append('body', adDraft.body);
   fd.append('linkUrl', adDraft.linkUrl || '');
   fd.append('ctaLabel', adDraft.ctaLabel || 'Learn more');
-  fd.append('durationDays', String(tier.days));
+  fd.append('durationDays', String(days));
+  fd.append('dailyBudget', String(budget));
+  fd.append('totalAmount', String(total));
   if (adDraft.imageFile) fd.append('image', adDraft.imageFile);
   if (adDraft.logoFile) fd.append('logo', adDraft.logoFile);
 
