@@ -4753,7 +4753,22 @@ const renderMeriScore = async (c) => {
       <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Score breakdown</div>
       ${breakdownHTML}
       <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;line-height:1.6">
-        Your MeriScore is calculated from your impressions, engagement, follower growth, earnings, and eligibility status. It updates every time you come here.
+        Your Meriscore is calculated from your impressions, engagement, follower growth, earnings, and eligibility status. It updates every time you come here.
+      </div>
+    </div>
+
+    <!-- Daily challenge -->
+    <div id="daily-challenge-card" style="margin:0 16px 16px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--white)">
+      <div style="padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Daily Challenge</div>
+          <div id="challenge-streak-display" style="font-size:12px;color:var(--text-secondary)">Loading...</div>
+        </div>
+        <div id="challenge-status-badge" style="font-size:11px;font-weight:700;border-radius:var(--radius-pill);padding:4px 12px;background:var(--bg);color:var(--text-tertiary)">Checking</div>
+      </div>
+      <div style="padding:14px 16px">
+        <div id="challenge-text" style="font-size:14px;color:var(--text);line-height:1.5;margin-bottom:14px">Loading today's challenge...</div>
+        <button id="btn-check-challenge" onclick="checkDailyChallenge()" style="width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:14px;font-weight:700;padding:12px;cursor:pointer">Check completion</button>
       </div>
     </div>
 
@@ -4778,6 +4793,59 @@ const renderMeriScore = async (c) => {
       </div>
     </div>
   `;
+
+  // Load challenge asynchronously — doesn't block score render
+  loadDailyChallenge();
+};
+
+// ─── DAILY CHALLENGE ─────────────────────────────────────────────
+const loadDailyChallenge = async () => {
+  const {ok,data} = await request('/challenges/today');
+  if (!ok) return;
+  const ch = data.data;
+
+  const textEl   = document.getElementById('challenge-text');
+  const badgeEl  = document.getElementById('challenge-status-badge');
+  const streakEl = document.getElementById('challenge-streak-display');
+  const btnEl    = document.getElementById('btn-check-challenge');
+
+  if (textEl)  textEl.textContent  = ch.challengeText;
+
+  const streakStr = ch.streakCount > 0
+    ? `${ch.streakCount} day streak${ch.streakCount >= 7 ? ' — on fire' : ''}`
+    : 'Start your streak today';
+  if (streakEl) streakEl.textContent = streakStr;
+
+  if (ch.completed) {
+    if (badgeEl) { badgeEl.textContent = 'Completed'; badgeEl.style.background = '#e6f9f3'; badgeEl.style.color = 'var(--green)'; }
+    if (btnEl)   { btnEl.textContent = 'Done for today'; btnEl.style.opacity = '.5'; btnEl.disabled = true; }
+  } else {
+    if (badgeEl) { badgeEl.textContent = 'Active'; badgeEl.style.background = 'var(--accent-light)'; badgeEl.style.color = 'var(--accent)'; }
+    if (btnEl)   { btnEl.textContent = 'Check completion'; btnEl.disabled = false; btnEl.style.opacity = '1'; }
+  }
+};
+
+const checkDailyChallenge = async () => {
+  const btn = document.getElementById('btn-check-challenge');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin:0 auto"></div>'; }
+
+  const {ok,data} = await request('/challenges/complete', {method:'POST'});
+  if (!ok) { if(btn){btn.disabled=false;btn.textContent='Check completion';} return; }
+
+  const result = data.data;
+  if (result.completed) {
+    const badgeEl  = document.getElementById('challenge-status-badge');
+    const streakEl = document.getElementById('challenge-streak-display');
+    if (badgeEl)  { badgeEl.textContent = 'Completed'; badgeEl.style.background = '#e6f9f3'; badgeEl.style.color = 'var(--green)'; }
+    if (streakEl) { streakEl.textContent = `${result.streakCount} day streak${result.streakCount >= 7 ? ' — on fire' : ''}`; }
+    if (btn)      { btn.textContent = 'Done for today'; btn.style.opacity = '.5'; btn.disabled = true; }
+    if (result.justCompleted) {
+      toast(result.streakCount >= 7 ? `${result.streakCount}-day streak! You're unstoppable.` : `Challenge complete! ${result.streakCount} day streak.`, 'success');
+    }
+  } else {
+    if (btn) { btn.disabled = false; btn.textContent = 'Not yet — keep going'; }
+    toast('Challenge not completed yet. Keep going!', '');
+  }
 };
 
 // ─── LEADERBOARD ─────────────────────────────────────────────────
