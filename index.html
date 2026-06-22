@@ -942,6 +942,32 @@
     .chat-send-btn{background:var(--accent);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
     .chat-send-btn svg{width:15px;height:15px;stroke:#fff;stroke-width:2.5}
 
+    /* ORBIT */
+    .orbit-section{padding:16px 16px 0}
+    .orbit-section-title{font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+    .orbit-creator-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--white);cursor:pointer}
+    .orbit-creator-row:active{background:var(--bg)}
+    .orbit-creator-meta{flex:1;min-width:0}
+    .orbit-creator-name{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .orbit-creator-sub{font-size:12px;color:var(--text-secondary);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .orbit-creator-stat{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;text-align:right}
+    .orbit-creator-stat-label{font-size:10px;color:var(--text-tertiary);text-align:right;margin-top:1px}
+    .orbit-msg-preview{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    .orbit-msg-preview.unread{color:var(--text);font-weight:600}
+    .orbit-time{font-size:11px;color:var(--text-tertiary);flex-shrink:0}
+    .orbit-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+    .orbit-tab-row{display:flex;border-bottom:1px solid var(--border);background:var(--white);position:sticky;top:0;z-index:10}
+    .orbit-tab{flex:1;text-align:center;padding:13px 4px;font-size:13px;font-weight:500;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font)}
+    .orbit-tab.active{color:var(--text);font-weight:700;border-bottom-color:var(--accent)}
+    .orbit-rising-card{margin:0 16px 10px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--white)}
+    .orbit-rising-card-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .orbit-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--border)}
+    .orbit-stat-cell{padding:12px 8px;text-align:center;border-right:1px solid var(--border)}
+    .orbit-stat-cell:last-child{border-right:none}
+    .orbit-stat-val{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+    .orbit-stat-key{font-size:10px;color:var(--text-tertiary);margin-top:2px}
+
+
     /* CREATOR STUDIO / STATS */
     .cs-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--white);cursor:pointer}
     .cs-row:hover{background:var(--bg)}
@@ -1316,6 +1342,10 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Stats &amp; Leaderboard
         </button>
+        <button onclick="closeDrawer();gotoTab('orbit')" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/><path d="M12 4a8 8 0 0 1 8 8"/></svg>
+          Orbit
+        </button>
         <button onclick="closeDrawer();renderCreatorStudio($('tab-content'))" style="width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:16px;font-weight:600;color:var(--text);text-align:left">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l4-4-2.5-2.5-4 4zM19 3a9 9 0 0 0-9 9c0 .5.1 1 .2 1.5L12 15.5l1.5 1.5c.5.1 1 .2 1.5.2a9 9 0 0 0 9-9V3h-5z"/></svg>
           Creator Studio
@@ -1367,16 +1397,16 @@
       </button>
       <button class="nav-btn" id="tnav-score" onclick="gotoTab('score')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        <span id="score-nav-label">Score</span>
+        <span>Score</span>
       </button>
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Drop</span>
       </button>
-      <button class="nav-btn" id="tnav-messages" onclick="gotoTab('messages')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-        <span>Messages</span>
-        <span id="msg-dot" style="display:none;position:absolute;top:4px;right:calc(50% - 18px);min-width:16px;height:16px;padding:0 4px;background:var(--accent);border-radius:9px;border:2px solid var(--white);color:#fff;font-size:10px;font-weight:700;line-height:12px;text-align:center"></span>
+      <button class="nav-btn" id="tnav-orbit" onclick="gotoTab('orbit')" style="position:relative">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/><path d="M12 4a8 8 0 0 1 8 8"/></svg>
+        <span>Orbit</span>
+        <span id="orbit-dot" style="display:none;position:absolute;top:4px;right:calc(50% - 18px);min-width:16px;height:16px;padding:0 4px;background:var(--accent);border-radius:9px;border:2px solid var(--white);color:#fff;font-size:10px;font-weight:700;line-height:12px;text-align:center"></span>
       </button>
     </nav>
   </div>
@@ -2465,6 +2495,7 @@ const gotoTab = tab => {
   if (tab === 'drop')          renderDrop(c);
   if (tab === 'handles')       renderHandles(c);
   if (tab === 'score')         renderMeriScore(c);
+  if (tab === 'orbit')         renderOrbit(c);
   if (tab === 'notifications') renderNotifications(c);
   if (tab === 'messages')      renderMessages(c);
 };
@@ -2474,7 +2505,7 @@ let _appInitialized = false;
 const initApp = () => {
   updateTopbarAvatar();
   refreshNotificationBadge();
-  refreshMessageBadge();
+  refreshOrbitBadge();
   const fab = $('fab-compose');
   if (fab) fab.style.display = 'flex';
 
@@ -4796,6 +4827,330 @@ const renderMeriScore = async (c) => {
 
   // Load challenge asynchronously — doesn't block score render
   loadDailyChallenge();
+};
+
+// ─── ORBIT TAB ───────────────────────────────────────────────────
+// Orbit = your creator network intelligence hub
+// Sections: Messages · Rising Creators · Mutual connections · Who viewed you
+let _orbitTab = 'messages';
+
+const refreshOrbitBadge = async () => {
+  const {ok,data} = await request('/messages/unread-count');
+  const dot = $('orbit-dot');
+  if (!dot) return;
+  const count = ok ? (data.data?.count || 0) : 0;
+  if (count > 0) { dot.textContent = count > 99 ? '99+' : count; dot.style.display = 'block'; }
+  else dot.style.display = 'none';
+};
+
+const renderOrbit = async (c) => {
+  _orbitTab = 'messages';
+  c.innerHTML = `
+    <div style="padding:16px 16px 12px;background:var(--white);border-bottom:1px solid var(--border)">
+      <div style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.5px">Orbit</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:1px">Your creator network, at a glance</div>
+    </div>
+
+    <div class="orbit-tab-row">
+      <button class="orbit-tab active" id="otab-messages" onclick="switchOrbitTab('messages')">Messages</button>
+      <button class="orbit-tab" id="otab-rising" onclick="switchOrbitTab('rising')">Rising</button>
+      <button class="orbit-tab" id="otab-mutual" onclick="switchOrbitTab('mutual')">Mutual</button>
+      <button class="orbit-tab" id="otab-network" onclick="switchOrbitTab('network')">Network</button>
+    </div>
+
+    <div id="orbit-body"></div>
+  `;
+
+  await renderOrbitMessages($('orbit-body'));
+};
+
+const switchOrbitTab = async (tab) => {
+  _orbitTab = tab;
+  document.querySelectorAll('.orbit-tab').forEach(t => t.classList.toggle('active', t.id === `otab-${tab}`));
+  const body = $('orbit-body');
+  if (!body) return;
+  body.innerHTML = `<div style="padding:24px;text-align:center"><div style="width:18px;height:18px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto"></div></div>`;
+  if (tab === 'messages') await renderOrbitMessages(body);
+  if (tab === 'rising')   await renderOrbitRising(body);
+  if (tab === 'mutual')   await renderOrbitMutual(body);
+  if (tab === 'network')  await renderOrbitNetwork(body);
+};
+
+// ── Messages section ──────────────────────────────────────────────
+const renderOrbitMessages = async (body) => {
+  const isPremium = currentUser?.isPremium ||
+    (currentUser?.subscriptionStatus === 'active' &&
+     currentUser?.subscriptionExpiry &&
+     new Date(currentUser.subscriptionExpiry) > new Date());
+
+  const {ok,data} = await request('/messages/conversations');
+  const convos = ok ? (data.data || []) : [];
+
+  let html = '';
+
+  if (!isPremium) {
+    html += `<div style="background:#e8f5fd;border:1px solid #b3d9f7;border-radius:12px;padding:14px 16px;margin:16px;font-size:13px;color:var(--text-secondary);line-height:1.55">
+      <strong style="color:var(--text)">Premium members can message anyone.</strong>
+      <span class="link" onclick="showScreen('screen-subscribe');loadPlans()" style="display:block;margin-top:4px">Upgrade now</span>
+    </div>`;
+  }
+
+  if (!convos.length) {
+    html += `<div class="empty" style="padding-top:32px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">No conversations yet</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">Visit any creator's profile and tap Message to start a conversation.</div>
+      <button class="btn btn-primary" style="max-width:240px;margin:0 auto" onclick="switchOrbitTab('rising')">Discover creators</button>
+    </div>`;
+  } else {
+    convos.forEach(cv => {
+      const u = cv.otherUser;
+      const initials = (u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const avatarHtml = u.avatarUrl
+        ? `<div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative"><img src="${API.replace('/api','')}${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+        : `<div style="width:46px;height:46px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+      html += `<div class="orbit-creator-row" onclick="openConversation('${cv.conversationId}')">
+        ${avatarHtml}
+        <div style="flex:1;min-width:0">
+          <div class="orbit-creator-name">${u.fullName}${getPlanCheck(u)}</div>
+          <div class="orbit-msg-preview${cv.unreadCount>0?' unread':''}">${cv.lastMessage ? escapeHtml(cv.lastMessage) : 'Say hello'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          <span class="orbit-time">${cv.lastMessageAt ? timeAgo(cv.lastMessageAt) : ''}</span>
+          ${cv.unreadCount > 0 ? `<span class="orbit-unread-dot"></span>` : ''}
+        </div>
+      </div>`;
+    });
+  }
+
+  body.innerHTML = html;
+};
+
+// ── Rising section — creators whose engagement grew recently ──────
+const renderOrbitRising = async (body) => {
+  const [{ok:sOk,data:sData},{ok:lOk,data:lData}] = await Promise.all([
+    request('/profile/suggestions?limit=20'),
+    request('/community/trending')
+  ]);
+
+  const suggestions = sOk ? (sData.data || []) : [];
+  const trending    = lOk ? (lData.data || []) : [];
+
+  // Unique userIds from trending post authors not already in suggestions
+  const trendingUsers = [];
+  const seen = new Set(suggestions.map(u => u.userId));
+  trending.forEach(p => {
+    if (!seen.has(p.userId) && p.userId !== currentUser?.userId) {
+      seen.add(p.userId);
+      trendingUsers.push({ userId: p.userId, fullName: p.fullName, avatarUrl: p.avatarUrl, isPremium: p.isPremium, subscriptionPlan: p.subscriptionPlan, stat: `${(p.reactionCount||0)+(p.commentCount||0)} engagements`, statLabel: 'trending post' });
+    }
+  });
+
+  const creators = [
+    ...trendingUsers.slice(0,5).map(u => ({...u, tag:'Trending'})),
+    ...suggestions.slice(0,10).map(u => ({...u, stat: `${u.followersCount||0} followers`, statLabel: 'on MeriSocial', tag: u.isFollowing ? null : 'Suggested'})),
+  ].filter(u => u.userId !== currentUser?.userId);
+
+  if (!creators.length) {
+    body.innerHTML = `<div class="empty"><div style="font-size:15px;font-weight:700;margin-bottom:6px">No one rising yet</div><div style="font-size:14px;color:var(--text-secondary)">Check back as more creators post and grow.</div></div>`;
+    return;
+  }
+
+  let html = `<div style="padding:14px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">Creators worth following</div>`;
+
+  creators.forEach(u => {
+    const initials = (u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const avatarHtml = u.avatarUrl
+      ? `<div style="width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${API.replace('/api','')}${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div style="width:42px;height:42px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+    html += `<div class="orbit-creator-row">
+      <div onclick="viewProfile('${u.userId}')" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+        ${avatarHtml}
+        <div style="flex:1;min-width:0">
+          <div class="orbit-creator-name">${u.fullName}${getPlanCheck(u)}${u.tag?`<span style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-light);border-radius:4px;padding:1px 6px;margin-left:4px">${u.tag}</span>`:''}</div>
+          <div class="orbit-creator-sub">${u.bio || (u.profession || 'MeriSocial creator')}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${u.stat} · ${u.statLabel}</div>
+        </div>
+      </div>
+      <button onclick="event.stopPropagation();orbitQuickFollow('${u.userId}',this)" style="background:${u.isFollowing?'var(--white)':'var(--text)'};color:${u.isFollowing?'var(--text)':'#fff'};border:${u.isFollowing?'1px solid var(--border-dark)':'none'};border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:700;padding:5px 14px;cursor:pointer;flex-shrink:0">${u.isFollowing?'Following':'Follow'}</button>
+    </div>`;
+  });
+
+  body.innerHTML = html;
+};
+
+const orbitQuickFollow = async (userId, btn) => {
+  btn.disabled = true; btn.textContent = '...';
+  const {ok,data} = await request(`/profile/follow/${userId}`, {method:'POST'});
+  if (ok) {
+    btn.disabled = false;
+    if (data.isFollowing) {
+      btn.textContent = 'Following';
+      btn.style.background = 'var(--white)'; btn.style.color = 'var(--text)'; btn.style.border = '1px solid var(--border-dark)';
+    } else {
+      btn.textContent = 'Follow';
+      btn.style.background = 'var(--text)'; btn.style.color = '#fff'; btn.style.border = 'none';
+    }
+  } else { btn.disabled = false; btn.textContent = 'Follow'; }
+};
+
+// ── Mutual section — who follows you back ────────────────────────
+const renderOrbitMutual = async (body) => {
+  const userId = currentUser?.userId;
+  if (!userId) return;
+
+  const [{ok:folOk,data:folData},{ok:ingOk,data:ingData}] = await Promise.all([
+    request(`/profile/followers/${userId}`),
+    request(`/profile/following/${userId}`)
+  ]);
+
+  const followers  = folOk ? (folData.data || []) : [];
+  const following  = ingOk ? (ingData.data || []) : [];
+  const followingIds = new Set(following.map(u => u.userId));
+  const mutuals    = followers.filter(u => followingIds.has(u.userId));
+  const justFollowYou = followers.filter(u => !followingIds.has(u.userId));
+
+  let html = '';
+
+  if (mutuals.length) {
+    html += `<div style="padding:14px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">You follow each other (${mutuals.length})</div>`;
+    mutuals.forEach(u => { html += buildOrbitUserRow(u, 'Following', null); });
+  }
+
+  if (justFollowYou.length) {
+    html += `<div style="padding:14px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;${mutuals.length?'margin-top:8px':''}">Follow you, you haven't followed back (${justFollowYou.length})</div>`;
+    justFollowYou.forEach(u => { html += buildOrbitUserRow(u, 'Follow back', u.userId); });
+  }
+
+  if (!mutuals.length && !justFollowYou.length) {
+    html = `<div class="empty"><div style="font-size:15px;font-weight:700;margin-bottom:6px">No followers yet</div><div style="font-size:14px;color:var(--text-secondary)">When someone follows you, they appear here. Build your network in the Rising tab.</div></div>`;
+  }
+
+  body.innerHTML = html;
+};
+
+const buildOrbitUserRow = (u, btnLabel, followUserId) => {
+  const initials = (u.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const avatarHtml = u.avatarUrl
+    ? `<div style="width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${API.replace('/api','')}${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+    : `<div style="width:42px;height:42px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+  const btn = followUserId
+    ? `<button onclick="event.stopPropagation();orbitQuickFollow('${followUserId}',this)" style="background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:700;padding:5px 14px;cursor:pointer;flex-shrink:0">${btnLabel}</button>`
+    : `<span style="font-size:12px;font-weight:600;color:var(--text-secondary);flex-shrink:0">${btnLabel}</span>`;
+  return `<div class="orbit-creator-row" onclick="viewProfile('${u.userId}')">
+    ${avatarHtml}
+    <div class="orbit-creator-meta">
+      <div class="orbit-creator-name">${u.fullName}${getPlanCheck(u)}</div>
+      <div class="orbit-creator-sub">${u.bio || (u.profession || 'MeriSocial creator')}</div>
+    </div>
+    ${btn}
+  </div>`;
+};
+
+// ── Network section — leaderboard + your rank + payout table ─────
+const renderOrbitNetwork = async (body) => {
+  const [{ok:lok,data:ldata},{ok:mok,data:mdata}] = await Promise.all([
+    request('/community/leaderboard'),
+    request('/community/my-stats')
+  ]);
+
+  const leaders = lok ? (ldata.data?.leaderboard || []) : [];
+  const myStats = mok ? (mdata.data || {}) : {};
+  const myRank  = leaders.findIndex(l => l.userId === currentUser?.userId) + 1;
+
+  // Top 3 payout info card
+  const payoutHTML = `
+    <div style="margin:16px 16px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--white)">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">Top 3 Monthly Payout</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">The top 3 creators on the leaderboard each month share a ₦300,000 prize pool. Rankings reset on the 1st of every month.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+        <div style="padding:14px 8px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">1st place</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">₦100k</div>
+        </div>
+        <div style="padding:14px 8px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">2nd place</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">₦100k</div>
+        </div>
+        <div style="padding:14px 8px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">3rd place</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">₦100k</div>
+        </div>
+      </div>
+      <div style="padding:10px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-tertiary);line-height:1.5">
+        Requirements: Active Premium · 250+ Premium followers · ₦10k+ locked in MeritWise · 250 followers with ₦5k+ MeritWise lock save
+      </div>
+    </div>`;
+
+  // My rank card
+  const nextReset = (() => {
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const diff = next - now;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    return `${d}d ${h}h`;
+  })();
+
+  const myRankHTML = `
+    <div style="margin:12px 16px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--white)">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Your position</div>
+        <div style="font-size:12px;color:var(--text-secondary)">Resets in ${nextReset}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+        <div style="padding:14px 8px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.5px">${myRank > 0 ? '#'+myRank : '—'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">Current rank</div>
+        </div>
+        <div style="padding:14px 8px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.5px">${(myStats.followsReceivedThisMonth||0).toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">Your score</div>
+        </div>
+        <div style="padding:14px 8px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:${myRank > 0 && myRank <= 3 ? 'var(--green)' : 'var(--text)'};letter-spacing:-.5px">${myRank > 0 && myRank <= 3 ? 'Yes' : 'No'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">Top 3</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Leaderboard list
+  let lbHtml = `<div style="padding:14px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-top:12px">This month's leaderboard</div>`;
+
+  const PLATFORM_SVG_SMALL = {
+    x: `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.264 5.638 5.9-5.638Z"/></svg>`,
+    instagram: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>`,
+    youtube:   `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 0-3.77-2.1C13.4 4.4 12 4.4 12 4.4s-1.4 0-3.82.19a4.83 4.83 0 0 0-3.77 2.1A15.51 15.51 0 0 0 4 12a15.51 15.51 0 0 0 .41 5.31 4.83 4.83 0 0 0 3.77 2.1C10.6 19.6 12 19.6 12 19.6s1.4 0 3.82-.19a4.83 4.83 0 0 0 3.77-2.1A15.51 15.51 0 0 0 20 12a15.51 15.51 0 0 0-.41-5.31zM9.75 15.02V8.98L15.5 12z"/></svg>`,
+    tiktok:    `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
+  };
+
+  if (!leaders.length) {
+    lbHtml += `<div class="empty"><div style="font-size:15px;font-weight:700;margin-bottom:6px">No rankings yet</div><div style="font-size:14px;color:var(--text-secondary)">Engage with creator drops to build your score.</div></div>`;
+  } else {
+    leaders.forEach((l, i) => {
+      const initials = (l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const avatarHtml = l.avatarUrl
+        ? `<div style="width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${API.replace('/api','')}${l.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+        : `<div style="width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+      const rankColor = i === 0 ? '#f59e0b' : i === 1 ? '#8b98a5' : i === 2 ? '#b45309' : 'var(--text-tertiary)';
+      const payBadge = i < 3 ? `<span style="font-size:10px;font-weight:700;color:#fff;background:var(--green);border-radius:4px;padding:2px 7px;margin-left:4px">₦100k</span>` : '';
+      const handles = Object.entries(l.handles||{}).filter(([,v])=>v).slice(0,2).map(([p,h])=>`<span style="display:inline-flex;align-items:center;gap:2px;font-size:11px;color:var(--accent);font-weight:500">${PLATFORM_SVG_SMALL[p]||''} ${h}</span>`).join('');
+
+      lbHtml += `<div class="orbit-creator-row" onclick="viewProfile('${l.userId}')">
+        <div style="font-size:16px;font-weight:700;min-width:24px;text-align:center;flex-shrink:0;color:${rankColor}">${l.rank}</div>
+        ${avatarHtml}
+        <div style="flex:1;min-width:0">
+          <div class="orbit-creator-name">${l.fullName}${getPlanCheck(l)}${payBadge}</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:1px">${l.clicks.toLocaleString()} engagement${l.clicks!==1?'s':''} this month</div>
+          ${handles ? `<div style="display:flex;gap:8px;margin-top:3px;flex-wrap:wrap">${handles}</div>` : ''}
+        </div>
+        ${l.userId === currentUser?.userId ? `<span class="badge badge-blue" style="flex-shrink:0">You</span>` : ''}
+      </div>`;
+    });
+  }
+
+  body.innerHTML = payoutHTML + myRankHTML + lbHtml;
 };
 
 // ─── DAILY CHALLENGE ─────────────────────────────────────────────
