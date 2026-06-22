@@ -1365,11 +1365,9 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Explore</span>
       </button>
-      <button class="nav-btn" id="tnav-pulse" onclick="gotoTab('pulse')" style="position:relative">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span id="pulse-nav-label" style="display:flex;align-items:center;gap:3px">
-          <span class="live-dot" style="width:5px;height:5px"></span>Live
-        </span>
+      <button class="nav-btn" id="tnav-score" onclick="gotoTab('score')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span id="score-nav-label">Score</span>
       </button>
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2454,8 +2452,8 @@ const restoreTopbar = () => {
 const gotoTab = tab => {
   restoreTopbar();
   closeAllPostMenus();
-  // Stop live pulse polling when leaving the pulse tab
-  if (tab !== 'pulse') clearInterval(_pulseInterval);
+  // Stop live pulse polling when leaving the score tab
+  if (tab !== 'score') clearInterval(_pulseInterval);
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const fab = $('fab-compose');
@@ -2468,7 +2466,7 @@ const gotoTab = tab => {
   if (tab === 'explore')       renderExplore(c);
   if (tab === 'drop')          renderDrop(c);
   if (tab === 'handles')       renderHandles(c);
-  if (tab === 'pulse')         renderPulse(c);
+  if (tab === 'score')         renderMeriScore(c);
   if (tab === 'notifications') renderNotifications(c);
   if (tab === 'messages')      renderMessages(c);
 };
@@ -4607,6 +4605,177 @@ document.addEventListener('click', (e) => {
   }
 });
 
+const renderMeriScore = async (c) => {
+  clearInterval(_pulseInterval);
+
+  c.innerHTML = `
+    <div style="background:var(--white);border-bottom:1px solid var(--border);padding:16px 20px 14px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.4px">MeriScore</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:2px">Your creator health at a glance</div>
+    </div>
+    <div id="meriscore-body" style="padding:32px;text-align:center">
+      <div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div>
+    </div>
+  `;
+
+  // Fetch everything in parallel
+  const [statsRes, eligRes, earningsRes, walletRes, leaderRes] = await Promise.all([
+    request('/stats/overview?range=7d'),
+    request('/stats/eligibility'),
+    request('/payouts/my-earnings'),
+    request('/stats/wallet-balance'),
+    request('/community/leaderboard'),
+  ]);
+
+  const stats    = statsRes.ok    ? statsRes.data.data      : null;
+  const elig     = eligRes.ok     ? eligRes.data.data       : null;
+  const earnings = earningsRes.ok ? earningsRes.data.data   : null;
+  const wallet   = walletRes.ok   ? walletRes.data.data     : null;
+  const leaders  = leaderRes.ok   ? leaderRes.data.data?.leaderboard || [] : [];
+
+  // Calculate MeriScore (0–1000)
+  const totals       = stats?.totals || {};
+  const impressions  = totals.impressions  || 0;
+  const engagements  = totals.engagements  || 0;
+  const followers    = totals.followersCount || currentUser?.followersCount || 0;
+  const walletBal    = wallet?.available || 0;
+  const totalEarned  = earnings?.totalEarned || 0;
+  const myRank       = leaders.findIndex(l => l.userId === currentUser?.userId) + 1;
+  const isEligible   = elig?.eligible || false;
+
+  // Score formula — weighted
+  const impScore  = Math.min(300, Math.floor((impressions / 10000) * 300));
+  const engScore  = Math.min(250, Math.floor((engagements / 500)   * 250));
+  const folScore  = Math.min(200, Math.floor((followers   / 200)   * 200));
+  const earnScore = Math.min(150, Math.floor((totalEarned / 50000) * 150));
+  const eligScore = isEligible ? 100 : 0;
+  const meriScore = impScore + engScore + folScore + earnScore + eligScore;
+
+  // Score tier
+  const tier = meriScore >= 800 ? { label: 'Elite Creator',   color: '#f59e0b' }
+             : meriScore >= 600 ? { label: 'Rising Creator',   color: '#1d9bf0' }
+             : meriScore >= 400 ? { label: 'Active Creator',   color: '#00ba7c' }
+             : meriScore >= 200 ? { label: 'Growing Creator',  color: '#8b5cf6' }
+             :                    { label: 'New Creator',       color: '#8b98a5' };
+
+  // Score ring — SVG arc
+  const pct     = Math.min(1, meriScore / 1000);
+  const radius  = 72;
+  const circ    = 2 * Math.PI * radius;
+  const dash    = pct * circ;
+  const scoreRingSVG = `
+    <svg width="180" height="180" viewBox="0 0 180 180" style="display:block;margin:0 auto">
+      <circle cx="90" cy="90" r="${radius}" fill="none" stroke="var(--border)" stroke-width="10"/>
+      <circle cx="90" cy="90" r="${radius}" fill="none"
+        stroke="${tier.color}" stroke-width="10"
+        stroke-dasharray="${dash} ${circ}"
+        stroke-dashoffset="${circ * 0.25}"
+        stroke-linecap="round"
+        style="transition:stroke-dasharray .8s ease"/>
+      <text x="90" y="82" text-anchor="middle" font-family="Inter,sans-serif" font-size="36" font-weight="700" fill="var(--text)">${meriScore}</text>
+      <text x="90" y="102" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="${tier.color}">${tier.label}</text>
+      <text x="90" y="118" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="var(--text-tertiary)">out of 1,000</text>
+    </svg>`;
+
+  // Score breakdown bars
+  const breakdown = [
+    { label: 'Impressions', value: impScore,  max: 300, color: '#1d9bf0' },
+    { label: 'Engagement',  value: engScore,  max: 250, color: '#00ba7c' },
+    { label: 'Followers',   value: folScore,  max: 200, color: '#f59e0b' },
+    { label: 'Earnings',    value: earnScore, max: 150, color: '#8b5cf6' },
+    { label: 'Eligible',    value: eligScore, max: 100, color: '#f4212e' },
+  ];
+
+  const breakdownHTML = breakdown.map(b => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="color:var(--text-secondary);font-weight:500">${b.label}</span>
+        <span style="color:var(--text);font-weight:700">${b.value}<span style="color:var(--text-tertiary);font-weight:400"> / ${b.max}</span></span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round((b.value/b.max)*100)}%;background:${b.color};border-radius:3px;transition:width .6s ease"></div>
+      </div>
+    </div>`).join('');
+
+  const body = $('meriscore-body');
+  if (!body) return;
+
+  body.innerHTML = `
+
+    <!-- Score ring -->
+    <div style="padding:28px 20px 20px;border-bottom:1px solid var(--border);background:var(--white);text-align:center">
+      ${scoreRingSVG}
+      ${myRank > 0 ? `<div style="font-size:13px;color:var(--text-secondary);margin-top:8px">Ranked <strong style="color:var(--text)">#${myRank}</strong> on the leaderboard</div>` : ''}
+    </div>
+
+    <!-- Wallet snapshot -->
+    <div style="margin:16px 16px 0;background:var(--text);border-radius:16px;padding:20px;color:#fff">
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">MeritWise Wallet</div>
+      <div style="font-size:30px;font-weight:700;letter-spacing:-.6px">&#8358;${(walletBal).toLocaleString()}</div>
+      ${(wallet?.locked||0)>0 ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">&#8358;${wallet.locked.toLocaleString()} locked</div>` : ''}
+      <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:2px">Total earned</div>
+          <div style="font-size:16px;font-weight:700">&#8358;${totalEarned.toLocaleString()}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:2px">Status</div>
+          <div style="font-size:13px;font-weight:700;color:${isEligible?'#00ba7c':'rgba(255,255,255,.5)'}">${isEligible?'Payout eligible':'Not yet eligible'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- This week stats -->
+    <div style="padding:16px 16px 0">
+      <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">This week</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.5px">${impressions.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Views</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.5px">${engagements.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Engagements</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.5px">${followers.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Followers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score breakdown -->
+    <div style="padding:0 16px 16px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">Score breakdown</div>
+      ${breakdownHTML}
+      <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;line-height:1.6">
+        Your MeriScore is calculated from your impressions, engagement, follower growth, earnings, and eligibility status. It updates every time you come here.
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div style="padding:0 16px 32px;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Grow your score</div>
+      <div onclick="renderCreatorAnalytics($('tab-content'))" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <span style="font-size:15px;font-weight:600;color:var(--text)">View full analytics</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div onclick="gotoTab('drop')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <span style="font-size:15px;font-weight:600;color:var(--text)">Join today's drop</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div onclick="renderEligibility($('tab-content'))" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <span style="font-size:15px;font-weight:600;color:var(--text)">Check payout eligibility</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div onclick="renderLeaderboard($('tab-content'))" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer">
+        <span style="font-size:15px;font-weight:600;color:var(--text)">See leaderboard</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  `;
+};
+
 // ─── LEADERBOARD ─────────────────────────────────────────────────
 const renderLeaderboard = async (c) => {
   c.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
@@ -4678,151 +4847,6 @@ const renderLeaderboard = async (c) => {
       Leaderboard resets at the start of each month.
     </div>
   `;
-};
-
-// ─── PULSE (LIVE) TAB ─────────────────────────────────────────────
-// Shows: live member count, next drop countdown, trending posts, recent activity
-let _pulseInterval = null;
-
-const renderPulse = async (c) => {
-  clearInterval(_pulseInterval);
-  c.innerHTML = `
-    <div style="padding:16px 16px 8px;background:var(--white);border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
-        <span class="live-dot"></span>
-        <span style="font-size:18px;font-weight:700;color:var(--text)">Live</span>
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary)">What's happening right now on MeriSocial</div>
-    </div>
-
-    <div id="pulse-live-card" style="margin:12px 16px 0;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">Members online now</div>
-        <span class="live-dot"></span>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <span id="pulse-online-count" style="font-size:36px;font-weight:700;color:var(--text);letter-spacing:-1.5px">—</span>
-        <span style="font-size:14px;color:var(--text-secondary)">creators active</span>
-      </div>
-      <div style="height:1px;background:var(--border);margin:14px 0"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Posts today</div>
-          <div id="pulse-posts-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Next drop in</div>
-          <div id="pulse-drop-countdown" style="font-size:20px;font-weight:700;color:var(--accent)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Reactions today</div>
-          <div id="pulse-reactions-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Members total</div>
-          <div id="pulse-members-total" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="padding:16px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">Trending right now</div>
-    <div id="pulse-trending-list">
-      ${[1,2,3].map(()=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-        ${skeletonBlock('38px','38px','50%')}
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          ${skeletonBlock('55%','13px')}${skeletonBlock('80%','12px')}${skeletonBlock('40%','11px')}
-        </div>
-      </div>`).join('')}
-    </div>
-  `;
-
-  // Load live stats + trending
-  await Promise.all([
-    loadPulseStats(),
-    loadPulseTrending()
-  ]);
-
-  // Refresh stats every 30 seconds while on this tab
-  _pulseInterval = setInterval(loadPulseStats, 30000);
-};
-
-const loadPulseStats = async () => {
-  // Derive "online now" from recent feed activity — users who posted or reacted in last 5 minutes
-  // Use the community stats endpoint we already have
-  const {ok,data} = await request('/community/my-stats').catch(()=>({ok:false}));
-
-  // Simulate live-feeling numbers from real data + recency
-  const hour = new Date().getHours();
-  const minuteSeed = Math.floor(Date.now() / 60000);
-  // Base online count on time of day (peak: 18-22 WAT) with jitter
-  const peakMultiplier = (hour >= 17 && hour <= 22) ? 1.8 : (hour >= 9 && hour <= 16) ? 1.2 : 0.7;
-  const baseOnline = Math.floor((minuteSeed % 7) * 2 + 12);
-  const onlineCount = Math.floor(baseOnline * peakMultiplier);
-
-  // Drop countdown — drops happen every 10 minutes
-  const now = new Date();
-  const secIntoTenMin = (now.getMinutes() % 10) * 60 + now.getSeconds();
-  const secsToNextDrop = 600 - secIntoTenMin;
-  const dropMins = Math.floor(secsToNextDrop / 60);
-  const dropSecs = secsToNextDrop % 60;
-
-  const el = id => document.getElementById(id);
-  if(el('pulse-online-count')) el('pulse-online-count').textContent = onlineCount.toLocaleString();
-  if(el('pulse-drop-countdown')) el('pulse-drop-countdown').textContent = `${dropMins}:${pad(dropSecs)}`;
-
-  // Fetch real feed stats for posts/reactions today
-  const {ok:fok,data:fdata} = await request('/community/feed?page=1&limit=50');
-  if(fok) {
-    const posts = fdata.data?.posts || [];
-    const today = new Date().toDateString();
-    const postsToday = posts.filter(p => new Date(p.createdAt).toDateString() === today).length;
-    const reactionsToday = posts
-      .filter(p => new Date(p.createdAt).toDateString() === today)
-      .reduce((s,p) => s + (p.reactionCount||0), 0);
-
-    if(el('pulse-posts-today'))    el('pulse-posts-today').textContent    = postsToday || '—';
-    if(el('pulse-reactions-today')) el('pulse-reactions-today').textContent = reactionsToday || '—';
-  }
-
-  // Total members — use leaderboard count as a proxy
-  const {ok:lok,data:ldata} = await request('/community/leaderboard');
-  if(lok) {
-    const count = ldata.data?.leaderboard?.length || 0;
-    if(el('pulse-members-total')) el('pulse-members-total').textContent = count > 0 ? count.toLocaleString() + '+' : '—';
-  }
-};
-
-const loadPulseTrending = async () => {
-  const list = $('pulse-trending-list');
-  if (!list) return;
-  const {ok,data} = await request('/community/trending');
-  if(!ok || !data.data?.length) {
-    list.innerHTML = `<div class="empty"><div class="empty-title">Nothing trending yet</div><div class="empty-body">Be the first to post something the community loves.</div></div>`;
-    return;
-  }
-  list.innerHTML = data.data.map((p,i) => {
-    const initials = (p.fullName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const score = (p.reactionCount||0)*3 + (p.commentCount||0)*5 + (p.viewCount||0)*0.1;
-    const avatarHtml = p.avatarUrl
-      ? `<img src="${API.replace('/api','')}${p.avatarUrl}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
-    return `<div onclick="openPostDetail('${p.postId}')" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;cursor:pointer;background:var(--white)">
-      <div style="font-size:18px;font-weight:700;color:var(--border-dark);min-width:24px;text-align:center;padding-top:8px">${i+1}</div>
-      ${avatarHtml}
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
-          <span style="font-size:13px;font-weight:700;color:var(--text)">${p.fullName}</span>${getCheckForPost(p)}
-          <span style="font-size:11px;color:var(--text-tertiary)">· ${timeAgo(p.createdAt)}</span>
-        </div>
-        <div style="font-size:13px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${escapeHtml((p.body||'').slice(0,120))}</div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-tertiary)">
-          <span>${(p.viewCount||0).toLocaleString()} views</span>
-          <span>${p.reactionCount||0} likes</span>
-          <span>${p.commentCount||0} comments</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
 };
 
 
