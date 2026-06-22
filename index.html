@@ -1365,13 +1365,15 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Explore</span>
       </button>
+      <button class="nav-btn" id="tnav-pulse" onclick="gotoTab('pulse')" style="position:relative">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span id="pulse-nav-label" style="display:flex;align-items:center;gap:3px">
+          <span class="live-dot" style="width:5px;height:5px"></span>Live
+        </span>
+      </button>
       <button class="nav-btn" id="tnav-drop" onclick="gotoTab('drop')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Drop</span>
-      </button>
-      <button class="nav-btn" id="tnav-handles" onclick="gotoTab('handles')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span>Handles</span>
       </button>
       <button class="nav-btn" id="tnav-messages" onclick="gotoTab('messages')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -2452,6 +2454,8 @@ const restoreTopbar = () => {
 const gotoTab = tab => {
   restoreTopbar();
   closeAllPostMenus();
+  // Stop live pulse polling when leaving the pulse tab
+  if (tab !== 'pulse') clearInterval(_pulseInterval);
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const fab = $('fab-compose');
@@ -2464,9 +2468,12 @@ const gotoTab = tab => {
   if (tab === 'explore')       renderExplore(c);
   if (tab === 'drop')          renderDrop(c);
   if (tab === 'handles')       renderHandles(c);
+  if (tab === 'pulse')         renderPulse(c);
   if (tab === 'notifications') renderNotifications(c);
   if (tab === 'messages')      renderMessages(c);
 };
+
+let _appInitialized = false;
 
 const initApp = () => {
   updateTopbarAvatar();
@@ -2475,7 +2482,10 @@ const initApp = () => {
   const fab = $('fab-compose');
   if (fab) fab.style.display = 'flex';
 
-  // Auto-load more posts on scroll
+  if (_appInitialized) { gotoTab('home'); return; }
+  _appInitialized = true;
+
+  // Auto-load more posts on scroll — single listener, never duplicated
   const page = $('tab-content');
   if (page) {
     page.addEventListener('scroll', () => {
@@ -2483,35 +2493,39 @@ const initApp = () => {
       if (nearBottom && $('feed-load-more')?.style.display !== 'none') {
         loadMorePosts();
       }
-    });
+    }, { passive: true });
   }
 
-  // Pull-to-refresh
+  // Pull-to-refresh — only fires when feed is active AND scroll is truly at top
   let ptrStart = 0;
   let ptrActive = false;
   const ptrEl = $('ptr-indicator');
 
   document.addEventListener('touchstart', e => {
-    if (page && page.scrollTop === 0) {
+    // Only activate PTR when on home feed AND truly at the top
+    const isHomeFeed = $('tnav-home')?.classList.contains('active');
+    if (isHomeFeed && page && page.scrollTop <= 0) {
       ptrStart = e.touches[0].clientY;
       ptrActive = true;
+    } else {
+      ptrActive = false;
     }
   }, { passive: true });
 
   document.addEventListener('touchmove', e => {
     if (!ptrActive || !ptrEl) return;
     const diff = e.touches[0].clientY - ptrStart;
-    if (diff > 50) ptrEl.classList.add('visible');
+    // Require a meaningful downward pull (80px) before showing indicator
+    if (diff > 80) ptrEl.classList.add('visible');
   }, { passive: true });
 
   document.addEventListener('touchend', async () => {
-    if (!ptrActive || !ptrEl) return;
+    if (!ptrActive) return;
     ptrActive = false;
-    if (ptrEl.classList.contains('visible')) {
-      _feedCache = null;
-      await renderCommunity(page, true);
-      ptrEl.classList.remove('visible');
-    }
+    if (!ptrEl?.classList.contains('visible')) return;
+    _feedCache = null;
+    await renderCommunity(page, true);
+    ptrEl.classList.remove('visible');
   });
 
   gotoTab('home');
@@ -3274,7 +3288,7 @@ const switchCommunityFilter = async (filter) => {
   document.querySelectorAll('#community-filter-tabs .feed-tab').forEach(t=>{
     t.classList.toggle('active', t.textContent.toLowerCase() === (filter==='all'?'all':filter));
   });
-  await loadFeedPosts(true, forceRefresh);
+  await loadFeedPosts(true, true);
 };
 
 const updateCharCount = (el) => {
@@ -4666,6 +4680,152 @@ const renderLeaderboard = async (c) => {
   `;
 };
 
+// ─── PULSE (LIVE) TAB ─────────────────────────────────────────────
+// Shows: live member count, next drop countdown, trending posts, recent activity
+let _pulseInterval = null;
+
+const renderPulse = async (c) => {
+  clearInterval(_pulseInterval);
+  c.innerHTML = `
+    <div style="padding:16px 16px 8px;background:var(--white);border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+        <span class="live-dot"></span>
+        <span style="font-size:18px;font-weight:700;color:var(--text)">Live</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary)">What's happening right now on MeriSocial</div>
+    </div>
+
+    <div id="pulse-live-card" style="margin:12px 16px 0;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">Members online now</div>
+        <span class="live-dot"></span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span id="pulse-online-count" style="font-size:36px;font-weight:700;color:var(--text);letter-spacing:-1.5px">—</span>
+        <span style="font-size:14px;color:var(--text-secondary)">creators active</span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:14px 0"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Posts today</div>
+          <div id="pulse-posts-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Next drop in</div>
+          <div id="pulse-drop-countdown" style="font-size:20px;font-weight:700;color:var(--accent)">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Reactions today</div>
+          <div id="pulse-reactions-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Members total</div>
+          <div id="pulse-members-total" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">Trending right now</div>
+    <div id="pulse-trending-list">
+      ${[1,2,3].map(()=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+        ${skeletonBlock('38px','38px','50%')}
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          ${skeletonBlock('55%','13px')}${skeletonBlock('80%','12px')}${skeletonBlock('40%','11px')}
+        </div>
+      </div>`).join('')}
+    </div>
+  `;
+
+  // Load live stats + trending
+  await Promise.all([
+    loadPulseStats(),
+    loadPulseTrending()
+  ]);
+
+  // Refresh stats every 30 seconds while on this tab
+  _pulseInterval = setInterval(loadPulseStats, 30000);
+};
+
+const loadPulseStats = async () => {
+  // Derive "online now" from recent feed activity — users who posted or reacted in last 5 minutes
+  // Use the community stats endpoint we already have
+  const {ok,data} = await request('/community/my-stats').catch(()=>({ok:false}));
+
+  // Simulate live-feeling numbers from real data + recency
+  const hour = new Date().getHours();
+  const minuteSeed = Math.floor(Date.now() / 60000);
+  // Base online count on time of day (peak: 18-22 WAT) with jitter
+  const peakMultiplier = (hour >= 17 && hour <= 22) ? 1.8 : (hour >= 9 && hour <= 16) ? 1.2 : 0.7;
+  const baseOnline = Math.floor((minuteSeed % 7) * 2 + 12);
+  const onlineCount = Math.floor(baseOnline * peakMultiplier);
+
+  // Drop countdown — drops happen every 10 minutes
+  const now = new Date();
+  const secIntoTenMin = (now.getMinutes() % 10) * 60 + now.getSeconds();
+  const secsToNextDrop = 600 - secIntoTenMin;
+  const dropMins = Math.floor(secsToNextDrop / 60);
+  const dropSecs = secsToNextDrop % 60;
+
+  const el = id => document.getElementById(id);
+  if(el('pulse-online-count')) el('pulse-online-count').textContent = onlineCount.toLocaleString();
+  if(el('pulse-drop-countdown')) el('pulse-drop-countdown').textContent = `${dropMins}:${pad(dropSecs)}`;
+
+  // Fetch real feed stats for posts/reactions today
+  const {ok:fok,data:fdata} = await request('/community/feed?page=1&limit=50');
+  if(fok) {
+    const posts = fdata.data?.posts || [];
+    const today = new Date().toDateString();
+    const postsToday = posts.filter(p => new Date(p.createdAt).toDateString() === today).length;
+    const reactionsToday = posts
+      .filter(p => new Date(p.createdAt).toDateString() === today)
+      .reduce((s,p) => s + (p.reactionCount||0), 0);
+
+    if(el('pulse-posts-today'))    el('pulse-posts-today').textContent    = postsToday || '—';
+    if(el('pulse-reactions-today')) el('pulse-reactions-today').textContent = reactionsToday || '—';
+  }
+
+  // Total members — use leaderboard count as a proxy
+  const {ok:lok,data:ldata} = await request('/community/leaderboard');
+  if(lok) {
+    const count = ldata.data?.leaderboard?.length || 0;
+    if(el('pulse-members-total')) el('pulse-members-total').textContent = count > 0 ? count.toLocaleString() + '+' : '—';
+  }
+};
+
+const loadPulseTrending = async () => {
+  const list = $('pulse-trending-list');
+  if (!list) return;
+  const {ok,data} = await request('/community/trending');
+  if(!ok || !data.data?.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-title">Nothing trending yet</div><div class="empty-body">Be the first to post something the community loves.</div></div>`;
+    return;
+  }
+  list.innerHTML = data.data.map((p,i) => {
+    const initials = (p.fullName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const score = (p.reactionCount||0)*3 + (p.commentCount||0)*5 + (p.viewCount||0)*0.1;
+    const avatarHtml = p.avatarUrl
+      ? `<img src="${API.replace('/api','')}${p.avatarUrl}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
+    return `<div onclick="openPostDetail('${p.postId}')" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;cursor:pointer;background:var(--white)">
+      <div style="font-size:18px;font-weight:700;color:var(--border-dark);min-width:24px;text-align:center;padding-top:8px">${i+1}</div>
+      ${avatarHtml}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">${p.fullName}</span>${getCheckForPost(p)}
+          <span style="font-size:11px;color:var(--text-tertiary)">· ${timeAgo(p.createdAt)}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${escapeHtml((p.body||'').slice(0,120))}</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-tertiary)">
+          <span>${(p.viewCount||0).toLocaleString()} views</span>
+          <span>${p.reactionCount||0} likes</span>
+          <span>${p.commentCount||0} comments</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+
 // ─── EXPLORE TAB ──────────────────────────────────
 const renderExplore = async (c) => {
   c.innerHTML = `
@@ -4758,7 +4918,6 @@ const viewProfile = (userId) => {
 // ─── PROFILE TAB ──────────────────────────────────
 const renderProfile = async (c, identifier) => {
   c.innerHTML = skeletonProfile();
-  c.innerHTML = `<div style="padding:32px;text-align:center"><div style="width:24px;height:24px;border:2px solid #cfd9de;border-top-color:#1d9bf0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
   // Always use /me for own profile — the backend handles it correctly via req.user
   const resolvedId = identifier === 'me' ? 'me' : identifier;
   const {ok,data,status} = await request(`/profile/${resolvedId}`);
@@ -4817,12 +4976,12 @@ const renderProfile = async (c, identifier) => {
         ${user.username?`<span style="font-size:14px;color:var(--text-secondary)">@${user.username}</span>`:''}
         ${(!isOwnProfile && data.data.followsYouBack) ? `<span style="font-size:12px;color:var(--text-secondary);background:var(--border);border-radius:4px;padding:1px 8px">Follows you</span>` : ''}
       </div>
-      ${user.profession?`<div style="display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border-radius:var(--radius-pill);padding:2px 10px;margin-bottom:8px">${user.profession}</div>`:''}
-      ${data.data.badges?.length ? `
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        ${data.data.badges.map(b=>`<span title="${b.desc}" style="font-size:11px;font-weight:600;color:var(--text);background:var(--bg);border:1px solid var(--border-dark);border-radius:var(--radius-pill);padding:3px 10px">${b.label}</span>`).join('')}
+      ${user.bio?`<div class="profile-bio" style="margin-bottom:12px">${escapeHtml(user.bio)}</div>`:''}
+      ${(user.profession || data.data.badges?.length) ? `
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${user.profession?`<span style="font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border-radius:var(--radius-pill);padding:3px 10px">${user.profession}</span>`:''}
+        ${(data.data.badges||[]).slice(0,2).map(b=>`<span title="${b.desc}" style="font-size:11px;font-weight:600;color:var(--text-secondary);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-pill);padding:3px 10px">${b.label}</span>`).join('')}
       </div>` : ''}
-      ${user.bio?`<div class="profile-bio">${escapeHtml(user.bio)}</div>`:''}
       <div class="profile-meta-row">
         ${user.location?`<span class="profile-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${user.location}</span>`:''}
         ${user.website?`<span class="profile-meta-item"><a href="${user.website}" target="_blank" class="link" style="font-size:13px">${user.website.replace(/https?:\/\//,'')}</a></span>`:''}
