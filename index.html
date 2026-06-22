@@ -2497,10 +2497,13 @@ const initApp = () => {
   let ptrActive = false;
   const ptrEl = $('ptr-indicator');
 
+  let ptrAtTop = false; // was the page truly at rest at top when touch started?
+
   document.addEventListener('touchstart', e => {
-    // Only activate PTR when on home feed AND truly at the top
     const isHomeFeed = $('tnav-home')?.classList.contains('active');
-    if (isHomeFeed && page && page.scrollTop <= 0) {
+    // Only arm PTR if we're on home AND the page has been scrolled to absolute top for a moment
+    ptrAtTop = isHomeFeed && page && page.scrollTop === 0;
+    if (ptrAtTop) {
       ptrStart = e.touches[0].clientY;
       ptrActive = true;
     } else {
@@ -2510,18 +2513,21 @@ const initApp = () => {
 
   document.addEventListener('touchmove', e => {
     if (!ptrActive || !ptrEl) return;
+    // If at any point during the move the page has scroll content above, cancel PTR
+    if (page.scrollTop > 5) { ptrActive = false; ptrEl.classList.remove('visible'); return; }
     const diff = e.touches[0].clientY - ptrStart;
-    // Require a meaningful downward pull (80px) before showing indicator
-    if (diff > 80) ptrEl.classList.add('visible');
+    // Only trigger after a deliberate 90px downward pull
+    if (diff > 90) ptrEl.classList.add('visible');
+    else ptrEl.classList.remove('visible');
   }, { passive: true });
 
   document.addEventListener('touchend', async () => {
     if (!ptrActive) return;
     ptrActive = false;
     if (!ptrEl?.classList.contains('visible')) return;
+    ptrEl.classList.remove('visible');
     _feedCache = null;
     await renderCommunity(page, true);
-    ptrEl.classList.remove('visible');
   });
 
   gotoTab('home');
@@ -4801,12 +4807,19 @@ const renderLeaderboard = async (c) => {
         `<a href="https://${platform === 'x' ? 'x' : platform}.com/${handle.replace('@','')}" target="_blank" class="lb-handle-chip" style="display:inline-flex;align-items:center;gap:3px">${PLATFORM_SVG_SMALL[platform]||''} ${handle}</a>`
       ).join('');
 
+    const initials = (l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const avatarHtml = l.avatarUrl
+      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${API.replace('/api','')}${l.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="lb-avatar">${initials}</div>`;
+
+    const rankStyle = i === 0 ? 'color:#f59e0b;font-size:18px' : i === 1 ? 'color:#8b98a5;font-size:17px' : i === 2 ? 'color:#b45309;font-size:16px' : 'color:var(--text-tertiary)';
+
     leadersHtml += `
-      <div class="lb-row">
-        <div class="lb-rank${i < 3 ? ' top' : ''}">${l.rank}</div>
-        <div class="lb-avatar">${(l.fullName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
+      <div class="lb-row" onclick="viewProfile('${l.userId}')" style="cursor:pointer">
+        <div class="lb-rank${i < 3 ? ' top' : ''}" style="${rankStyle}">${l.rank}</div>
+        ${avatarHtml}
         <div style="flex:1;min-width:0">
-          <div class="lb-name">${l.fullName}</div>
+          <div class="lb-name" style="display:flex;align-items:center;gap:3px">${l.fullName}${l.isPremium?getPlanCheck(l):''}</div>
           <div class="lb-score">${l.clicks} engagement${l.clicks !== 1 ? 's' : ''} this month</div>
           ${handleChips ? `<div class="lb-handles">${handleChips}</div>` : ''}
         </div>
