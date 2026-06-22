@@ -2452,8 +2452,6 @@ const restoreTopbar = () => {
 const gotoTab = tab => {
   restoreTopbar();
   closeAllPostMenus();
-  // Stop live pulse polling when leaving the score tab
-  if (tab !== 'score') clearInterval(_pulseInterval);
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $(`tnav-${tab}`)?.classList.add('active');
   const fab = $('fab-compose');
@@ -4607,7 +4605,6 @@ document.addEventListener('click', (e) => {
 
 
 const renderMeriScore = async (c) => {
-  clearInterval(_pulseInterval);
 
   c.innerHTML = `
     <div style="background:var(--white);border-bottom:1px solid var(--border);padding:16px 20px 14px">
@@ -4848,151 +4845,6 @@ const renderLeaderboard = async (c) => {
       Leaderboard resets at the start of each month.
     </div>
   `;
-};
-
-// ─── PULSE (LIVE) TAB ─────────────────────────────────────────────
-// Shows: live member count, next drop countdown, trending posts, recent activity
-let _pulseInterval = null;
-
-const renderPulse = async (c) => {
-  clearInterval(_pulseInterval);
-  c.innerHTML = `
-    <div style="padding:16px 16px 8px;background:var(--white);border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
-        <span class="live-dot"></span>
-        <span style="font-size:18px;font-weight:700;color:var(--text)">Live</span>
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary)">What's happening right now on MeriSocial</div>
-    </div>
-
-    <div id="pulse-live-card" style="margin:12px 16px 0;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">Members online now</div>
-        <span class="live-dot"></span>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <span id="pulse-online-count" style="font-size:36px;font-weight:700;color:var(--text);letter-spacing:-1.5px">—</span>
-        <span style="font-size:14px;color:var(--text-secondary)">creators active</span>
-      </div>
-      <div style="height:1px;background:var(--border);margin:14px 0"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Posts today</div>
-          <div id="pulse-posts-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Next drop in</div>
-          <div id="pulse-drop-countdown" style="font-size:20px;font-weight:700;color:var(--accent)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Reactions today</div>
-          <div id="pulse-reactions-today" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Members total</div>
-          <div id="pulse-members-total" style="font-size:20px;font-weight:700;color:var(--text)">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="padding:16px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">Trending right now</div>
-    <div id="pulse-trending-list">
-      ${[1,2,3].map(()=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-        ${skeletonBlock('38px','38px','50%')}
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          ${skeletonBlock('55%','13px')}${skeletonBlock('80%','12px')}${skeletonBlock('40%','11px')}
-        </div>
-      </div>`).join('')}
-    </div>
-  `;
-
-  // Load live stats + trending
-  await Promise.all([
-    loadPulseStats(),
-    loadPulseTrending()
-  ]);
-
-  // Refresh stats every 30 seconds while on this tab
-  _pulseInterval = setInterval(loadPulseStats, 30000);
-};
-
-const loadPulseStats = async () => {
-  // Derive "online now" from recent feed activity — users who posted or reacted in last 5 minutes
-  // Use the community stats endpoint we already have
-  const {ok,data} = await request('/community/my-stats').catch(()=>({ok:false}));
-
-  // Simulate live-feeling numbers from real data + recency
-  const hour = new Date().getHours();
-  const minuteSeed = Math.floor(Date.now() / 60000);
-  // Base online count on time of day (peak: 18-22 WAT) with jitter
-  const peakMultiplier = (hour >= 17 && hour <= 22) ? 1.8 : (hour >= 9 && hour <= 16) ? 1.2 : 0.7;
-  const baseOnline = Math.floor((minuteSeed % 7) * 2 + 12);
-  const onlineCount = Math.floor(baseOnline * peakMultiplier);
-
-  // Drop countdown — drops happen every 10 minutes
-  const now = new Date();
-  const secIntoTenMin = (now.getMinutes() % 10) * 60 + now.getSeconds();
-  const secsToNextDrop = 600 - secIntoTenMin;
-  const dropMins = Math.floor(secsToNextDrop / 60);
-  const dropSecs = secsToNextDrop % 60;
-
-  const el = id => document.getElementById(id);
-  if(el('pulse-online-count')) el('pulse-online-count').textContent = onlineCount.toLocaleString();
-  if(el('pulse-drop-countdown')) el('pulse-drop-countdown').textContent = `${dropMins}:${pad(dropSecs)}`;
-
-  // Fetch real feed stats for posts/reactions today
-  const {ok:fok,data:fdata} = await request('/community/feed?page=1&limit=50');
-  if(fok) {
-    const posts = fdata.data?.posts || [];
-    const today = new Date().toDateString();
-    const postsToday = posts.filter(p => new Date(p.createdAt).toDateString() === today).length;
-    const reactionsToday = posts
-      .filter(p => new Date(p.createdAt).toDateString() === today)
-      .reduce((s,p) => s + (p.reactionCount||0), 0);
-
-    if(el('pulse-posts-today'))    el('pulse-posts-today').textContent    = postsToday || '—';
-    if(el('pulse-reactions-today')) el('pulse-reactions-today').textContent = reactionsToday || '—';
-  }
-
-  // Total members — use leaderboard count as a proxy
-  const {ok:lok,data:ldata} = await request('/community/leaderboard');
-  if(lok) {
-    const count = ldata.data?.leaderboard?.length || 0;
-    if(el('pulse-members-total')) el('pulse-members-total').textContent = count > 0 ? count.toLocaleString() + '+' : '—';
-  }
-};
-
-const loadPulseTrending = async () => {
-  const list = $('pulse-trending-list');
-  if (!list) return;
-  const {ok,data} = await request('/community/trending');
-  if(!ok || !data.data?.length) {
-    list.innerHTML = `<div class="empty"><div class="empty-title">Nothing trending yet</div><div class="empty-body">Be the first to post something the community loves.</div></div>`;
-    return;
-  }
-  list.innerHTML = data.data.map((p,i) => {
-    const initials = (p.fullName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const score = (p.reactionCount||0)*3 + (p.commentCount||0)*5 + (p.viewCount||0)*0.1;
-    const avatarHtml = p.avatarUrl
-      ? `<img src="${API.replace('/api','')}${p.avatarUrl}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${initials}</div>`;
-    return `<div onclick="openPostDetail('${p.postId}')" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;cursor:pointer;background:var(--white)">
-      <div style="font-size:18px;font-weight:700;color:var(--border-dark);min-width:24px;text-align:center;padding-top:8px">${i+1}</div>
-      ${avatarHtml}
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
-          <span style="font-size:13px;font-weight:700;color:var(--text)">${p.fullName}</span>${getCheckForPost(p)}
-          <span style="font-size:11px;color:var(--text-tertiary)">· ${timeAgo(p.createdAt)}</span>
-        </div>
-        <div style="font-size:13px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${escapeHtml((p.body||'').slice(0,120))}</div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-tertiary)">
-          <span>${(p.viewCount||0).toLocaleString()} views</span>
-          <span>${p.reactionCount||0} likes</span>
-          <span>${p.commentCount||0} comments</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
 };
 
 
