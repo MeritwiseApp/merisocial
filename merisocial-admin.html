@@ -347,6 +347,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2c0 0-5 4-5 9a5 5 0 0 0 10 0c0-3-2-5-2-5s-1 3-3 3-2-2-2-2 2-2 2-5z"/></svg>
     Creator Payouts
   </button>
+  <button class="nav-item" id="nav-leaderboard-payouts" onclick="go('leaderboard-payouts')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Leaderboard Prizes
+  </button>
   <button class="nav-item" id="nav-ads" onclick="go('ads')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     Sponsored Ads
@@ -559,7 +563,8 @@ const go = page => {
     engagement:'Engagement', strikes:'Strikes', handles:'Handles',
     drip:'Drip Control', subscriptions:'Subscriptions',
     revenue:'Revenue', logs:'System Logs', settings:'Settings', community: 'Feed Moderation',
-    payouts: 'Creator Payouts', ads: 'Sponsored Ads', promotions: 'Post Promotions'
+    payouts: 'Creator Payouts', ads: 'Sponsored Ads', promotions: 'Post Promotions',
+    'leaderboard-payouts': 'Leaderboard Prizes'
   }[page] || page;
   const body = $('page-body');
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px"><div class="spinner"></div></div>';
@@ -577,6 +582,7 @@ const go = page => {
     settings:   renderSettings,
     community:  renderCommunityAdmin,
     payouts:    renderPayouts,
+    'leaderboard-payouts': renderLeaderboardPayouts,
     ads:        renderAds,
     promotions: renderPromotions,
   };
@@ -1849,6 +1855,110 @@ const loadHiddenPosts = async () => {
   const {ok:ok2,data:data2} = await req('/admin/community/posts?hidden=true&limit=100');
   renderCommunityAdmin();
 };
+
+const renderLeaderboardPayouts = () => {
+  const body = $('page-body');
+  body.innerHTML = `
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Leaderboard Monthly Prizes</h2>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <input id="lb-month-input" type="month" style="border:1px solid #cfd9de;border-radius:8px;padding:8px 12px;font-family:inherit;font-size:14px" value="${new Date().toISOString().slice(0,7)}"/>
+      <button onclick="loadLeaderboardWinners()" style="background:#0f1419;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Load winners</button>
+    </div>
+    <div id="lb-winners-area"></div>
+    <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Past prize payments</h3>
+    <div id="lb-history-area"><div style="color:#8b98a5;font-size:14px">Loading...</div></div>
+  `;
+  loadLeaderboardHistory();
+};
+
+const adminFetch = async (path, opts={}) => {
+  const {ok,data} = await req(path, opts);
+  if(!ok) throw new Error(data.message||'Request failed');
+  return data;
+};
+
+async function loadLeaderboardWinners() {
+  const month = document.getElementById('lb-month-input').value;
+  const area = document.getElementById('lb-winners-area');
+  area.innerHTML = '<div style="color:#8b98a5;font-size:14px">Loading...</div>';
+  try {
+    const res = await adminFetch(`/payouts/admin/leaderboard-winners/${month}`);
+    const { winners } = res.data;
+    if (!winners.length) { area.innerHTML = '<div style="color:#8b98a5;font-size:14px">No leaderboard data for this month yet.</div>'; return; }
+    area.innerHTML = winners.map(w => `
+      <div style="border:1px solid #eff3f4;border-radius:12px;padding:16px;margin-bottom:12px;background:#fff">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:24px;font-weight:700;color:${w.rank===1?'#f59e0b':w.rank===2?'#9ca3af':'#b45309'};min-width:32px">#${w.rank}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:700">${w.fullName}</div>
+            <div style="font-size:12px;color:#536471">${w.email}</div>
+            <div style="font-size:12px;color:#536471;margin-top:2px">${w.score} engagement${w.score!==1?'s':''} this month</div>
+          </div>
+          <div style="text-align:right">
+            ${w.payout?.status === 'paid'
+              ? `<span style="background:#e6f9f3;color:#00ba7c;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px">Paid ₦100,000</span>`
+              : `<button onclick="payLeaderboardWinner('${month}',${w.rank},'${w.userId}','${w.fullName}','${w.email}',${w.score})" style="background:${w.eligible?'#0f1419':'#cfd9de'};color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:inherit;font-size:13px;font-weight:700;cursor:${w.eligible?'pointer':'not-allowed'}">${w.eligible?'Pay ₦100,000':'Not eligible'}</button>`
+            }
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          ${[
+            ['Premium', w.checks.isPremium ? 'Yes' : 'No', w.checks.isPremium],
+            ['Premium followers', `${w.checks.premiumFollowers} / 250`, w.checks.premiumFollowersMet],
+            ['MeritWise locked', `₦${(w.checks.userLocked||0).toLocaleString()} / ₦10,000`, w.checks.userLockedMet],
+          ].map(([k,v,met]) => `
+            <div style="background:${met?'#e6f9f3':'#fef2f2'};border-radius:8px;padding:10px">
+              <div style="font-size:11px;color:#536471;margin-bottom:2px">${k}</div>
+              <div style="font-size:13px;font-weight:700;color:${met?'#00ba7c':'#f4212e'}">${v}</div>
+            </div>`).join('')}
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#8b98a5">${w.checks.followerLockNote}</div>
+      </div>
+    `).join('');
+  } catch(e) { area.innerHTML = `<div style="color:#f4212e;font-size:14px">${e.message}</div>`; }
+}
+
+async function payLeaderboardWinner(month, rank, userId, fullName, email, score) {
+  if (!confirm(`Pay ₦100,000 to ${fullName} (rank #${rank}, ${month})?\n\nThis will credit their MeritWise wallet and send a confirmation email.`)) return;
+  try {
+    const res = await adminFetch(`/payouts/admin/leaderboard-winners/${month}/${rank}/pay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, fullName, email, engagementScore: score })
+    });
+    alert(`Payment processed: ${res.data.status}`);
+    loadLeaderboardWinners();
+    loadLeaderboardHistory();
+  } catch(e) { alert('Payment failed: ' + e.message); }
+}
+
+async function loadLeaderboardHistory() {
+  const area = document.getElementById('lb-history-area');
+  if (!area) return;
+  try {
+    const res = await adminFetch('/payouts/leaderboard-history');
+    const winners = res.data;
+    if (!winners.length) { area.innerHTML = '<div style="color:#8b98a5;font-size:14px">No payments yet.</div>'; return; }
+    const byMonth = {};
+    winners.forEach(w => { if (!byMonth[w.month]) byMonth[w.month] = []; byMonth[w.month].push(w); });
+    area.innerHTML = Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0])).map(([month, ws]) => `
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:#536471;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">${new Date(month+'-01').toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</div>
+        ${ws.sort((a,b)=>a.rank-b.rank).map(w=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #eff3f4;border-radius:10px;margin-bottom:6px;background:#fff">
+            <div style="font-size:16px;font-weight:700;color:${w.rank===1?'#f59e0b':w.rank===2?'#9ca3af':'#b45309'};min-width:28px">#${w.rank}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600">${w.fullName}</div>
+              <div style="font-size:12px;color:#536471">${w.email}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:14px;font-weight:700;color:#00ba7c">₦${(w.amount||0).toLocaleString()}</div>
+              <div style="font-size:11px;color:#8b98a5">${w.paidAt ? new Date(w.paidAt).toLocaleDateString('en-NG') : ''}</div>
+            </div>
+          </div>`).join('')}
+      </div>`).join('');
+  } catch(e) { area.innerHTML = `<div style="color:#f4212e;font-size:14px">${e.message}</div>`; }
+}
 
 window.addEventListener('DOMContentLoaded', boot);
 </script>
