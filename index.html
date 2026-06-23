@@ -4241,54 +4241,155 @@ const renderCreatorStudio = async (c) => {
 const renderEarnings = async (c) => {
   c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Earnings') + `<div style="padding:32px;text-align:center"><div style="width:20px;height:20px;border:2px solid var(--border-dark);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto"></div></div>`;
 
-  const {ok,data} = await request('/payouts/my-earnings');
+  const [{ok,data}, lbRes, walletRes] = await Promise.all([
+    request('/payouts/my-earnings'),
+    request('/payouts/leaderboard-history'),
+    request('/stats/wallet-balance')
+  ]);
+
   if(!ok) {
     c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Earnings') + `<div class="empty"><div class="empty-title">Could not load</div><div class="empty-body">Try again later.</div></div>`;
     return;
   }
 
-  const { history, totalEarned } = data.data;
+  const { history, totalEarned, leaderboardTotal } = data.data;
+  const walletBal = walletRes.ok ? walletRes.data.data : null;
+  const pastWinners = lbRes.ok ? (lbRes.data.data || []) : [];
 
-  const rows = history.length ? history.map(h => `
-    <div class="earn-row">
+  // Build payout history rows
+  const rows = history.length ? history.map(h => {
+    const isLb = h.type === 'leaderboard';
+    return `<div class="earn-row" style="${isLb?'border-left:3px solid var(--yellow);padding-left:13px':''}">
       <div>
         <div class="earn-month">${new Date(h.month+'-01').toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</div>
-        <div class="earn-score">Engagement score: ${h.engagementScore.toLocaleString()}</div>
+        <div class="earn-score" style="color:${isLb?'#92620a':'var(--text-secondary)'}">
+          ${isLb ? `Top ${h.rank} Leaderboard Prize` : `Engagement score: ${h.engagementScore.toLocaleString()}`}
+        </div>
       </div>
       <div>
         <div class="earn-amount">&#8358;${h.shareAmount.toLocaleString()}</div>
         <div class="earn-status ${h.status}">${h.status==='paid'?'Paid':'Pending'}</div>
       </div>
-    </div>`).join('') : `<div class="empty"><div class="empty-title">No payouts yet</div><div class="empty-body">Keep growing your premium audience, payouts are calculated monthly for eligible creators.</div></div>`;
+    </div>`;
+  }).join('') : `<div class="empty"><div class="empty-title">No payouts yet</div><div class="empty-body">Keep growing your premium audience. Payouts are calculated monthly for eligible creators.</div></div>`;
 
-  // Also fetch live wallet balance from MeritWise
-  let walletBal = null;
-  try {
-    const wRes = await request('/stats/wallet-balance');
-    if (wRes.ok) walletBal = wRes.data.data;
-  } catch(e) {}
+  // Past leaderboard winners (social proof — last 3 months only)
+  const recentWinners = pastWinners.slice(0, 9);
+  const byMonth = {};
+  recentWinners.forEach(w => { if(!byMonth[w.month]) byMonth[w.month]=[]; byMonth[w.month].push(w); });
+  const winnersHTML = Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,3).map(([month, ws]) => `
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${new Date(month+'-01').toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</div>
+      ${ws.sort((a,b)=>a.rank-b.rank).map(w => {
+        const initials = (w.fullName||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+        const avatar = w.avatarUrl
+          ? `<img src="${API.replace('/api','')}${w.avatarUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:block"/>`
+          : `<div style="width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text)">${initials}</div>`;
+        const rankColor = w.rank===1?'#f59e0b':w.rank===2?'#9ca3af':'#b45309';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:14px;font-weight:700;color:${rankColor};min-width:20px">${w.rank}</div>
+          ${avatar}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.fullName}</div>
+            ${w.username?`<div style="font-size:11px;color:var(--text-secondary)">@${w.username}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:700;color:var(--green)">₦100,000</div>
+            <div style="font-size:10px;color:var(--text-tertiary)">${w.paidAt?new Date(w.paidAt).toLocaleDateString('en-NG',{day:'numeric',month:'short'}):''}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('') || '';
 
   c.innerHTML = csBackButton("renderCreatorStudio($('tab-content'))", 'Earnings') + `
+
+    <!-- Wallet card -->
     <div class="earn-total-card">
-      <div class="earn-total-label">Total earned (all time)</div>
-      <div class="earn-total-value">&#8358;${totalEarned.toLocaleString()}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="earn-total-label">Total earned (all time)</div>
+          <div class="earn-total-value">&#8358;${totalEarned.toLocaleString()}</div>
+        </div>
+        <button onclick="openEarningsExplainer()" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0">?</button>
+      </div>
       ${walletBal ? `
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2)">
-        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:2px">Meritwise wallet balance</div>
-        <div style="font-size:22px;font-weight:700">&#8358;${(walletBal.available||0).toLocaleString()}</div>
-        ${(walletBal.locked||0)>0?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">&#8358;${walletBal.locked.toLocaleString()} locked</div>`:''}
-        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">To withdraw, open the Meritwise app</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px">Wallet available</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.5px">&#8358;${(walletBal.available||0).toLocaleString()}</div>
+            ${(walletBal.locked||0)>0?`<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">&#8358;${walletBal.locked.toLocaleString()} locked</div>`:''}
+          </div>
+          ${(leaderboardTotal||0)>0?`<div style="text-align:right"><div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:1px">Prize earnings</div><div style="font-size:14px;font-weight:700;color:#ffd400">&#8358;${leaderboardTotal.toLocaleString()}</div></div>`:''}
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">To withdraw, open the MeritWise app</div>
       </div>` : `
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);font-size:12px;color:rgba(255,255,255,.6)">
-        Meritwise wallet will appear here once payouts are credited.
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(255,255,255,.5)">
+        Connect your MeritWise account to see your wallet balance here.
       </div>`}
     </div>
-    <div class="cs-section-title" style="padding-top:0">Payout history</div>
+
+    <!-- Payout history -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px">
+      <div class="cs-section-title" style="padding:0;margin:0">Payout history</div>
+      <button onclick="openEarningsExplainer()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--accent);font-weight:600;padding:0">How payouts work</button>
+    </div>
     ${rows}
-    <div style="font-size:11px;color:var(--text-tertiary);padding:16px;text-align:center;line-height:1.6">
-      Payouts are calculated from a shared monthly pool, split by your engagement score relative to other eligible creators. Funds are sent to your linked payment method once available.
+
+    <!-- Past winners — social proof -->
+    ${winnersHTML ? `
+    <div style="padding:16px 16px 8px;margin-top:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px">Recent prize winners</div>
+        <div style="font-size:11px;color:var(--text-tertiary)">₦100,000 each</div>
+      </div>
+      ${winnersHTML}
+    </div>` : ''}
+
+    <div style="font-size:11px;color:var(--text-tertiary);padding:16px;text-align:center;line-height:1.7">
+      Payouts are sent directly to your MeritWise wallet. Open the MeritWise app to transfer to your bank.
     </div>
   `;
+};
+
+// ─── Earnings explainer modal ─────────────────────────────────────
+const openEarningsExplainer = () => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:flex;align-items:flex-end';
+  overlay.innerHTML = `
+    <div style="background:var(--white);width:100%;border-radius:20px 20px 0 0;padding:24px 20px 40px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
+      <div style="width:36px;height:4px;background:var(--border-dark);border-radius:2px;margin:0 auto 20px"></div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px">How earnings work</div>
+
+      <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">Creator Revenue Share</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:16px">
+        Every month, MeriSocial puts a portion of ad and promotion revenue into a shared pool. Eligible creators split that pool based on their engagement score — calculated from impressions, likes, and comments on their posts. The more you post quality content and grow a premium audience, the higher your share.
+      </div>
+
+      <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">To qualify for Revenue Share</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:16px">
+        You need an active Premium subscription, at least 50 Premium followers, 50,000 or more impressions in the last 3 months, and zero active strikes. Check your eligibility in Creator Studio.
+      </div>
+
+      <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">Top 3 Monthly Prize — ₦100,000 each</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:16px">
+        The top 3 creators on the monthly leaderboard each win ₦100,000 in addition to their revenue share. The leaderboard ranks creators by engagements given during the month. It resets on the 1st of every month.
+      </div>
+
+      <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">To qualify for the Prize</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:16px">
+        You must be Premium, have at least 250 Premium followers, hold at least ₦10,000 locked in your MeritWise wallet, and 250 of your followers must each have at least ₦5,000 locked in MeritWise. All checks are verified by the MeriSocial team before payment.
+      </div>
+
+      <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">When do I get paid?</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:24px">
+        Payouts are reviewed and processed within the first 7 days of each month for the previous month. Funds go directly into your MeritWise wallet. Open MeritWise to transfer to your bank.
+      </div>
+
+      <button onclick="this.closest('[style*=\"fixed\"]').remove()" style="width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:15px;font-weight:700;padding:15px;cursor:pointer">Got it</button>
+    </div>`;
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 };
 
 
@@ -5150,7 +5251,31 @@ const renderOrbitNetwork = async (body) => {
     });
   }
 
-  body.innerHTML = payoutHTML + myRankHTML + lbHtml;
+  // Past winners strip
+  const {ok:pwOk,data:pwData} = await request('/payouts/leaderboard-history');
+  const pastW = pwOk ? (pwData.data||[]).slice(0,6) : [];
+  let pastWHTML = '';
+  if (pastW.length) {
+    pastWHTML = `<div style="padding:14px 16px 8px;font-size:12px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">Recent prize winners</div>
+    <div style="padding:0 16px 16px">
+      ${pastW.map(w=>{
+        const initials=(w.fullName||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+        const avatar=w.avatarUrl?`<img src="${API.replace('/api','')}${w.avatarUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:block"/>`:`<div style="width:30px;height:30px;border-radius:50%;background:var(--bg);border:1px solid var(--border-dark);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text)">${initials}</div>`;
+        const rankColor=w.rank===1?'#f59e0b':w.rank===2?'#9ca3af':'#b45309';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:700;color:${rankColor};min-width:18px">${w.rank}</div>
+          ${avatar}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.fullName}</div>
+            <div style="font-size:11px;color:var(--text-tertiary)">${new Date((w.month||'2025-01')+'-01').toLocaleDateString('en-NG',{month:'short',year:'numeric'})}</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--green);flex-shrink:0">₦100,000</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  body.innerHTML = payoutHTML + myRankHTML + lbHtml + pastWHTML;
 };
 
 // ─── DAILY CHALLENGE ─────────────────────────────────────────────
