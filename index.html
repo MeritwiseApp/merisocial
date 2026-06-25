@@ -1476,7 +1476,7 @@
 
     <div class="terms-section">
       <h3>1. Platform overview</h3>
-      <p>MeriSocial is a creator growth and social platform operated by MeritWise Enterprises Limited. By creating an account, you agree to these terms in full. MeriSocial connects creators, enables content sharing, creator earnings, and community building.</p>
+      <p>MeriSocial is a creator growth and social platform operated by Meritwise Enterprises Limited. By creating an account, you agree to these terms in full. MeriSocial connects creators, enables content sharing, creator earnings, and community building.</p>
     </div>
     <div class="terms-section">
       <h3>2. Eligibility</h3>
@@ -1496,7 +1496,7 @@
     </div>
     <div class="terms-section">
       <h3>6. Creator earnings and payouts</h3>
-      <p>Eligible creators receive monthly payouts from a revenue pool funded by platform advertising and promotional income. Eligibility requires: an active Premium subscription, a minimum of 50 Premium followers, 50,000+ impressions in the last 3 months, and zero active strikes. Payouts are calculated proportionally by engagement score. MeriSocial reserves the right to adjust eligibility criteria and pool size. Payouts are disbursed to your linked MeritWise wallet. MeriSocial is not liable for delays caused by wallet activation or third-party payment processors.</p>
+      <p>Eligible creators receive monthly payouts from a revenue pool funded by platform advertising and promotional income. Eligibility requires: an active Premium subscription, a minimum of 50 Premium followers, 50,000+ impressions in the last 3 months, and zero active strikes. Payouts are calculated proportionally by engagement score. MeriSocial reserves the right to adjust eligibility criteria and pool size. Payouts are disbursed to your linked Meritwise wallet. MeriSocial is not liable for delays caused by wallet activation or third-party payment processors.</p>
     </div>
     <div class="terms-section">
       <h3>7. Subscriptions and payments</h3>
@@ -4322,10 +4322,10 @@ const renderEarnings = async (c) => {
           </div>
           ${(leaderboardTotal||0)>0?`<div style="text-align:right"><div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:1px">Prize earnings</div><div style="font-size:14px;font-weight:700;color:#ffd400">&#8358;${leaderboardTotal.toLocaleString()}</div></div>`:''}
         </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">To withdraw, open the MeritWise app</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">To withdraw, open the Meritwise app</div>
       </div>` : `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(255,255,255,.5)">
-        Connect your MeritWise account to see your wallet balance here.
+        Connect your Meritwise account to see your wallet balance here.
       </div>`}
     </div>
 
@@ -4347,7 +4347,7 @@ const renderEarnings = async (c) => {
     </div>` : ''}
 
     <div style="font-size:11px;color:var(--text-tertiary);padding:16px;text-align:center;line-height:1.7">
-      Payouts are sent directly to your MeritWise wallet. Open the MeritWise app to transfer to your bank.
+      Payouts are sent directly to your Meritwise wallet. Open the Meritwise app to transfer to your bank.
     </div>
   `;
 };
@@ -4356,6 +4356,7 @@ const renderEarnings = async (c) => {
 const openEarningsExplainer = () => {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:flex;align-items:flex-end';
+  overlay.id = 'earnings-explainer-overlay';
   overlay.innerHTML = `
     <div style="background:var(--white);width:100%;border-radius:20px 20px 0 0;padding:24px 20px 40px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
       <div style="width:36px;height:4px;background:var(--border-dark);border-radius:2px;margin:0 auto 20px"></div>
@@ -4378,17 +4379,17 @@ const openEarningsExplainer = () => {
 
       <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">To qualify for the Prize</div>
       <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:16px">
-        You must be Premium, have at least 250 Premium followers, hold at least ₦10,000 locked in your MeritWise wallet, and 250 of your followers must each have at least ₦5,000 locked in MeritWise. All checks are verified by the MeriSocial team before payment.
+        You must be Premium, have at least 250 Premium followers, hold at least ₦10,000 locked in your Meritwise wallet, and 250 of your followers must each have at least ₦5,000 locked in Meritwise. All checks are verified by the MeriSocial team before payment.
       </div>
 
       <div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px">When do I get paid?</div>
       <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-bottom:24px">
-        Payouts are reviewed and processed within the first 7 days of each month for the previous month. Funds go directly into your MeritWise wallet. Open MeritWise to transfer to your bank.
+        Payouts are reviewed and processed within the first 7 days of each month for the previous month. Funds go directly into your Meritwise wallet. Open Meritwise to transfer to your bank.
       </div>
 
-      <button onclick="this.closest('[style*=\"fixed\"]').remove()" style="width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:15px;font-weight:700;padding:15px;cursor:pointer">Got it</button>
+      <button onclick="document.getElementById('earnings-explainer-overlay').remove()" style="width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:15px;font-weight:700;padding:15px;cursor:pointer">Got it</button>
     </div>`;
-  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  overlay.addEventListener('click', e => { if(e.target===overlay) document.getElementById('earnings-explainer-overlay')?.remove(); });
   document.body.appendChild(overlay);
 };
 
@@ -4468,7 +4469,7 @@ const renderEligibility = async (c) => {
     <div style="padding:20px 16px 8px">
       <div style="font-size:14px;color:var(--text-secondary);line-height:1.5">
         ${eligible
-          ? "You meet MeriSocial's requirements for Creator Revenue Sharing. Payouts are reviewed monthly and sent to your linked MeritWise wallet."
+          ? "You meet MeriSocial's requirements for Creator Revenue Sharing. Payouts are reviewed monthly and sent to your linked Meritwise wallet."
           : "Unfortunately, you're not yet eligible for Creator Revenue Sharing. You'll need to meet the requirements below to participate."}
       </div>
     </div>
@@ -4846,7 +4847,7 @@ const renderMeriScore = async (c) => {
 
     <!-- Wallet snapshot -->
     <div style="margin:16px 16px 0;background:var(--text);border-radius:16px;padding:20px;color:#fff">
-      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">MeritWise Wallet</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Meritwise Wallet</div>
       <div style="font-size:30px;font-weight:700;letter-spacing:-.6px">&#8358;${(walletBal).toLocaleString()}</div>
       ${(wallet?.locked||0)>0 ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">&#8358;${wallet.locked.toLocaleString()} locked</div>` : ''}
       <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)">
@@ -5180,7 +5181,7 @@ const renderOrbitNetwork = async (body) => {
         </div>
       </div>
       <div style="padding:10px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-tertiary);line-height:1.5">
-        Requirements: Active Premium · 250+ Premium followers · ₦10k+ locked in MeritWise · 250 followers with ₦5k+ MeritWise lock save
+        Requirements: Active Premium · 250+ Premium followers · ₦10k+ locked in Meritwise · 250 followers with ₦5k+ Meritwise lock save
       </div>
     </div>`;
 
