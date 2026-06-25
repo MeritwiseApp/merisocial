@@ -1863,6 +1863,7 @@ const renderLeaderboardPayouts = () => {
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
       <input id="lb-month-input" type="month" style="border:1px solid #cfd9de;border-radius:8px;padding:8px 12px;font-family:inherit;font-size:14px" value="${new Date().toISOString().slice(0,7)}"/>
       <button onclick="loadLeaderboardWinners()" style="background:#0f1419;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Load winners</button>
+      <button onclick="refreshLockCache()" id="btn-refresh-cache" style="background:#fff;color:#0f1419;border:1px solid #cfd9de;border-radius:8px;padding:9px 18px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Refresh lock cache</button>
     </div>
     <div id="lb-winners-area"></div>
     <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Past prize payments</h3>
@@ -1957,6 +1958,19 @@ async function loadLeaderboardWinners() {
       </div>
     `).join('');
   } catch(e) { area.innerHTML = `<div style="color:#f4212e;font-size:14px">${e.message}</div>`; }
+}
+
+async function refreshLockCache() {
+  const btn = document.getElementById('btn-refresh-cache');
+  if (btn) { btn.disabled = true; btn.textContent = 'Refreshing...'; }
+  try {
+    await adminFetch('/payouts/admin/refresh-lock-cache', { method: 'POST' });
+    toast('Lock cache refreshed. Reload winners to see updated balances.', 'success');
+  } catch(e) {
+    toast('Refresh failed: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Refresh lock cache'; }
+  }
 }
 
 async function verifyFollowerLocks(month, rank, userId, fullName, email) {
