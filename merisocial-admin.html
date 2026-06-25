@@ -1913,14 +1913,46 @@ async function loadLeaderboardWinners() {
               <div style="font-size:13px;font-weight:700;color:${met?'#00ba7c':'#f4212e'}">${v}</div>
             </div>`).join('')}
         </div>
-        <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div style="font-size:11px;color:#8b98a5;flex:1">${w.checks.followerLockNote}</div>
-          ${!w.checks.followerLockVerified ? `
-            <button onclick="verifyFollowerLocks('${month}',${w.rank},'${w.userId}','${w.fullName}','${w.email}')"
-              style="background:#0f1419;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">
-              Mark follower locks verified
-            </button>` : `
-            <span style="font-size:12px;font-weight:600;color:#00ba7c;flex-shrink:0">Follower locks confirmed</span>`}
+        <div style="margin-top:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <div style="font-size:11px;color:#8b98a5;flex:1">${w.checks.followerLockNote}</div>
+            ${!w.checks.followerLockVerified ? `
+              <button onclick="verifyFollowerLocks('${month}',${w.rank},'${w.userId}','${w.fullName}','${w.email}')"
+                style="background:#0f1419;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">
+                Mark verified manually
+              </button>` : `
+              <span style="font-size:12px;font-weight:600;color:#00ba7c;flex-shrink:0">Confirmed</span>`}
+          </div>
+          ${w.checks.followerLockDetails?.length ? `
+          <div style="border:1px solid #eff3f4;border-radius:8px;overflow:hidden;margin-top:6px">
+            <div style="padding:8px 12px;background:#f7f9fa;border-bottom:1px solid #eff3f4;font-size:11px;font-weight:700;color:#536471;text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between">
+              <span>Premium followers (${w.checks.followerLockDetails.length} checked)</span>
+              <span>${w.checks.followersWith5k} have ₦5,000+</span>
+            </div>
+            <div style="max-height:220px;overflow-y:auto">
+              ${w.checks.followerLockDetails.map(f => `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #eff3f4">
+                  <div style="width:28px;height:28px;border-radius:50%;background:#e8f5fd;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1d9bf0;flex-shrink:0">
+                    ${(f.fullName||'?')[0].toUpperCase()}
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:#0f1419;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.fullName}</div>
+                    <div style="font-size:11px;color:#536471">${f.email}</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0">
+                    <div style="font-size:13px;font-weight:700;color:${f.locked>=5000?'#00ba7c':'#f4212e'}">₦${(f.locked||0).toLocaleString()}</div>
+                    <div style="font-size:10px;color:#8b98a5">locked</div>
+                  </div>
+                </div>`).join('')}
+            </div>
+            ${w.checks.followerLockDetails.length >= 50 ? `
+            <div style="padding:8px 12px;background:#fffbeb;font-size:11px;color:#b45309;border-top:1px solid #eff3f4">
+              Showing first 50 premium followers. If 50 already qualify, the full 250 requirement check passes automatically once you have 250+ premium followers.
+            </div>` : ''}
+          </div>` : `
+          <div style="font-size:12px;color:#8b98a5;padding:8px 0">
+            No premium followers yet — followers must be Premium subscribers to count toward this requirement.
+          </div>`}
         </div>
       </div>
     `).join('');
